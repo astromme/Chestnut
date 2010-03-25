@@ -1,0 +1,14 @@
+Some notes about stuff
+
+What we want at the End User level
+----------------------------------
+* Barrier synchronization
+* modular/pipelining design/flow
+
+What we want to hide from the End User
+--------------------------------------
+* making (certain) data types "Cuda-ready"
+==> i.e. Graph to Adjacency Matrix
+
+Use Cases
+---------
