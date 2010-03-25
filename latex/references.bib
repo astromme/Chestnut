@@ -1,3 +1,19 @@
+@article{han,
+  author = {Tianyi David Han and Tarek S. Abdelrahman},
+  title = {{hiCUDA: A High-level Directive-based Language for GPU Programming}},
+  journal = {GPGPU???},
+  volume = {09???},
+  number = {???},
+  pages = {1-10???},
+  month = {March},
+  year = {2009},
+  annote = "
+Converting existing programs from a singly threaded model to the CUDA model can take significant time and experience, partly because of the mechanical conversions needed such as computing array references instead of using loops. hiCUDA is an example of an OpenMP style C preprocessor language that allows the programmer wrap his singly threaded loops to allow them to be automatically parallelized by CUDA. It was found that examples written with the prototype hiCUDA implementation did not perform significantly worse than the same examples written directly with CUDA. Additionally, the hiCUDA examples were more concise and better fit into existing loop-based computation models that are often present in single threaded programs. \\
+\\
+This research is useful to us because it shows a similar abstraction to what we want to accomplish. We think that ease-of-use enhancements can emerge from hiding certain aspects of writing software for the GPU, such as moving data between the system RAM and the GPU RAM, writing functions to figure out what parts of the data to modify and writing code to physically convert data from its native format to arrays and back again. This is also a good example of showing how pre-existing parallel concepts and frameworks (shared-memory loop-parallelism OpenMP) can be extended to the graphics card.
+"
+}
+
 @article{resnick,
    author = {Mitchel Resnick and John Maloney and Andr\'{e} Monroy-Hern\'{a}ndez and Natalie Rusk and Evelyn Eastmond and Karen Brennan and Amon Millner and Eric Rosenbaum and Jay Silver and Brian Silverman and Yasmin Kafai},
    title = {{Scratch: Programming for All}},
