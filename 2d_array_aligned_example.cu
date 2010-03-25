@@ -7,6 +7,17 @@
 #include <cuda_runtime_api.h>
 
 
+// The idea with an aligned array is that the GPU will perform better if you pad
+// it's data array so that it can fit better in cache. CUDA accomplishes this
+// with the cudaMallocPitch() call. pitch (of type size_t) is the number of bytes
+// per row in the array on the device. This is equivilent to
+// sizeof(arraytype)*(columns + paddingColumns) OR sizeof(arraytype)*numDeviceColumns
+// 
+// This does mean that care must be taken when copying data to and from the device
+// because the array is no longer completely linear (it has padding).
+// CUDA offers a convenience function called cudaMemcpy2D() which allows you to specify
+// the array rows/cols as well as the pitch for the source and the destination
+
 // Prototypes
 __global__ void grow(float* array, int cols, int pitch);
 __global__ void shrink(float* array, int cols, int pitch);
