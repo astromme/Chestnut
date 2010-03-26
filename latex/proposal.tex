@@ -28,7 +28,7 @@ Finally, we need to consider the paradigm of actually programming for a graphics
 \section{Solution}
 Our language will be an abstraction of the GPGPU programming model that is implemented using CUDA. The primary and critical goals are to have a readable and simple language that exposes the GPGPU paradigm. This paradigm will be explored through the creation of 3-5 distinct use-cases and the implementation of these cases in raw CUDA. From the core concepts of this paradigm we will create the syntax and keywords of this higher level language and then create a parser/compiler that can translate it to a CUDA program that is compilable/runnable on the GPU. <<Insert bit about low floor, wide walls, high ceiling>>
 
-We hope to have a number of features present in this language. There will be some concept of a chunk of data as well as a set of data as a whole. Objects or functions will be able to process small parts of this data which will be the place that parallelization will occur. 
+We hope to have a number of features present in this language. There will be some concept of a chunk of data as well as a set of data as a whole. Objects or functions will be able to process small parts of this data which will be the place that parallelization will occur. These functions can conceptially be organized into a pipeline which we feel is an important concept with GPGPU programming. The pipeline will process an individual chunk of data but it will be run in parallel with a number of other identical pipelines. We would also like to explore having a toolbox of data manipulation functions such as Map, Reduce, and Sort. This 
 
 
 \section{Experiments}
