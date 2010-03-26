@@ -38,33 +38,48 @@ After our language has been developed and prototyped we plan to run a number of 
 Crucial to this project is the CUDA developer kit from Nvidia and a CUDA-enabled GPU to use this framework on. The CS lab computers already have CUDA SDK 2.2 which is sufficent for our work. Additionally, a number of the computers in the lab have new enough graphics cards that support CUDA. Nvidia has just released CUDA SDK 3.0 which, among other things, supports C++ code for the parts that run on the graphics card. If we feel this would help us in writing our language we can look into having it installed on the CS computers but for now it doesn't seem necessary. Our language parser/compiler will be built using GNU Bison and/or Lex. Both are installed on CS computers. If we get to the GUI parts of our project the interfaces will be built using the Qt Toolkit (http://qt.nokia.com) which is also already installed on the CS machines. We have investigated MIT Scratch locally but it might be interesting to have a working copy on the lab machines. If we near this part of the project we will address the installation then.
 
 \section{Schedule}
-March 27 => 1 => exploring CUDA with simple projects
-  - The concepts behind writing CUDA programs are new to us. We need some time to explore them by writing small example programs, following tutorials, setting up the cmake buildsystem, and reading about CUDA concepts and workflows. We don't expect that any of these small programs will make large impacts on our use-cases or language but they allow for the crucial experimentation stage to learn CUDA.
-March 30 => 2 => design/implement 3-5 use-cases
-  To gather principles of writing programs for the GPU we will identify and implement (in CUDA), 3-5 example programs/algorithms. The current ideas are the following:
-  - Fluid/Physics Simulation
-    * This requires some limited interdependence of data as well as a lot of raw computation and a lot of timesteps.
-  - Matrix Operations
-  - Reduce (axis/threshold)
-    * Reduce is a common concept when working with large sets of data. It is useful to perform in parallel and requires good synchronization support within CUDA and our language
-  - Sort
-    * Sorting is also a common time-consuming concept that requires synchronization.
-  - Realtime Stream Processing
 
-April 1  => 3 => abstract overarching principles from use cases
-  From these use-cases we will group similar concepts/programming paths and abstract those into language constructs. These concepts need to be able to support the group of use-cases that we have identified, so they will set the bare minimum of what our language is able to be used for.
+\subsubsection*{1: Exploring CUDA with simple projects (March 27)}
+\begin{itemize}
+  \item The concepts behind writing CUDA programs are new to us. We need some time to explore them by writing small example programs, following tutorials, setting up the cmake buildsystem, and reading about CUDA concepts and workflows. We don't expect that any of these small programs will make large impacts on our use-cases or language but they allow for the crucial experimentation stage to learn CUDA.
+  \end{itemize}
 
-April 5  => 4 => design language around core principles
-  We expect this (and the above) to be an important and a difficult step. As explained previously, we are aiming to have a 'low floor'; ideally our language would start off with a very simple complete example. From there we can add more complexity to the language to allow for more problems but it is important to keep the simplicity, even if it means hiding away features that could enhance performance. This is also the stage where we would really like to have input from other people. We plan to be finished with this milestone by the time that the mid-way presentation happens so that we can incorporate feedback and review our decisions.
+\subsubsection*{2: Design \& implement 3-5 use cases (March 30)}
+\begin{itemize}
+  \item To gather principles of writing programs for the GPU we will identify and implement (in CUDA), 3-5 example programs/algorithms. The current ideas are the following:
+    \begin{itemize}
+      \item Fluid/Physics Simulation -- this requires some limited interdependence of data as well as a lot of raw computation and a lot of timesteps.
+      \item Matrix Operations
+      \item Reduce (along an axis/threshold) -- reduce is a common concept when working with large sets of data. It is useful to perform in parallel and requires good synchronization support within CUDA and our language
+      \item Sort -- sorting is also a common time-consuming concept that requires synchronization.
+      \item Realtime Stream Processing
+  \end{itemize}
+\end{itemize}
+
+\subsubsection*{3: Abstract overarching principles from use cases (April 1)}
+\begin{itemize}
+  \item From these use-cases we will group similar concepts/programming paths and abstract those into language constructs. These concepts need to be able to support the group of use-cases that we have identified, so they will set the bare minimum of what our language is able to be used for.
+\end{itemize}
   
-April 19 => 5 => Implement parsing and compiling of our language
-  This is where GNU bison and the more algorithmic part of the project happens. At the end of this stage we will have a program or process that takes a program written in our language and compiles or interprets it into CUDA code that can then be compiled to run on the GPU. Again the focus is on enabling our use-cases and that will be considered sufficent if we run into time/scope issues.
+\subsubsection*{4: Design language around core principles (April 5)}
+\begin{itemize}
+  \item We expect this (and the above) to be an important and a difficult step. As explained previously, we are aiming to have a 'low floor'; ideally our language would start off with a very simple complete example. From there we can add more complexity to the language to allow for more problems but it is important to keep the simplicity, even if it means hiding away features that could enhance performance. This is also the stage where we would really like to have input from other people. We plan to be finished with this milestone by the time that the mid-way presentation happens so that we can incorporate feedback and review our decisions.
+\end{itemize}
+ 
+\subsubsection*{5: Implement parsing and compiling of our language (April 19)}
+\begin{itemize}  
+  \item This is where GNU bison and the more algorithmic part of the project happens. At the end of this stage we will have a program or process that takes a program written in our language and compiles or interprets it into CUDA code that can then be compiled to run on the GPU. Again the focus is on enabling our use-cases and that will be considered sufficient if we run into time/scope issues.
+\end{itemize}
 
-April 23 => 6 => Experiments
-  After we have a completed language and parser/compiler we will run the experiments that were detailed previously. This is also the time to work on the final presentation and paper. 
-  
-if time allows => 7 => design GUI or repeat from step 2
-  Assuming that the language is implemented as we currently think it will be, the GUI will be a way of expressing the core ideas in GPU programming. Specifically, it is planned to have a canvas where objects that perform data processing can be placed and later hooked up in a visual manner. This will emphasize the flow of data through one processing 'filter' and into others based on the connections made. We are basing some our ideas off of the MIT Scratch visual development environment and we hope that our GUI could provide a simple introduction to GPU programming.
+\subsubsection*{6: Experiments (April 23)}
+\begin{itemize}
+  \item After we have a completed language and parser/compiler we will run the experiments that were detailed previously. This is also the time to work on the final presentation and paper. 
+\end{itemize}
+
+\subsubsection*{7: Design GUI or repeat from step 2 (as time allows)}
+\begin{itemize}
+  \item Assuming that the language is implemented as we currently think it will be, the GUI will be a way of expressing the core ideas in GPU programming. Specifically, it is planned to have a canvas where objects that perform data processing can be placed and later hooked up in a visual manner. This will emphasize the flow of data through one processing `filter' and into others based on the connections made. We are basing some our ideas off of the MIT Scratch visual development environment and we hope that our GUI could provide a simple introduction to GPU programming.
+\end{itemize}
 
 \section{Conclusion}
 
