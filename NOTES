@@ -1,5 +1,18 @@
 Some notes about stuff
 
+Solution
+--------
+* Create language that abstracts CUDA
+* make GPGPU paradigm explicit --> pipeline
+* have a readable language (from ground-up)
+* low floor, high ceiling, wide walls
+* GUI
+* features of language
+==> objects
+==> pipelining
+==> map
+==> toolbox of data manipulation --> solving the hard problems
+
 What we want at the End User level
 ----------------------------------
 * Barrier synchronization
