@@ -88,7 +88,7 @@ void printArray(float* array, int rows, int cols) {
   printf("\n");
 }
 
-static int wrap(int value, int maxValue) {
+__device__ int wrap(int value, int maxValue) {
   while (value < 0) {
     value += maxValue;
   }
