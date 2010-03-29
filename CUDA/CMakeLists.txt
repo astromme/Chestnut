@@ -22,7 +22,8 @@ qt4_wrap_cpp(fluid_mocs ${fluid_headers})
 cuda_add_executable(example-helloworld helloworld.cu)
 cuda_add_executable(example-array-2d 2d_array_example.cu)
 cuda_add_executable(example-array-2d-aligned 2d_array_aligned_example.cu)
-cuda_add_executable(example-matrix-operations matrix-operations.cu)
+cuda_add_executable(example-map map_example.cu)
+#cuda_add_executable(example-matrix-operations matrix-operations.cu)
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
