@@ -1,5 +1,6 @@
 type = float;
 data = read("floats");
+data = read("floats");
 map(+,3,data);
 write(data,"mapped_floats");
 

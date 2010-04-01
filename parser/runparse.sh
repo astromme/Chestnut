@@ -17,7 +17,7 @@ if [ $infile ]; then
 fi
 
 echo "==> LEX" ; lex $1.l || exit 2
-echo "==> YACC" ; yacc -d $1.y || exit 3
+echo "==> YACC" ; yacc -d $1.y  || exit 3
 echo "==> cc" ; cc lex.yy.c y.tab.c -o $1 || exit 4
 if [ $infile ]; then
   ./$1 < $2
