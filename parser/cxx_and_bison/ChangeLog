@@ -1,0 +1,15 @@
+26/11/2005:
+	(grammar.y): Changed the way the headers are included, as well
+	the nodes declaration, in order to make the code compliant
+	with the ANSI C++ standard.
+
+	(cxx_and_bison.html): Updated the tutorial to reflect the latest
+	changes.
+ 
+25/07/1998:
+
+	(ast.h) : Added copy constructor and operator = () to the classes.
+
+	(grammar.y) : Added clear_stack (), the nodes global variable and
+	the code to handle parse errors and delete the nodes that were in
+	the parse stack when the error occurred.

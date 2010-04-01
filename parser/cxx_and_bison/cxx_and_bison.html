@@ -1,0 +1,380 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+                      "http://www.w3.org/TR/REC-html40/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html">
+<title>How to use C++ with Bison</title>
+<link rel="stylesheet" type="text/css" href="../../../styles/normal.css">
+</head>
+
+<body>
+<center>
+  <table border="1" cellspacing="0" cellpadding="0" class="page_title" width="70%">
+    <tr> 
+      <td> 
+        <h1 class="heading" align="center">How to use C++ with Bison, V 1.0.2</h1>
+      </td>
+    </tr>
+  </table>
+</center>
+
+<p>&nbsp;</p>
+<h2><span class="heading">Introduction</span></h2>
+This is a mini-tutorial that describes how to use C++ with Bison. It was done
+in reply to a thread in comp.compilers that questioned how <i>%union</i>
+declarations would interfere with C++ strong type checking.
+
+<p>I assume that you already know C++ and how to use Bison, so I will talk
+just about the important parts.</p>
+
+<h2><span class="heading">Grammar</span></h2>
+For the example lets use the following BNF grammar. It's too simple and has ambiguity 
+(it will be solved later on) but it will serve our purposes well enough. 
+<table width="100%" border="0" cellpadding="0" cellspacing="0" class="code_sample">
+  <tr>
+    <td>
+      <pre class="code_sample">prompt -> exp '\n'
+       |  prompt exp '\n'.
+
+exp -> exp '+' exp
+    |  exp '*' exp
+    |  ident
+    |  number
+    |  ident '='exp.
+
+ident -> 'A'|..|'Z'.
+
+number -> digit
+       | number digit.
+
+digit -> '0'|..|'9'.</pre>
+    </td>
+  </tr>
+</table>
+<h2><span class="heading">Ast Classes</span></h2>
+In order to create a feasible example it's necessary to use C++ classes, so
+lets create a very simple class hierarchy to represent expressions.
+
+<p>Since the example is very simple I have chosen to declare all classes in a 
+  single file and the function members are defined in the class interface. The 
+  file is <i>ast.h </i>.</p>
+<table width="100%" border="0" cellspacing="0" cellpadding="0" class="code_sample">
+  <tr>
+    <td>
+      <pre>class Expression {
+public:
+  virtual ~Expression () {}
+
+  //  It's necessary because we need to clone objects without
+  // knowing the exact type.
+  virtual Expression *clone () = 0;
+
+  // The value represented by the expression
+  virtual int value () = 0;
+};
+
+// For addictive expressions
+class Plus : public Expression {
+  Expression *m_left, *m_right;
+
+public:
+   
+  Plus (Expression *left, Expression *right): m_left (left), m_right (right) {}
+
+  // Copy constructor
+  Plus (const Plus &amp;other) {
+    m_left = other.m_left->clone ();
+    m_right = other.m_right->clone ();
+  }
+  
+  virtual ~Plus () 
+  {
+    delete m_left;
+    delete m_right;
+  }
+
+  Plus &amp;operator = (const Plus &amp;other) {
+    if (&amp;other != this) {
+      delete m_left;
+      delete m_right;
+      
+      m_left = other.m_left->clone ();
+      m_right = other.m_right->clone ();
+    }
+  }
+  
+
+  virtual Expression *clone () { return new Plus (*this); }
+  
+  virtual int value () { return m_left->value () + m_right->value (); }
+  
+};
+
+// For multiplicative expressions
+class Times : public Expression {
+  Expression *m_left, *m_right;
+
+public:
+   
+  Times (Expression *left, Expression *right): m_left (left), m_right (right) {}
+
+  // Copy constructor
+  Times (const Times &amp;other) {
+    m_left = other.m_left->clone ();
+    m_right = other.m_right->clone ();
+  }
+
+  virtual ~Times () 
+  {
+    delete m_left;
+    delete m_right;
+  }
+
+  Times &amp;operator = (const Times &amp;other) {
+    if (&amp;other != this) {
+      delete m_left;
+      delete m_right;
+      
+      m_left = other.m_left->clone ();
+      m_right = other.m_right->clone ();
+    }
+  }
+  
+
+  virtual Expression *clone () { return new Times (*this); }
+  
+  virtual int value () { return m_left->value () * m_right->value (); }
+  
+};
+
+// For numbers
+class Number : public Expression {
+  int m_val;
+
+public:
+   
+  Number (int val): m_val (val) {}
+
+  // Copy constructor
+  Number (const Number &amp;other) { m_val = other.m_val; }
+
+  Number &amp;operator = (const Number &amp;other) {
+    if (&amp;other != this)
+      m_val = other.m_val;
+  }
+
+  virtual Expression *clone () { return new Number (*this); }
+
+  virtual int value () { return m_val; }
+};
+
+// For identifiers
+class Ident : public Expression {
+  int *m_val;
+
+public:
+   
+  Ident (int *val): m_val (val) {}
+
+  // Copy constructor
+  Ident (const Ident &amp;other) { m_val = other.m_val; }
+
+  Ident &amp;operator = (const Ident &amp;other) {
+    if (&amp;other != this)
+      m_val = other.m_val;
+  }
+
+  virtual Expression *clone () { return new Ident (*this); }
+  
+
+  virtual int value () { return *m_val; }
+};</pre>
+    </td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<h2><span class="heading">The Bison file</span></h2>
+Now we need to create a Bison file that matches the grammar described above.
+It will create a sort of AST using the AST classes already described.
+
+<p>There is a subtle difference between using Bison with C and using Bison
+with C++, function prototypes. In the example you see the prototypes for
+<i>yyerror () </i>and for <i>yylex () </i>, since you have to put them in case
+of C++, but in C you can forget them (I don't advice you to do that, because
+it's bad practice).</p>
+
+<p>The problem that appeared in the thread that I made mention above, was
+about how to cope with the restrictions that C++ makes to unions and at the
+same time use unions in Bison. The solution I think is more manageable is to
+declare the fields that are classes as pointers, in that case there isn't any
+problem, because they are pointers and there aren't any restrictions to
+pointer data members.</p>
+
+<p>In the first version of this tutorial I said that I wouldn't discuss the
+problem of <i>deleting </i>the nodes that are in the parse stack when a parse
+error happens, but after some suggestions done to this tutorial I've decided
+to add the code to solve the mentionated situation.</p>
+
+<p>I've opted to use a stack that contains all the nodes that were allocated
+until the moment that the error has occurred. In that moment the stack is
+cleared and its nodes deleted. When the parser reckonizes a <b>+ </b>or a <b>*
+</b>the two top nodes are removed because they are the children that will be
+handled by the father node and the father is pushed in the stack.</p>
+
+<p>Now for the file (it's implemented in <i>grammar.y</i>) :</p>
+<table width="100%" border="0" cellspacing="0" cellpadding="0" class="code_sample">
+  <tr>
+    <td>
+      <pre>%{
+  #include &lt;iostream.h>
+  #include &lt;cctype>
+  #include &lt;cstring>
+  #include &lt;vector>
+  #include &lt;stack>
+
+  #include "ast.h"
+
+  // Bring the standard library into the
+  // global namespace
+  using namespace std;
+
+  // Prototypes to keep the compiler happy
+  void yyerror (const char *error);
+  int  yylex ();
+  void clear_stack ();
+  
+  // Variables
+  int vars ['Z'- 'A' + 1];
+
+  // stack class that takes care of all the nodes that were allocated
+  stack &lt;Expression *&gt; nodes;
+%}
+
+%token IDENT NUMBER
+
+%union {
+  Expression *exp;  /* For the expressions. Since it is a pointer, no problem. */
+  int       value;  /* For the lexical analyser. NUMBER tokens */
+  char      ident;  /* For the lexical analyser. IDENT tokens */
+}
+
+/* Lets inform Bison about the type of each terminal and non-terminal */
+%type &lt;exp>   exp
+%type &lt;value> NUMBER
+%type &lt;ident> IDENT
+
+/* Precedence information to resolve ambiguity */
+%left '+'
+%left '*'
+%%
+
+prompt : exp  '\n'             { 
+                                 if ($1) {
+                                   cout &lt;&lt; $1->value () &lt;&lt; endl;
+                                   clear_stack ();
+                                 }
+                               }
+       |  prompt  exp  '\n'    {
+                                 if ($2) {
+                                   cout &lt;&lt; $2->value () &lt;&lt; endl;
+                                   clear_stack ();
+                                 }
+                               }
+       | error '\n'            { clear_stack (); }
+       ;
+
+exp : exp '+' exp              {
+                                 $$ = new Plus ($1, $3);
+                                 nodes.pop ();  //  The childreen are handled by Plus so we
+                                 nodes.pop ();  // take them of the allocated nodes stack.
+                                 nodes.push ($$);
+                               }
+    | exp '*' exp              {
+                                 $$ = new Times ($1, $3);
+                                 nodes.pop ();  // The same as above.
+                                 nodes.pop ();
+                                 nodes.push ($$);
+                               } 
+    | IDENT                    { $$ = new Ident (&amp;vars [$1 - 'A']); nodes.push ($$); } 
+    | NUMBER                   { $$ = new Number ($1); nodes.push ($$); } 
+    | IDENT '=' exp            { vars [$1 - 'A'] = $3->value (); $$ = $3; nodes.push ($$); } 
+    ;
+%%
+
+// we need to provid the following functions
+int main ()
+{
+  memset (vars, 0, sizeof (vars));
+  return yyparse ();
+}
+
+void yyerror (const char *error)
+{
+  cout &lt;&lt; error &lt;&lt; endl;
+}
+
+int yylex ()
+{
+  char ch;
+
+  do {
+   ch = cin.peek ();
+   if (isalpha (ch)) {
+     cin.get ();
+
+     yylval.ident = ch;
+     return IDENT;
+   }
+   else if (isdigit (ch)) {
+     int value = 0;
+     while (!cin.eof () &amp;&amp; isdigit (ch)) {
+       cin.get ();
+
+       value = value * 10 + ch - '0';
+       ch = cin.peek ();
+     }
+
+     yylval.value = value;
+     return NUMBER;
+  }
+  else if (ch == '+' || ch == '\n' || ch == '*' || ch == '=') {
+     cin.get ();
+ 
+     return ch;
+  }
+  else
+    cin.get ();
+
+ } while (!cin.eof ());
+
+ return -1;
+}
+
+
+// Deletes all the nodes that were allocated
+void clear_stack ()
+{
+  while (!nodes.empty ()) {
+    delete nodes.top ();
+    nodes.pop ();
+  }
+}</pre>
+    </td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+To test this example use the script <i>create</i>, and run the <i>example</i> 
+file. Please note that this tutorial was tested using <i>g++ 3.3.6 </i>with 
+the <i> libstdc++</i>. <br>
+ 
+
+<h2><span class="heading">Acknowledges</span></h2>
+I would like to thank the following people for their opinions regarding this
+tutorial : <br>
+ 
+<ul>
+  <li>Fergus Henderson</li>
+  <li>Douglas Alan Summers Stay</li>
+</ul>
+</body>
+</html>
