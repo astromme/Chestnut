@@ -1,6 +1,17 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include <string>
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int yyparse(void);
+int yylex(void);
+
+template <typename TYPE>
+bool isInVector(vector<TYPE> v, TYPE val);
 
 void yyerror(const char *str)
 {
@@ -12,15 +23,47 @@ int yywrap()
 	return 1;
 }
 
+enum types {
+  VARIABLE = 20,
+  FUNCTION
+}
+
+//struct symentry {
+//  char name;
+//  int type;
+//};
+  
+vector<string> symtable;
+
+template <typename TYPE>
+bool isInVector(vector<TYPE> v, TYPE val){
+  for (int i=0; i<v.size(); i++){
+    if (v[i] == val){
+      return true;
+    }
+  }
+  return false;
+}
+
+//bool isNameInSymtable(string name){
+//  for (int i=0; i<symtable.size(); i++){
+//    if (symtable[i].name == name)
+//      return true;
+//  }
+//  return false;
+//}
+
 main()
 {
 	yyparse();
 }
 
-char *heater="NoVal";
-char *datatype="NoVal"; // could be int, float, etc
-char *object="NoVal";
-char *fname="NoVal";
+// Global Vars
+
+string heater="NoVal";
+string datatype="NoVal"; // could be int, float, etc
+string fname="NoVal";
+
 
 %}
 
@@ -76,16 +119,27 @@ datatype_set:
   TOKTYPE ASSIGN possible_types
   {
     datatype=$3;
-    printf("Type >\tSet to %s\n", datatype);
+    printf("Type >\tSet to %s\n", datatype.c_str());
   }
 ;
 
 readdata_set:
   WORD ASSIGN TOKREAD LPAREN filename RPAREN
   {
-    object = $1;
+    string object = $1;
     fname = $5;
-    printf("Read >\tObject: %s, Filename: %s\n", object, fname);
+
+    if (isInVector<string>(symtable, object)) {
+      string err = "\"" + object + "\" already in symbol table";
+      yyerror(err.c_str());
+      exit(2);
+    }
+
+    symtable.push_back(object);
+    printf("Read >\tObject: %s, Filename: %s\n", object.c_str(), fname.c_str());
+    for (int i=0; i<symtable.size(); i++){
+      cout << symtable[i] << endl;
+    }
   }
 ;
 
@@ -103,16 +157,16 @@ heat_switch:
 	TOKHEAT STATE 
 	{
 		if($2)
-			printf("\tHeater '%s' turned on\n", heater);
+			printf("\tHeater '%s' turned on\n", heater.c_str());
 		else
-			printf("\tHeat '%s' turned off\n", heater);
+			printf("\tHeat '%s' turned off\n", heater.c_str());
 	}
 ;
 
 target_set:
 	TOKTARGET TOKTEMPERATURE NUMBER
 	{
-		printf("\tHeater '%s' temperature set to %d\n",heater, $3);
+		printf("\tHeater '%s' temperature set to %d\n",heater.c_str(), $3);
 	}
 ;
 
