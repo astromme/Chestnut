@@ -2,6 +2,7 @@
   #include <iostream>
   #include <cctype>
   #include <cstring>
+  #include <string>
   #include <vector>
   #include <stack>
 
@@ -15,9 +16,10 @@
   void yyerror (const char *error);
   int  yylex ();
   void clear_stack ();
-  
+
   // Variables
   int vars ['Z'- 'A' + 1];
+  vector<string> bobo;
 
   // stack class that takes care of all the nodes that were allocated
   stack <Expression *> nodes;
@@ -42,7 +44,7 @@
 %%
 
 prompt : exp  '\n'             { 
-                                 if ($1) {
+       if ($1) {
                                    cout << $1->value () << endl;
                                    clear_stack ();
                                  }
@@ -57,7 +59,7 @@ prompt : exp  '\n'             {
        ;
 
 exp : exp '+' exp              {
-                                 $$ = new Plus ($1, $3);
+    $$ = new Plus ($1, $3);
                                  nodes.pop ();  //  The childreen are handled by Plus so we
                                  nodes.pop ();  // take them of the allocated nodes stack.
                                  nodes.push ($$);
@@ -90,12 +92,12 @@ int yylex ()
 {
   char ch;
 
-  do {
+do {
    ch = cin.peek ();
    if (isalpha (ch)) {
      cin.get ();
 
-     yylval.ident = ch;
+yylval.ident = ch;
      return IDENT;
    }
    else if (isdigit (ch)) {
@@ -103,24 +105,24 @@ int yylex ()
      while (!cin.eof () && isdigit (ch)) {
        cin.get ();
 
-       value = value * 10 + ch - '0';
+value = value * 10 + ch - '0';
        ch = cin.peek ();
      }
 
-     yylval.value = value;
+yylval.value = value;
      return NUMBER;
   }
   else if (ch == '+' || ch == '\n' || ch == '*' || ch == '=') {
      cin.get ();
- 
-     return ch;
+
+return ch;
   }
   else
     cin.get ();
 
- } while (!cin.eof ());
+} while (!cin.eof ());
 
- return -1;
+return -1;
 }
 
 

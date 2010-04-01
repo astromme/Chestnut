@@ -26,14 +26,22 @@ int yywrap()
 enum types {
   VARIABLE = 20,
   FUNCTION
-}
+};
 
-//struct symentry {
-//  char name;
-//  int type;
-//};
-  
-vector<string> symtable;
+
+//bool isNameInSymtable(string name){
+//  for (int i=0; i<symtable.size(); i++){
+//    if (symtable[i].name == name)
+//      return true;
+//  }
+//  return false;
+//}
+
+int main()
+{
+	yyparse();
+  return 0;
+}
 
 template <typename TYPE>
 bool isInVector(vector<TYPE> v, TYPE val){
@@ -45,18 +53,6 @@ bool isInVector(vector<TYPE> v, TYPE val){
   return false;
 }
 
-//bool isNameInSymtable(string name){
-//  for (int i=0; i<symtable.size(); i++){
-//    if (symtable[i].name == name)
-//      return true;
-//  }
-//  return false;
-//}
-
-main()
-{
-	yyparse();
-}
 
 // Global Vars
 
@@ -64,6 +60,7 @@ string heater="NoVal";
 string datatype="NoVal"; // could be int, float, etc
 string fname="NoVal";
 
+vector<string> symtable;
 
 %}
 
