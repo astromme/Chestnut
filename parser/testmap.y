@@ -15,22 +15,6 @@ int yylex(void);
 SymbolTable symtab;
 Utilities utils("cudalang.cpp");
 
-/***********************************************
- * A Note about these vectors: 
- * 
- * Each of these vectors hold strings that will eventually be written out to a
- * file specified by the constructor parameter of utils in main() of this file.
- * We store these in vectors instead of directly writing them to disk because we
- * might want to add statements to various vectors, and if everything is already
- * written to the file, we'd have a real mess on our hands. For example, we might
- * add more `#include' statements to the includeStrs vector, but if we already
- * started writing main() then we'd be in a pretty pickle.
- */
-vector<string> includeStrs;   // #includes
-vector<string> mainStrs;      // main function
-vector<string> fcnDecStrs;    // function declarations
-vector<string> fcnDefStrs;    // function definitions
-
 void yyerror(const char *str)
 {
 	fprintf(stderr,"error: %s\n",str);
@@ -43,20 +27,14 @@ int yywrap()
 
 int main()
 {
-  includeStrs.push_back(utils.initializeIncludes());
-  mainStrs.push_back(utils.initializeMain());
-	yyparse();
-  mainStrs.push_back(utils.finalizeMain());
+  utils.initializeIncludes();
+  utils.initializeMain();
 
-  // write out all vectors, in order, to file
-  for (unsigned int i=0; i<includeStrs.size(); i++)
-    utils.writeString(includeStrs[i]);
-  for (unsigned int i=0; i<fcnDecStrs.size(); i++)
-    utils.writeString(fcnDecStrs[i]);
-  for (unsigned int i=0; i<mainStrs.size(); i++)
-    utils.writeString(mainStrs[i]);
-  for (unsigned int i=0; i<fcnDefStrs.size(); i++)
-    utils.writeString(fcnDefStrs[i]);
+	yyparse();
+
+  utils.finalizeMain();
+
+  utils.writeBuffer();
 
   return 0;
 }
@@ -106,8 +84,7 @@ write_call:
   {
     string object = $3;
     string fname = $5;
-    string writedata = utils.writeDatafile(fname, object, datatype);
-    mainStrs.push_back(writedata);
+    utils.writeDatafile(fname, object, datatype);
     printf("Write >\tObject: %s, OutFile: %s\n", $3, $5);
   }
 ;
@@ -133,10 +110,9 @@ readdata_set:
     string object = $1;
     string fname = $5;
 
-    int rows, cols;
+    // FIXME!! -- FLOAT?? really..
     symtab.addEntry(object, VARIABLE, FLOAT);
-    string readdata = utils.readDatafile(fname, object, datatype);
-    mainStrs.push_back(readdata);
+    utils.readDatafile(fname, object, datatype);
     
     printf("Read >\tObject: %s, Filename: %s\n", object.c_str(), fname.c_str());
     symtab.print();
