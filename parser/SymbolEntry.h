@@ -1,6 +1,8 @@
 #ifndef _SYMBOL_ENTRY_H
 #define _SYMBOL_ENTRY_H
 
+using std::string;
+
 class SymbolEntry {
   public:
     SymbolEntry() {}; // do nothing
