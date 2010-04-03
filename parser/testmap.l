@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
-#include "y.tab.h"
+#include "parser.hpp"
 %}
 %%
 [0-9]+       yylval.number=atoi(yytext); return NUMBER;
