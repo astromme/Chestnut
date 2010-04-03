@@ -5,6 +5,8 @@
 #include <vector>
 #include "SymbolEntry.h"
 
+using std::string;
+
 enum categories {
   VARIABLE = 20,
   FUNCTION
@@ -17,7 +19,7 @@ enum types {
 };
 
 struct symbol_entry {
-  std::string name;
+  string name;
   int category; // var, fcn, etc
   int type; // int, float, string, etc
   int scope;
@@ -28,12 +30,12 @@ class SymbolTable{
     SymbolTable();
 
     // manipulators
-    void addEntry(std::string name, int category, int type, int scope=0);
+    void addEntry(string name, int category, int type, int scope=0);
 
     // accessors 
-    bool isInSymtab(std::string name);
-    int getTypeInSymtab(std::string name);
-    int getIdxInSymtab(std::string name);
+    bool isInSymtab(string name);
+    int getTypeInSymtab(string name);
+    int getIdxInSymtab(string name);
     void print();
 
   private:

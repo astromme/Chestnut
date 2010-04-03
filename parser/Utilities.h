@@ -4,24 +4,27 @@
 #include <fstream>
 #include <string>
 
+using std::string;
+
 class Utilities {
   public:
-    Utilities(std::string myoutfile);
-    void initialize();
-    void finalize();
-    void readDatafile(std::string fname, std::string object, std::string type);
-    void writeDatafile(std::string fname, std::string object, std::string type);
-   
-    //template <typename TYPE> TYPE* readDatafile(std::string fname, int *rows, int *cols);
+    Utilities(string myoutfile);
+    ~Utilities();
+    string initializeIncludes();
+    string initializeMain();
+    string finalizeMain();
+    void writeString(string str);
+
+    string readDatafile(string fname, string object, string type);
+    string writeDatafile(string fname, string object, string type);
+  
   private:
     std::ofstream outfile;
     int indent; // number of indentations to make
 
-    void add_include(std::string header);
-    void write_string(std::string str);
+    string add_include(string header);
     void write_newline();
-    std::string prep_str(std::string str);
-
+    string prep_str(string str);
   
 };
 
