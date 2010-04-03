@@ -29,8 +29,6 @@ class SymbolTable{
 
     // manipulators
     void addEntry(std::string name, int category, int type, int scope=0);
-    template <typename TYPE> void setData(std::string name, TYPE* data);
-
 
     // accessors 
     bool isInSymtab(std::string name);
@@ -39,12 +37,8 @@ class SymbolTable{
     void print();
 
   private:
-    std::vector<SymbolEntry<float> > float_symtab;
-    std::vector<SymbolEntry<int> > int_symtab;
-    std::vector<SymbolEntry<std::string> > string_symtab;
+    std::vector<SymbolEntry> symtab;
 
 };
-
-#include "SymbolTable.inl"
 
 #endif

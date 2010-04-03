@@ -1,8 +1,4 @@
-type = float;
-data = read("floats");
-data = read("floats");
+type = int;
+data = read("testdata");
 map(+,3,data);
-write(data,"mapped_floats");
-
-heater mainbuilding;
-target temperature 23;
+write(data,"testoutput");

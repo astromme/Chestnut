@@ -5,18 +5,13 @@
 %}
 %%
 [0-9]+       yylval.number=atoi(yytext); return NUMBER;
-heater			 return TOKHEATER;
-heat         return TOKHEAT;
 type         return TOKTYPE;
 read         return TOKREAD;
 map          return TOKMAP;
 write        return TOKWRITE;
-int          yylval.string=strdup(yytext); return INT;
-float        yylval.string=strdup(yytext); return FLOAT;
-string       yylval.string=strdup(yytext); return STRING;
-on|off       yylval.number=!strcmp(yytext,"on"); return STATE;
-target       return TOKTARGET;
-temperature  return TOKTEMPERATURE;
+int          yylval.string=strdup(yytext); return TOKINT;
+float        yylval.string=strdup(yytext); return TOKFLOAT;
+string       yylval.string=strdup(yytext); return TOKSTRING;
 [a-z0-9_]+		 yylval.string=strdup(yytext);return WORD;
 \"           return QUOTE;
 \(           return LPAREN;
