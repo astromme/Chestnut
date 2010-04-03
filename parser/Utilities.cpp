@@ -5,7 +5,7 @@ using namespace std;
 
 // constructor
 Utilities::Utilities(string outfname) {
-  // initialize file so that it's blank (ios::trunc)
+  // initialize file so that it's blank (with ios::trunc)
   outfile.open(outfname.c_str(), ios::trunc);
 
   indent = 0; // initially no indent offset 
@@ -15,7 +15,6 @@ Utilities::Utilities(string outfname) {
 Utilities::~Utilities(){
   outfile.close(); // close file
 }
-
 
 /********************************
  * Function: initializeMain
@@ -102,7 +101,7 @@ string Utilities::prep_str(string str) {
 /********************************
  * Function: readDatafile
  * ----------------------
- * Associated with the syntax in our language (TODO: name language)
+ * Associated with the syntax in our language (TODO: name our language)
  *      <data> = read("<infile>");
  *
  * Generates code to read in data from a file.
@@ -117,6 +116,8 @@ string Utilities::prep_str(string str) {
  */
 string Utilities::readDatafile(string fname, string object, string type){
   string outstr;
+
+  // define names of vars in prog
   string objectstream = object + "_instream";
   string rows = object + "_rows";
   string cols = object + "_cols";
@@ -124,22 +125,22 @@ string Utilities::readDatafile(string fname, string object, string type){
 
   outstr += prep_str("ifstream " + objectstream + ";");
   outstr += prep_str(objectstream + ".open(\"" + fname + "\");");
-  outstr += prep_str(""); // equivalent to newline
+  outstr += "\n";
 
   outstr += prep_str("// read in rows and column data");
   outstr += prep_str("string " + garbage + ";");
   outstr += prep_str("int " + rows + ", " + cols +";");
   outstr += prep_str(objectstream + " >> " + garbage + "; " + objectstream + " >> " + rows + ";");
   outstr += prep_str(objectstream + " >> " + garbage + "; " + objectstream + " >> " + cols + ";");
+  outstr += "\n";
 
-  outstr += prep_str("");
   outstr += prep_str("// allocate memory for data");
   outstr += prep_str(type + "** " + object + " = new " + type + "*[" + rows + "];");
   outstr += prep_str("for (int r=0; r< " + rows + "; r++){"); indent++;
   outstr += prep_str(object + "[r] = new " + type + "[" + cols + "];"); indent--;
   outstr += prep_str("}");
+  outstr += "\n";
 
-  outstr += prep_str("");
   outstr += prep_str("// read in data from file");
   outstr += prep_str("for (int r=0; r<" + rows + "; r++){"); indent++;
   outstr += prep_str("for (int c=0; c<" + cols + "; c++){"); indent++;
@@ -147,7 +148,7 @@ string Utilities::readDatafile(string fname, string object, string type){
   outstr += prep_str("}"); indent--;
   outstr += prep_str("}");
   outstr += prep_str(objectstream + ".close();");
-  outstr += prep_str("");
+  outstr += "\n";
 
   return outstr;
 }
@@ -155,7 +156,7 @@ string Utilities::readDatafile(string fname, string object, string type){
 /********************************
  * Function: writeDatafile
  * -----------------------
- * Associated with the syntax in our language (TODO: name language)
+ * Associated with the syntax in our language (TODO: name our language)
  *      write(<data>, "<outfile>");
  *
  * Generates code to write data to a file.
@@ -170,6 +171,8 @@ string Utilities::readDatafile(string fname, string object, string type){
  */
 string Utilities::writeDatafile(string fname, string object, string type){
   string outstr;
+
+  // define names of vars in prog
   string objectstream = object+"_outstream";
   string rows = object + "_rows";
   string cols = object + "_cols";
@@ -177,25 +180,23 @@ string Utilities::writeDatafile(string fname, string object, string type){
   outstr += prep_str("// output data to file");
   outstr += prep_str("ofstream " + objectstream + ";");
   outstr += prep_str(objectstream + ".open(\"" + fname + "\");");
-  outstr += prep_str(""); // equivalent to newline
+  outstr += "\n";
 
   outstr += prep_str("// write data out to file");
-  outstr += prep_str(objectstream + " << \"rows: \";");
-  outstr += prep_str(objectstream + " << " + rows + ";");
-  outstr += prep_str(objectstream + " << \"\\n\";");
-  outstr += prep_str(objectstream + " << \"cols: \";");
-  outstr += prep_str(objectstream + " << " + cols + ";");
-  outstr += prep_str(objectstream + " << \"\\n\";");
+  outstr += prep_str(objectstream + " << \"rows: \" << " + 
+      rows + " << \"\\n\";");
+  outstr += prep_str(objectstream + " << \"cols: \" << " + 
+      cols + " << \"\\n\";");
 
   outstr += prep_str("for (int r=0; r<" + rows + "; r++){"); indent++;
   outstr += prep_str("for (int c=0; c<" + cols + "; c++){"); indent++;
-  outstr += prep_str(objectstream + " << " + object + "[r][c];");
-  outstr += prep_str(objectstream + " << \" \";"); indent--;
-  outstr += prep_str("}"); indent--;
-  outstr += prep_str(objectstream + " << \"\\n\";");
+  outstr += prep_str(objectstream + " << " + object + 
+      "[r][c] << \" \";"); indent--;
+  outstr += prep_str("}"); 
+  outstr += prep_str(objectstream + " << \"\\n\";"); indent--;
   outstr += prep_str("}");
   outstr += prep_str(objectstream + ".close();");
-  outstr += prep_str("");
+  outstr += "\n";
 
   return outstr;
 }

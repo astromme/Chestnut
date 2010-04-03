@@ -48,10 +48,15 @@ int main()
 	yyparse();
   mainStrs.push_back(utils.finalizeMain());
 
+  // write out all vectors, in order, to file
   for (unsigned int i=0; i<includeStrs.size(); i++)
     utils.writeString(includeStrs[i]);
+  for (unsigned int i=0; i<fcnDecStrs.size(); i++)
+    utils.writeString(fcnDecStrs[i]);
   for (unsigned int i=0; i<mainStrs.size(); i++)
     utils.writeString(mainStrs[i]);
+  for (unsigned int i=0; i<fcnDefStrs.size(); i++)
+    utils.writeString(fcnDefStrs[i]);
 
   return 0;
 }
@@ -132,7 +137,6 @@ readdata_set:
     symtab.addEntry(object, VARIABLE, FLOAT);
     string readdata = utils.readDatafile(fname, object, datatype);
     mainStrs.push_back(readdata);
-    //float* data = utils.readDatafile<float>(fname, &rows, &cols);
     
     printf("Read >\tObject: %s, Filename: %s\n", object.c_str(), fname.c_str());
     symtab.print();
