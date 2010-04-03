@@ -127,6 +127,12 @@ lex.yy.o: lex.yy.c
 ${OFILES}: ${HFILE} 
 #parser.h
 
+#
+# Compile actual CUDA code
+#
+cudalang : cudalang.cpp
+	${CC} -g -Wall -o cudalang cudalang.cpp
+
 clean:
 	/bin/rm -f *.o lex.yy.c y.tab.c c.tab.h c.output c.tab.c ${PROGRAM} parser.h y.output y.tab.h core *.*~ *~ #*#
 

@@ -4,14 +4,16 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include "SymbolTable.h"
+#include "Utilities.h"
 
 using namespace std;
 
 int yyparse(void);
 int yylex(void);
 
-template <typename TYPE>
-bool isInVector(vector<TYPE> v, TYPE val);
+SymbolTable symtab;
+Utilities utils("cudalang.cpp");
 
 void yyerror(const char *str)
 {
@@ -23,44 +25,17 @@ int yywrap()
 	return 1;
 }
 
-enum types {
-  VARIABLE = 20,
-  FUNCTION
-};
-
-
-//bool isNameInSymtable(string name){
-//  for (int i=0; i<symtable.size(); i++){
-//    if (symtable[i].name == name)
-//      return true;
-//  }
-//  return false;
-//}
-
 int main()
 {
+  utils.initialize();
 	yyparse();
+  utils.finalize();
   return 0;
 }
 
-template <typename TYPE>
-bool isInVector(vector<TYPE> v, TYPE val){
-  for (int i=0; i<v.size(); i++){
-    if (v[i] == val){
-      return true;
-    }
-  }
-  return false;
-}
-
-
 // Global Vars
 
-string heater="NoVal";
 string datatype="NoVal"; // could be int, float, etc
-string fname="NoVal";
-
-vector<string> symtable;
 
 %}
 
@@ -77,9 +52,9 @@ EQUALS ASSIGN SEMICOLON LPAREN RPAREN QUOTE COMMA
 %token <number> STATE
 %token <number> NUMBER
 %token <string> WORD
-%token <string> INT
-%token <string> FLOAT
-%token <string> STRING
+%token <string> TOKINT
+%token <string> TOKFLOAT
+%token <string> TOKSTRING
 %token <string> PLUS
 %token <string> MINUS
 %token <string> MULT
@@ -96,11 +71,14 @@ commands: /* empty */
 ;
 
 command:
-	heat_switch | target_set | heater_select | datatype_set | readdata_set | map_call | write_call
+	datatype_set | readdata_set | map_call | write_call
 
 write_call:
   TOKWRITE LPAREN WORD COMMA filename RPAREN
   {
+    string object = $3;
+    string fname = $5;
+    utils.writeDatafile(fname, object, datatype);
     printf("Write >\tObject: %s, OutFile: %s\n", $3, $5);
   }
 ;
@@ -124,19 +102,15 @@ readdata_set:
   WORD ASSIGN TOKREAD LPAREN filename RPAREN
   {
     string object = $1;
-    fname = $5;
+    string fname = $5;
 
-    if (isInVector<string>(symtable, object)) {
-      string err = "\"" + object + "\" already in symbol table";
-      yyerror(err.c_str());
-      exit(2);
-    }
-
-    symtable.push_back(object);
+    int rows, cols;
+    symtab.addEntry(object, VARIABLE, FLOAT);
+    utils.readDatafile(fname, object, datatype);
+    //float* data = utils.readDatafile<float>(fname, &rows, &cols);
+    
     printf("Read >\tObject: %s, Filename: %s\n", object.c_str(), fname.c_str());
-    for (int i=0; i<symtable.size(); i++){
-      cout << symtable[i] << endl;
-    }
+    symtab.print();
   }
 ;
 
@@ -146,31 +120,6 @@ filename: QUOTE WORD QUOTE
   }
 ;
 
-possible_types: INT | FLOAT | STRING
+possible_types: TOKINT | TOKFLOAT | TOKSTRING
 
 possible_ops: PLUS | MINUS | MULT | DIV
-
-heat_switch:
-	TOKHEAT STATE 
-	{
-		if($2)
-			printf("\tHeater '%s' turned on\n", heater.c_str());
-		else
-			printf("\tHeat '%s' turned off\n", heater.c_str());
-	}
-;
-
-target_set:
-	TOKTARGET TOKTEMPERATURE NUMBER
-	{
-		printf("\tHeater '%s' temperature set to %d\n",heater.c_str(), $3);
-	}
-;
-
-heater_select:
-	TOKHEATER WORD
-	{
-		printf("\tSelected heater '%s'\n",$2);
-		heater=$2;
-	}
-;

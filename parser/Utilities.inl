@@ -1,4 +1,4 @@
-#include <iostream>
+/*#include <iostream>
 #include <fstream>
 #include "Utilities.h"
 
@@ -18,10 +18,10 @@ TYPE* Utilities::readDatafile(std::string fname, int *myrows, int *mycols){
   if (dimensions == 1){
     TYPE* tmpdata = new TYPE[rows];
 
-    /* // FIXME!!!
-    for (int r=0; r<rows; r++){
-      fptr >> data[r];
-    }*/
+    // FIXME!!!
+    //for (int r=0; r<rows; r++){
+    //  fptr >> data[r];
+    //}
     data = (TYPE**)tmpdata;
 
   } else if (dimensions == 2){
@@ -32,14 +32,14 @@ TYPE* Utilities::readDatafile(std::string fname, int *myrows, int *mycols){
       data[r] = new TYPE[cols];
     }
 
-    /*for (int r=0; r<rows; r++){
-      for (int c=0; c<cols; c++){
-        fptr >> data[r][c];
-      }
-    }*/
+    //for (int r=0; r<rows; r++){
+    //for (int c=0; c<cols; c++){
+    //  fptr >> data[r][c];
+    //}
+  //}
   }
   
   *myrows = rows;
   *mycols = cols;
   return (TYPE*)data;
-}
+}*/
