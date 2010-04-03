@@ -17,20 +17,43 @@ Utilities::~Utilities(){
 }
 
 /********************************
+ * Function: writeBuffer
+ * ---------------------
+ * Writes contents of vectors containing C++ code to the outfile
+ */
+void Utilities::writeBuffer(){
+  // write #includes
+  for (unsigned int i=0; i<includeStrs.size(); i++)
+    writeString(includeStrs[i]);
+
+  // write function declarations
+  for (unsigned int i=0; i<fcnDecStrs.size(); i++)
+    writeString(fcnDecStrs[i]);
+
+  // write main()
+  for (unsigned int i=0; i<mainStrs.size(); i++)
+    writeString(mainStrs[i]);
+
+  // write function definitions
+  for (unsigned int i=0; i<fcnDefStrs.size(); i++)
+    writeString(fcnDefStrs[i]);
+}
+
+
+/********************************
  * Function: initializeMain
  * ------------------------
  * Consolidates the namespace and beginning of main(). Returns a string which
  * gets put into a vector so we can add more later.
  */
-string Utilities::initializeMain(){
+void Utilities::initializeMain(){
   string startmain;
   // use standard namespace (?)
   startmain += "using namespace std;\n\n";
   startmain += "int main() {\n";
 
+  mainStrs.push_back(startmain);
   indent++; // add indentation level
-
-  return startmain;
 }
 
 
@@ -40,12 +63,12 @@ string Utilities::initializeMain(){
  * We're done with main(), so return a string with the `return 0` standard
  * stuff and a close brace.
  */
-string Utilities::finalizeMain(){
+void Utilities::finalizeMain(){
   string endmain;
   endmain += "  return 0;\n";
   endmain += "}\n"; // close main()
 
-  return endmain;
+  mainStrs.push_back(endmain);
 }
 
 /********************************
@@ -55,7 +78,7 @@ string Utilities::finalizeMain(){
  * returned to be stored in a vector. The vector is eventually written out to
  * the file, but in case we want to add more #includes later on, we can.
  */
-string Utilities::initializeIncludes(){
+void Utilities::initializeIncludes(){
   // add #include infos
   string includes;
   includes += add_include("string");
@@ -63,7 +86,7 @@ string Utilities::initializeIncludes(){
   includes += add_include("iostream");
   includes += "\n";
 
-  return includes;
+  includeStrs.push_back(includes);
 }
 
 
@@ -114,7 +137,8 @@ string Utilities::prep_str(string str) {
  * Returns:
  *    C++ code to implement this data read
  */
-string Utilities::readDatafile(string fname, string object, string type){
+// TODO: throw error if file can't be opened
+void Utilities::readDatafile(string fname, string object, string type){
   string outstr;
 
   // define names of vars in prog
@@ -150,7 +174,7 @@ string Utilities::readDatafile(string fname, string object, string type){
   outstr += prep_str(objectstream + ".close();");
   outstr += "\n";
 
-  return outstr;
+  mainStrs.push_back(outstr);
 }
 
 /********************************
@@ -169,7 +193,7 @@ string Utilities::readDatafile(string fname, string object, string type){
  * Returns:
  *    C++ code to implement this data write
  */
-string Utilities::writeDatafile(string fname, string object, string type){
+void Utilities::writeDatafile(string fname, string object, string type){
   string outstr;
 
   // define names of vars in prog
@@ -198,5 +222,10 @@ string Utilities::writeDatafile(string fname, string object, string type){
   outstr += prep_str(objectstream + ".close();");
   outstr += "\n";
 
-  return outstr;
+  mainStrs.push_back(outstr);
 }
+
+/********************************
+ * Function: mapFcn
+ */
+//string Utilities::mapFcn(string
