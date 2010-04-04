@@ -87,9 +87,15 @@ void Utilities::finalizeMain(){
 void Utilities::initializeIncludes(){
   // add #include infos
   string includes;
-  includes += add_include("string");
+  /*includes += add_include("string");
   includes += add_include("fstream");
   includes += add_include("iostream");
+  includes += "\n";*/
+
+  // cuda includes
+  includes += prep_str("// CUDA includes");
+  includes += add_include("cuda.h");
+  includes += add_include("cuda_runtime_api.h");
 
   includeStrs.push_back(includes);
 }
@@ -126,6 +132,32 @@ string Utilities::prep_str(string str) {
 }
 
 /********************************
+ * Function: get_obj_names
+ * -----------------------
+ * We want to have a consistent naming scheme for our variables, so we
+ * centralize the process by passing it through this function. Since every
+ * object in a given scope must be uniquely named, we use the variable name
+ * given in the source language as the base for our naming scheme.
+ *
+ * Input:
+ *    obj: name of object
+ *
+ * Returns:
+ *    struct containing all of the derived names that we might want    
+ */
+obj_names Utilities::get_obj_names(string obj){
+  obj_names on;
+  on.host = obj + "_host";
+  on.dev = obj + "_dev";
+  on.rows = obj + "_rows";
+  on.cols = obj + "_cols";
+  on.instream = obj + "_instream";
+  on.outstream = obj + "_outstream";
+  on.garbage = obj + "_garbage";
+  return on;
+}
+
+/********************************
  * Function: readDatafile
  * ----------------------
  * Associated with the syntax in our language (TODO: name our language)
@@ -146,36 +178,49 @@ void Utilities::readDatafile(string fname, string object, string type){
   string outstr;
 
   // define names of vars in prog
-  string objectstream = object + "_instream";
-  string rows = object + "_rows";
-  string cols = object + "_cols";
-  string garbage = object + "_garbage";
+  obj_names objnames = get_obj_names(object);
+  string host = objnames.host;
+  string dev = objnames.dev;
+  string rows = objnames.rows;
+  string cols = objnames.cols;
+  string instream = objnames.instream;
+  string garbage = objnames.garbage;
 
-  outstr += prep_str("ifstream " + objectstream + ";");
-  outstr += prep_str(objectstream + ".open(\"" + fname + "\");");
+  outstr += prep_str("ifstream " + instream + ";");
+  outstr += prep_str(instream + ".open(\"" + fname + "\");");
   outstr += "\n";
 
   outstr += prep_str("// read in rows and column data");
   outstr += prep_str("string " + garbage + ";");
   outstr += prep_str("int " + rows + ", " + cols +";");
-  outstr += prep_str(objectstream + " >> " + garbage + "; " + objectstream + " >> " + rows + ";");
-  outstr += prep_str(objectstream + " >> " + garbage + "; " + objectstream + " >> " + cols + ";");
+  outstr += prep_str(instream + " >> " + garbage + "; " + instream + " >> " + rows + ";");
+  outstr += prep_str(instream + " >> " + garbage + "; " + instream + " >> " + cols + ";");
   outstr += "\n";
 
-  outstr += prep_str("// allocate memory for data");
+  outstr += prep_str(type + "* " + host + "; // Memory on host (cpu) side");
+  outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
+  outstr += "\n";
+
+  outstr += prep_str("// Allocate memory on the host that the gpu can access quickly");
+  outstr += prep_str("cudaMallocHost((void**)&" + host + ", " 
+      + rows + "*" + cols + "*sizeof(" + type + "));");
+  outstr += "\n";
+
+/*
   outstr += prep_str(type + "** " + object + " = new " + type + "*[" + rows + "];");
   outstr += prep_str("for (int r=0; r< " + rows + "; r++){"); indent++;
   outstr += prep_str(object + "[r] = new " + type + "[" + cols + "];"); indent--;
   outstr += prep_str("}");
   outstr += "\n";
+*/
 
   outstr += prep_str("// read in data from file");
   outstr += prep_str("for (int r=0; r<" + rows + "; r++){"); indent++;
   outstr += prep_str("for (int c=0; c<" + cols + "; c++){"); indent++;
-  outstr += prep_str(objectstream + " >> " + object + "[r][c];"); indent--;
+  outstr += prep_str(instream + " >> " + host + "[r*" + cols + "+c];"); indent--;
   outstr += prep_str("}"); indent--;
   outstr += prep_str("}");
-  outstr += prep_str(objectstream + ".close();");
+  outstr += prep_str(instream + ".close();");
   outstr += "\n";
 
   mainStrs.push_back(outstr);
@@ -201,29 +246,31 @@ void Utilities::writeDatafile(string fname, string object, string type){
   string outstr;
 
   // define names of vars in prog
-  string objectstream = object+"_outstream";
-  string rows = object + "_rows";
-  string cols = object + "_cols";
+  obj_names objnames = get_obj_names(object);
+  string host = objnames.host;
+  string rows = objnames.rows;
+  string cols = objnames.cols;
+  string outstream = objnames.outstream;
 
   outstr += prep_str("// output data to file");
-  outstr += prep_str("ofstream " + objectstream + ";");
-  outstr += prep_str(objectstream + ".open(\"" + fname + "\");");
+  outstr += prep_str("ofstream " + outstream + ";");
+  outstr += prep_str(outstream + ".open(\"" + fname + "\");");
   outstr += "\n";
 
   outstr += prep_str("// write data out to file");
-  outstr += prep_str(objectstream + " << \"rows: \" << " + 
+  outstr += prep_str(outstream + " << \"rows: \" << " + 
       rows + " << \"\\n\";");
-  outstr += prep_str(objectstream + " << \"cols: \" << " + 
+  outstr += prep_str(outstream + " << \"cols: \" << " + 
       cols + " << \"\\n\";");
 
   outstr += prep_str("for (int r=0; r<" + rows + "; r++){"); indent++;
   outstr += prep_str("for (int c=0; c<" + cols + "; c++){"); indent++;
-  outstr += prep_str(objectstream + " << " + object + 
-      "[r][c] << \" \";"); indent--;
+  outstr += prep_str(outstream + " << " + host + 
+      "[r*" + cols + "+c] << \" \";"); indent--;
   outstr += prep_str("}"); 
-  outstr += prep_str(objectstream + " << \"\\n\";"); indent--;
+  outstr += prep_str(outstream + " << \"\\n\";"); indent--;
   outstr += prep_str("}");
-  outstr += prep_str(objectstream + ".close();");
+  outstr += prep_str(outstream + ".close();");
   outstr += "\n";
 
   mainStrs.push_back(outstr);
@@ -238,26 +285,33 @@ void Utilities::mapFcn(string fcnname, string object, string type, string op, st
   int old_indent = indent; // save indent level
   indent = 0; // since we're defining a function, we start at no indent
 
+  // define names of vars in prog
+  obj_names objnames = get_obj_names(object);
+  string host = objnames.host;
+  string dev = objnames.dev;
+  string rows = objnames.rows;
+  string cols = objnames.cols;
+
   // function declaration
   // example:
   //    int** map(int** data, int rows, int cols);
   string declaration; 
-  declaration += prep_str(type + "** " + fcnname + "(" 
-    + type + "** " + object + ", int rows, int cols);");
+  declaration += prep_str("__global__ void " + fcnname + "(" 
+    + type + "* data, int cols);");
   fcnDecStrs.push_back(declaration);
 
   // function definition
   string definition;
-  definition += prep_str(type + "** " + fcnname + "(" 
-    + type + "** " + object + ", int rows, int cols){"); indent++;
+  definition += prep_str("__global__ void " + fcnname + "(" 
+    + type + "* data, int cols){"); indent++;
 
-  definition += prep_str("for (int r=0; r<rows; r++){"); indent++;
-  definition += prep_str("for (int c=0; c<cols; c++){"); indent++;
-  definition += prep_str(object + "[r][c] " + op + "= " + alter + ";"); indent--;
-  definition += prep_str("}"); indent--;
-  definition += prep_str("}"); 
-  definition += prep_str("return " + object + ";"); indent--;
-  definition += prep_str("}"); indent--;
+  definition += prep_str("int row = threadIdx.x;");
+  definition += prep_str("int col = threadIdx.y;");
+  definition += "\n";
+
+  definition += prep_str("// operate on data");
+  definition += prep_str("data[row*cols + col] " + op + "= " + alter + ";"); indent--;
+  definition += prep_str("}");
   definition += "\n";
   fcnDefStrs.push_back(definition);
   
@@ -265,8 +319,64 @@ void Utilities::mapFcn(string fcnname, string object, string type, string op, st
 
   // function call (in main)
   string call;
-  call += prep_str("// call MAP function");
-  call += prep_str(fcnname + "(" + object + ", " + object + "_rows, " + object + "_cols);");
+  call += prep_str("// Allocate memory on the device that is of the same size as our host array");
+  call += prep_str("cudaMalloc((void**)&" + dev + ", " 
+      + rows + "*" + cols + "*sizeof(" + type + "));");
   call += "\n";
+
+  call += prep_str("// Copy host to device");
+  call += prep_str(
+      cudamemcpy_str(
+        dev, 
+        host, 
+        rows + "*" + cols + "*sizeof(" + type + ")",
+        "cudaMemcpyHostToDevice"));
+  call += "\n";
+
+  call += prep_str("// Run the '" + fcnname + "' kernel on the device");
+  call += prep_str("// 1 tells it to have one single block");
+  call += prep_str("// dim3(row,col) tells it to have row by col threads in that block");
+  call += prep_str("// Give kernel the 'dev' array and the number of cols");
+  call += prep_str(fcnname + "<<<1, dim3(" + 
+      rows + "," + cols + ")>>>(" + dev + "," + cols + ");");
+  call += "\n";
+
+
+  call += prep_str("// Once the kernel has run, copy back dev to host");
+  call += prep_str(
+      cudamemcpy_str(
+        host, 
+        dev, 
+        rows + "*" + cols + "*sizeof(" + type + ")",
+        "cudaMemcpyDeviceToHost"));
+  call += "\n";
+    
   mainStrs.push_back(call);
 }
+
+/********************************
+ * Function: cudamemcpy_str
+ * ------------------------
+ * Since the cudaMemcpy calls are really gross, we run the four parameters
+ * through this string processing function to make the process a bit cleaner.
+ *
+ * Inputs:
+ *    to: variable to copy memory to
+ *    from: variable to copy memory from
+ *    size: size of data being copied
+ *    directive: a CUDA directive 
+ *        (i.e. "cudaMemcpyHostToDevice")
+ *
+ * Returns:
+ *    fully realized cudaMemcpy command
+ */
+string Utilities::cudamemcpy_str(
+    string to, string from, string size, string directive){
+  return "cudaMemcpy(" 
+    + to + ", " 
+    + from + ", " 
+    + size + ", " 
+    + directive + ");";
+}
+
+

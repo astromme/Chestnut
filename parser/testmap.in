@@ -1,5 +1,4 @@
 type = int;
 data = read("testdata");
 map(-,1,data);
-map(*,2,data);
 write(data,"testoutput");

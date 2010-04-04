@@ -9,7 +9,7 @@ include_directories("/usr/local/cuda/include" ${CMAKE_CURRENT_SOURCE_DIR})
 #include(${QT_USE_FILE})
 
 set(cudalang_program_sources
-    cudalang.cpp
+    cudalang.cu
     )
 
 # set(fluid_headers
