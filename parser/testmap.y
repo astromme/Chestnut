@@ -14,7 +14,7 @@ int yyparse(void);
 int yylex(void);
 
 SymbolTable symtab;
-Utilities utils("cudalang.cpp");
+Utilities utils("cudalang.cu");
 int fcncount; // number of functions instantiated so far
 
 

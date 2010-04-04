@@ -8,6 +8,16 @@
 using std::vector;
 using std::string;
 
+typedef struct {
+  string host;
+  string dev;
+  string rows;
+  string cols;
+  string instream;
+  string outstream;
+  string garbage;
+} obj_names;
+
 class Utilities {
   public:
     Utilities(string myoutfile);
@@ -29,6 +39,8 @@ class Utilities {
     string add_include(string header);
     void write_newline();
     string prep_str(string str);
+    string cudamemcpy_str(string to, string from, string size, string directive);
+    obj_names get_obj_names(string obj);
 
     /***********************************************
      * A Note about these vectors: 
@@ -48,7 +60,5 @@ class Utilities {
     vector<string> fcnDefStrs;    // function definitions
   
 };
-
-#include "Utilities.inl"
 
 #endif
