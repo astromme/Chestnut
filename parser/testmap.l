@@ -12,7 +12,7 @@ write        return TOKWRITE;
 int          yylval.string=strdup(yytext); return TOKINT;
 float        yylval.string=strdup(yytext); return TOKFLOAT;
 string       yylval.string=strdup(yytext); return TOKSTRING;
-[a-z0-9_]+		 yylval.string=strdup(yytext);return WORD;
+[a-z0-9_]+	 yylval.string=strdup(yytext); return WORD;
 \"           return QUOTE;
 \(           return LPAREN;
 \)           return RPAREN;

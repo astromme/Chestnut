@@ -1,9 +1,10 @@
 %{
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <string>
 #include <iostream>
 #include <vector>
+#include <sstream>
 #include "SymbolTable.h"
 #include "Utilities.h"
 
@@ -14,6 +15,8 @@ int yylex(void);
 
 SymbolTable symtab;
 Utilities utils("cudalang.cpp");
+int fcncount; // number of functions instantiated so far
+
 
 void yyerror(const char *str)
 {
@@ -27,14 +30,16 @@ int yywrap()
 
 int main()
 {
+  fcncount = 0;
   utils.initializeIncludes();
   utils.initializeMain();
 
 	yyparse();
 
   utils.finalizeMain();
-
   utils.writeBuffer();
+
+  symtab.print();
 
   return 0;
 }
@@ -69,6 +74,7 @@ EQUALS ASSIGN SEMICOLON LPAREN RPAREN QUOTE COMMA
 %type <string> possible_types
 %type <string> possible_ops
 %type <string> filename
+%type <string> alphanumeric
 
 %%
 
@@ -90,9 +96,33 @@ write_call:
 ;
 
 map_call:
-  TOKMAP LPAREN possible_ops COMMA NUMBER COMMA WORD RPAREN
+  TOKMAP LPAREN possible_ops COMMA alphanumeric COMMA WORD RPAREN
   {
-    printf("Map >\tOperation: %s, Number: %d, Object: %s\n", $3, $5, $7);
+    string op = $3;
+    string alter = $5;
+    string object = $7;
+
+
+    stringstream ss; ss << fcncount;
+    fcncount++;
+    string fcnname = "map" + ss.str();
+
+    symtab.addEntry(fcnname, FUNCTION, FLOAT); // FIXME: FLOAT issue..
+    utils.mapFcn(fcnname, object, datatype, op, alter);
+    printf("Map >\tOperation: %s, Number: %s, Object: %s\n", $3, $5, $7);
+    delete $5;
+  }
+;
+
+alphanumeric: 
+  WORD | NUMBER
+  {
+    // need to convert WORD | NUMBER to a string
+    stringstream ss; ss << $1;
+    string str = ss.str();
+    char* chstr = new char[str.length()+1];
+    strcpy (chstr, str.c_str());
+    $$ = chstr;
   }
 ;
 
@@ -115,7 +145,6 @@ readdata_set:
     utils.readDatafile(fname, object, datatype);
     
     printf("Read >\tObject: %s, Filename: %s\n", object.c_str(), fname.c_str());
-    symtab.print();
   }
 ;
 

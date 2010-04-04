@@ -22,6 +22,12 @@ Utilities::~Utilities(){
  * Writes contents of vectors containing C++ code to the outfile
  */
 void Utilities::writeBuffer(){
+  // add newlines to each vector so we have some readable code
+  includeStrs.push_back("\n");
+  fcnDecStrs.push_back("\n");
+  mainStrs.push_back("\n");
+  fcnDefStrs.push_back("\n");
+
   // write #includes
   for (unsigned int i=0; i<includeStrs.size(); i++)
     writeString(includeStrs[i]);
@@ -84,11 +90,9 @@ void Utilities::initializeIncludes(){
   includes += add_include("string");
   includes += add_include("fstream");
   includes += add_include("iostream");
-  includes += "\n";
 
   includeStrs.push_back(includes);
 }
-
 
 /********************************
  * Function: add_include
@@ -227,5 +231,42 @@ void Utilities::writeDatafile(string fname, string object, string type){
 
 /********************************
  * Function: mapFcn
+ * ----------------
+ * Generates code for a map across an object
  */
-//string Utilities::mapFcn(string
+void Utilities::mapFcn(string fcnname, string object, string type, string op, string alter){
+  int old_indent = indent; // save indent level
+  indent = 0; // since we're defining a function, we start at no indent
+
+  // function declaration
+  // example:
+  //    int** map(int** data, int rows, int cols);
+  string declaration; 
+  declaration += prep_str(type + "** " + fcnname + "(" 
+    + type + "** " + object + ", int rows, int cols);");
+  fcnDecStrs.push_back(declaration);
+
+  // function definition
+  string definition;
+  definition += prep_str(type + "** " + fcnname + "(" 
+    + type + "** " + object + ", int rows, int cols){"); indent++;
+
+  definition += prep_str("for (int r=0; r<rows; r++){"); indent++;
+  definition += prep_str("for (int c=0; c<cols; c++){"); indent++;
+  definition += prep_str(object + "[r][c] " + op + "= " + alter + ";"); indent--;
+  definition += prep_str("}"); indent--;
+  definition += prep_str("}"); 
+  definition += prep_str("return " + object + ";"); indent--;
+  definition += prep_str("}"); indent--;
+  definition += "\n";
+  fcnDefStrs.push_back(definition);
+  
+  indent = old_indent; // restore indent level
+
+  // function call (in main)
+  string call;
+  call += prep_str("// call MAP function");
+  call += prep_str(fcnname + "(" + object + ", " + object + "_rows, " + object + "_cols);");
+  call += "\n";
+  mainStrs.push_back(call);
+}

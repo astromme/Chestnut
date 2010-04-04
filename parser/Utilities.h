@@ -20,6 +20,7 @@ class Utilities {
 
     void readDatafile(string fname, string object, string type);
     void writeDatafile(string fname, string object, string type);
+    void mapFcn(string fcnname, string object, string type, string op, string alter);
   
   private:
     std::ofstream outfile;
