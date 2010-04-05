@@ -1,19 +1,28 @@
 #include <iostream>
-#include "Utilities.h"
+#include "ParseUtils.h"
 
 using namespace std;
 
 // constructor
-Utilities::Utilities(string outfname) {
-  // initialize file so that it's blank (with ios::trunc)
-  outfile.open(outfname.c_str(), ios::trunc);
+ParseUtils::ParseUtils(string outfname) {
+  string cudafname = outfname + ".cu";
+  string cppfname = outfname + ".cpp";
+  string headerfname = outfname + ".h";
+
+  // initialize files so that it's blank (with ios::trunc)
+  cudafile.open(cudafname.c_str(), ios::trunc);
+  cppfile.open(cppfname.c_str(), ios::trunc);
+  headerfile.open(headerfname.c_str(), ios::trunc);
 
   indent = 0; // initially no indent offset 
 } 
 
 // destructor
-Utilities::~Utilities(){
-  outfile.close(); // close file
+ParseUtils::~ParseUtils(){
+  // close files
+  cudafile.close(); 
+  cppfile.close();
+  headerfile.close();
 }
 
 /********************************
@@ -21,7 +30,7 @@ Utilities::~Utilities(){
  * ---------------------
  * Writes contents of vectors containing C++ code to the outfile
  */
-void Utilities::writeBuffer(){
+void ParseUtils::writeBuffer(){
   // add newlines to each vector so we have some readable code
   includeStrs.push_back("\n");
   fcnDecStrs.push_back("\n");
@@ -30,19 +39,19 @@ void Utilities::writeBuffer(){
 
   // write #includes
   for (unsigned int i=0; i<includeStrs.size(); i++)
-    writeString(includeStrs[i]);
+    writeCuda(includeStrs[i]);
 
   // write function declarations
   for (unsigned int i=0; i<fcnDecStrs.size(); i++)
-    writeString(fcnDecStrs[i]);
+    writeCuda(fcnDecStrs[i]);
 
   // write main()
   for (unsigned int i=0; i<mainStrs.size(); i++)
-    writeString(mainStrs[i]);
+    writeCuda(mainStrs[i]);
 
   // write function definitions
   for (unsigned int i=0; i<fcnDefStrs.size(); i++)
-    writeString(fcnDefStrs[i]);
+    writeCuda(fcnDefStrs[i]);
 }
 
 
@@ -52,7 +61,7 @@ void Utilities::writeBuffer(){
  * Consolidates the namespace and beginning of main(). Returns a string which
  * gets put into a vector so we can add more later.
  */
-void Utilities::initializeMain(){
+void ParseUtils::initializeMain(){
   string startmain;
   // use standard namespace (?)
   startmain += "using namespace std;\n\n";
@@ -69,7 +78,7 @@ void Utilities::initializeMain(){
  * We're done with main(), so return a string with the `return 0` standard
  * stuff and a close brace.
  */
-void Utilities::finalizeMain(){
+void ParseUtils::finalizeMain(){
   string endmain;
   endmain += "  return 0;\n";
   endmain += "}\n"; // close main()
@@ -84,7 +93,7 @@ void Utilities::finalizeMain(){
  * returned to be stored in a vector. The vector is eventually written out to
  * the file, but in case we want to add more #includes later on, we can.
  */
-void Utilities::initializeIncludes(){
+void ParseUtils::initializeIncludes(){
   // add #include infos
   string includes;
   /*includes += add_include("string");
@@ -106,15 +115,14 @@ void Utilities::initializeIncludes(){
  * given a header file, wraps it in the customary #include<foo> syntax and
  * returns it.
  */
-string Utilities::add_include(string header){
+string ParseUtils::add_include(string header){
   return "#include <" + header + ">\n";
 }
 
-// writes a newline to the outfile
-void Utilities::write_newline(){ writeString("\n"); }
-
-// writes given string to the outfile
-void Utilities::writeString(string str){ outfile << str; }
+// writes given string to the 
+void ParseUtils::writeCuda(string str){ cudafile << str; }
+void ParseUtils::writeCpp(string str){ cppfile << str; }
+void ParseUtils::writeHeader(string str){ headerfile << str; }
 
 /********************************
  * Function: prep_str
@@ -123,7 +131,7 @@ void Utilities::writeString(string str){ outfile << str; }
  * the proper amount, based on the global indent offset. Returns the indented,
  * "newlined" string
  */
-string Utilities::prep_str(string str) { 
+string ParseUtils::prep_str(string str) { 
   string indentstr = "";
   for (int i=0; i<indent; i++){
     indentstr += "  ";
@@ -145,7 +153,7 @@ string Utilities::prep_str(string str) {
  * Returns:
  *    struct containing all of the derived names that we might want    
  */
-obj_names Utilities::get_obj_names(string obj){
+obj_names ParseUtils::get_obj_names(string obj){
   obj_names on;
   on.host = obj + "_host";
   on.dev = obj + "_dev";
@@ -174,7 +182,7 @@ obj_names Utilities::get_obj_names(string obj){
  *    C++ code to implement this data read
  */
 // TODO: throw error if file can't be opened
-void Utilities::readDatafile(string fname, string object, string type){
+void ParseUtils::readDatafile(string fname, string object, string type){
   string outstr;
 
   // define names of vars in prog
@@ -242,7 +250,7 @@ void Utilities::readDatafile(string fname, string object, string type){
  * Returns:
  *    C++ code to implement this data write
  */
-void Utilities::writeDatafile(string fname, string object, string type){
+void ParseUtils::writeDatafile(string fname, string object, string type){
   string outstr;
 
   // define names of vars in prog
@@ -281,7 +289,7 @@ void Utilities::writeDatafile(string fname, string object, string type){
  * ----------------
  * Generates code for a map across an object
  */
-void Utilities::mapFcn(string fcnname, string object, string type, string op, string alter){
+void ParseUtils::mapFcn(string fcnname, string object, string type, string op, string alter){
   int old_indent = indent; // save indent level
   indent = 0; // since we're defining a function, we start at no indent
 
@@ -370,7 +378,7 @@ void Utilities::mapFcn(string fcnname, string object, string type, string op, st
  * Returns:
  *    fully realized cudaMemcpy command
  */
-string Utilities::cudamemcpy_str(
+string ParseUtils::cudamemcpy_str(
     string to, string from, string size, string directive){
   return "cudaMemcpy(" 
     + to + ", " 

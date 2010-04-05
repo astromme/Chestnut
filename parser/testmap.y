@@ -6,7 +6,7 @@
 #include <vector>
 #include <sstream>
 #include "SymbolTable.h"
-#include "Utilities.h"
+#include "ParseUtils.h"
 
 using namespace std;
 
@@ -14,7 +14,7 @@ int yyparse(void);
 int yylex(void);
 
 SymbolTable symtab;
-Utilities utils("cudalang.cu");
+ParseUtils parseutils("cudalang");
 int fcncount; // number of functions instantiated so far
 
 
@@ -31,13 +31,13 @@ int yywrap()
 int main()
 {
   fcncount = 0;
-  utils.initializeIncludes();
-  utils.initializeMain();
+  parseutils.initializeIncludes();
+  parseutils.initializeMain();
 
 	yyparse();
 
-  utils.finalizeMain();
-  utils.writeBuffer();
+  parseutils.finalizeMain();
+  parseutils.writeBuffer();
 
   symtab.print();
 
@@ -90,7 +90,7 @@ write_call:
   {
     string object = $3;
     string fname = $5;
-    utils.writeDatafile(fname, object, datatype);
+    parseutils.writeDatafile(fname, object, datatype);
     printf("Write >\tObject: %s, OutFile: %s\n", $3, $5);
   }
 ;
@@ -108,7 +108,7 @@ map_call:
     string fcnname = "map" + ss.str();
 
     symtab.addEntry(fcnname, FUNCTION, FLOAT); // FIXME: FLOAT issue..
-    utils.mapFcn(fcnname, object, datatype, op, alter);
+    parseutils.mapFcn(fcnname, object, datatype, op, alter);
     printf("Map >\tOperation: %s, Number: %s, Object: %s\n", $3, $5, $7);
     delete $5;
   }
@@ -142,7 +142,7 @@ readdata_set:
 
     // FIXME!! -- FLOAT?? really..
     symtab.addEntry(object, VARIABLE, FLOAT);
-    utils.readDatafile(fname, object, datatype);
+    parseutils.readDatafile(fname, object, datatype);
     
     printf("Read >\tObject: %s, Filename: %s\n", object.c_str(), fname.c_str());
   }
