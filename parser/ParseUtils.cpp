@@ -10,19 +10,28 @@ ParseUtils::ParseUtils(string outfname) {
   string headerfname = outfname + ".h";
 
   // initialize files so that it's blank (with ios::trunc)
-  cudafile.open(cudafname.c_str(), ios::trunc);
-  cppfile.open(cppfname.c_str(), ios::trunc);
-  headerfile.open(headerfname.c_str(), ios::trunc);
+  //cudafile.open(cudafname.c_str(), ios::trunc);
+  cudafile = new FileUtils(cudafname);
 
   indent = 0; // initially no indent offset 
 } 
 
 // destructor
 ParseUtils::~ParseUtils(){
+  // delete FileUtils
+  delete cudafile;
+
   // close files
-  cudafile.close(); 
-  cppfile.close();
-  headerfile.close();
+  //cudafile.close(); 
+}
+
+/********************************
+ * Function: writeAllFiles
+ * -----------------------
+ * Writes contents of files to disk using FileUtils
+ */
+void ParseUtils::writeAllFiles(){
+  cudafile->writeAll();
 }
 
 /********************************
@@ -30,6 +39,7 @@ ParseUtils::~ParseUtils(){
  * ---------------------
  * Writes contents of vectors containing C++ code to the outfile
  */
+/*
 void ParseUtils::writeBuffer(){
   // add newlines to each vector so we have some readable code
   includeStrs.push_back("\n");
@@ -52,7 +62,7 @@ void ParseUtils::writeBuffer(){
   // write function definitions
   for (unsigned int i=0; i<fcnDefStrs.size(); i++)
     writeCuda(fcnDefStrs[i]);
-}
+}*/
 
 
 /********************************
@@ -67,7 +77,8 @@ void ParseUtils::initializeMain(){
   startmain += "using namespace std;\n\n";
   startmain += "int main() {\n";
 
-  mainStrs.push_back(startmain);
+  cudafile->pushMain(startmain);
+  //mainStrs.push_back(startmain);
   indent++; // add indentation level
 }
 
@@ -83,7 +94,8 @@ void ParseUtils::finalizeMain(){
   endmain += "  return 0;\n";
   endmain += "}\n"; // close main()
 
-  mainStrs.push_back(endmain);
+  cudafile->pushMain(endmain);
+  //mainStrs.push_back(endmain);
 }
 
 /********************************
@@ -106,7 +118,8 @@ void ParseUtils::initializeIncludes(){
   includes += add_include("cuda.h");
   includes += add_include("cuda_runtime_api.h");
 
-  includeStrs.push_back(includes);
+  cudafile->pushInclude(includes);
+  //includeStrs.push_back(includes);
 }
 
 /********************************
@@ -120,9 +133,7 @@ string ParseUtils::add_include(string header){
 }
 
 // writes given string to the 
-void ParseUtils::writeCuda(string str){ cudafile << str; }
-void ParseUtils::writeCpp(string str){ cppfile << str; }
-void ParseUtils::writeHeader(string str){ headerfile << str; }
+//void ParseUtils::writeCuda(string str){ cudafile << str; }
 
 /********************************
  * Function: prep_str
@@ -231,7 +242,8 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   outstr += prep_str(instream + ".close();");
   outstr += "\n";
 
-  mainStrs.push_back(outstr);
+  cudafile->pushMain(outstr);
+  //mainStrs.push_back(outstr);
 }
 
 /********************************
@@ -281,7 +293,8 @@ void ParseUtils::writeDatafile(string fname, string object, string type){
   outstr += prep_str(outstream + ".close();");
   outstr += "\n";
 
-  mainStrs.push_back(outstr);
+  cudafile->pushMain(outstr);
+  //mainStrs.push_back(outstr);
 }
 
 /********************************
@@ -306,7 +319,8 @@ void ParseUtils::mapFcn(string fcnname, string object, string type, string op, s
   string declaration; 
   declaration += prep_str("__global__ void " + fcnname + "(" 
     + type + "* data, int cols);");
-  fcnDecStrs.push_back(declaration);
+  cudafile->pushFcnDec(declaration);
+  //fcnDecStrs.push_back(declaration);
 
   // function definition
   string definition;
@@ -321,7 +335,8 @@ void ParseUtils::mapFcn(string fcnname, string object, string type, string op, s
   definition += prep_str("data[row*cols + col] " + op + "= " + alter + ";"); indent--;
   definition += prep_str("}");
   definition += "\n";
-  fcnDefStrs.push_back(definition);
+  cudafile->pushFcnDef(definition);
+  //fcnDefStrs.push_back(definition);
   
   indent = old_indent; // restore indent level
 
@@ -359,7 +374,8 @@ void ParseUtils::mapFcn(string fcnname, string object, string type, string op, s
         "cudaMemcpyDeviceToHost"));
   call += "\n";
     
-  mainStrs.push_back(call);
+  cudafile->pushMain(call);
+  //mainStrs.push_back(call);
 }
 
 /********************************

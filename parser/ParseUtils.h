@@ -1,9 +1,10 @@
-#ifndef _UTILITIES_H
-#define _UTILITIES_H
+#ifndef _PARSE_UTILS_H
+#define _PARSE_UTILS_H
 
 #include <fstream>
 #include <string>
 #include <vector>
+#include "FileUtils.h"
 
 using std::vector;
 using std::string;
@@ -26,20 +27,19 @@ class ParseUtils {
     void initializeMain();
     void finalizeMain();
     void writeCuda(string str);
-    void writeCpp(string str);
-    void writeHeader(string str);
-    void writeBuffer();
+    void writeAllFiles();
+    //void writeBuffer();
 
     void readDatafile(string fname, string object, string type);
     void writeDatafile(string fname, string object, string type);
     void mapFcn(string fcnname, string object, string type, string op, string alter);
   
   private:
-    std::ofstream cudafile, cppfile, headerfile;
+    //std::ofstream cudafile;
+    FileUtils* cudafile;
     int indent; // number of indentations to make
 
     string add_include(string header);
-    void write_newline();
     string prep_str(string str);
     string cudamemcpy_str(string to, string from, string size, string directive);
     obj_names get_obj_names(string obj);
