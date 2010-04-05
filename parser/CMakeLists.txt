@@ -14,6 +14,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(parseutils_SOURCES 
     SymbolTable.cpp
     ParseUtils.cpp
+    FileUtils.cpp
 )
 
 message("Flex Found: ${testmap_scanner} ${FLEX_testmap_scanner_OUTPUTS} ${FLEX_testmap_scanner_DEFINED}")

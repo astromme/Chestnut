@@ -37,7 +37,7 @@ int main()
 	yyparse();
 
   parseutils.finalizeMain();
-  parseutils.writeBuffer();
+  parseutils.writeAllFiles();
 
   symtab.print();
 
