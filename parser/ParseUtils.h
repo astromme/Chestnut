@@ -18,14 +18,16 @@ typedef struct {
   string garbage;
 } obj_names;
 
-class Utilities {
+class ParseUtils {
   public:
-    Utilities(string myoutfile);
-    ~Utilities();
+    ParseUtils(string myoutfile);
+    ~ParseUtils();
     void initializeIncludes();
     void initializeMain();
     void finalizeMain();
-    void writeString(string str);
+    void writeCuda(string str);
+    void writeCpp(string str);
+    void writeHeader(string str);
     void writeBuffer();
 
     void readDatafile(string fname, string object, string type);
@@ -33,7 +35,7 @@ class Utilities {
     void mapFcn(string fcnname, string object, string type, string op, string alter);
   
   private:
-    std::ofstream outfile;
+    std::ofstream cudafile, cppfile, headerfile;
     int indent; // number of indentations to make
 
     string add_include(string header);
