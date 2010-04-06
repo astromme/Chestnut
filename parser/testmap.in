@@ -1,4 +1,8 @@
 type = int;
 data = read("testdata");
-map(*,2,data);
+map(+,2,data);
 //write(data,"testoutput");
+
+//data2 = read("testoutput");
+map(*,2,data);
+write(data,"testoutput");
