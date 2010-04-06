@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <iostream>
+#include <sstream>
 #include "ParseUtils.h"
 
 using namespace std;
@@ -12,14 +14,21 @@ ParseUtils::ParseUtils(string outfname) {
   // initialize files so that it's blank (with ios::trunc)
   //cudafile.open(cudafname.c_str(), ios::trunc);
   cudafile = new FileUtils(cudafname);
+  cppfile = new FileUtils(cppfname);
+  headerfile = new FileUtils(headerfname);
+
+  parselibs_included = cudalang_included = false;
 
   indent = 0; // initially no indent offset 
+  fcncount = 0; // no functions yet
 } 
 
 // destructor
 ParseUtils::~ParseUtils(){
   // delete FileUtils
   delete cudafile;
+  delete cppfile;
+  delete headerfile;
 
   // close files
   //cudafile.close(); 
@@ -32,38 +41,9 @@ ParseUtils::~ParseUtils(){
  */
 void ParseUtils::writeAllFiles(){
   cudafile->writeAll();
+  cppfile->writeAll();
+  headerfile->writeAll();
 }
-
-/********************************
- * Function: writeBuffer
- * ---------------------
- * Writes contents of vectors containing C++ code to the outfile
- */
-/*
-void ParseUtils::writeBuffer(){
-  // add newlines to each vector so we have some readable code
-  includeStrs.push_back("\n");
-  fcnDecStrs.push_back("\n");
-  mainStrs.push_back("\n");
-  fcnDefStrs.push_back("\n");
-
-  // write #includes
-  for (unsigned int i=0; i<includeStrs.size(); i++)
-    writeCuda(includeStrs[i]);
-
-  // write function declarations
-  for (unsigned int i=0; i<fcnDecStrs.size(); i++)
-    writeCuda(fcnDecStrs[i]);
-
-  // write main()
-  for (unsigned int i=0; i<mainStrs.size(); i++)
-    writeCuda(mainStrs[i]);
-
-  // write function definitions
-  for (unsigned int i=0; i<fcnDefStrs.size(); i++)
-    writeCuda(fcnDefStrs[i]);
-}*/
-
 
 /********************************
  * Function: initializeMain
@@ -78,7 +58,6 @@ void ParseUtils::initializeMain(){
   startmain += "int main() {\n";
 
   cudafile->pushMain(startmain);
-  //mainStrs.push_back(startmain);
   indent++; // add indentation level
 }
 
@@ -95,7 +74,6 @@ void ParseUtils::finalizeMain(){
   endmain += "}\n"; // close main()
 
   cudafile->pushMain(endmain);
-  //mainStrs.push_back(endmain);
 }
 
 /********************************
@@ -113,15 +91,70 @@ void ParseUtils::initializeIncludes(){
   includes += add_include("iostream");
   includes += "\n";*/
 
-  // cuda includes
-  includes += prep_str("// CUDA includes");
-  includes += add_include("cuda.h");
-  includes += add_include("cuda_runtime_api.h");
+  // cudafile includes
+  string cuda_includes;
+  cuda_includes += prep_str("// CUDA includes");
+  cuda_includes += add_include("<cuda.h>");
+  cuda_includes += add_include("<cuda_runtime_api.h>");
+  cudafile->pushInclude(cuda_includes);
 
-  cudafile->pushInclude(includes);
-  //includeStrs.push_back(includes);
+  // cpp includes
+  string cpp_includes;
+  cpp_includes += add_include("<fstream>");
+  cpp_includes += add_include("<iostream>");
+  cpp_includes += add_include("<string>");
+  cpp_includes += add_include("\"" + headerfile->fname() + "\"");
+  cppfile->pushInclude(cpp_includes);
+
+  // also throw in "using namespace std" into cpp function declarations, which
+  // will always come before the definition but after all the includes
+  string namespace_std = prep_str("using namespace std;");
+  cppfile->pushFcnDec(namespace_std);
 }
 
+
+/********************************
+ * Function: initializeHeader
+ * --------------------------
+ * Initializes header file with the customary #define syntax
+ */
+void ParseUtils::initializeHeader(){
+  string headername = headerfile->fname();
+
+  // convert to uppercase
+  transform(headername.begin(), headername.end(), headername.begin(), ::toupper);
+
+  // replace .H with _H
+  headername.replace(headername.length()-2,1,"_");
+
+  int old_indent = indent;
+  indent = 0;
+
+  string define;
+  define += prep_str("#ifndef _" + headername);
+  define += prep_str("#define _" + headername);
+  define += "\n";
+  headerfile->pushInclude(define);
+
+  string includes;
+  headerfile->pushInclude(includes);
+
+  indent = old_indent;
+}
+
+void ParseUtils::finalizeHeader(){
+  int old_indent = indent;
+  indent = 0;
+
+  string endheader;
+  endheader += prep_str("#endif");
+
+  // adding #endif to the "Function Definition" part of a .h file ensures that
+  // it comes last
+  headerfile->pushFcnDef(endheader);
+
+  indent = old_indent;
+}
 /********************************
  * Function: add_include
  * ---------------------
@@ -129,11 +162,8 @@ void ParseUtils::initializeIncludes(){
  * returns it.
  */
 string ParseUtils::add_include(string header){
-  return "#include <" + header + ">\n";
+  return "#include " + header + "\n";
 }
-
-// writes given string to the 
-//void ParseUtils::writeCuda(string str){ cudafile << str; }
 
 /********************************
  * Function: prep_str
@@ -148,6 +178,20 @@ string ParseUtils::prep_str(string str) {
     indentstr += "  ";
   }
   return indentstr + str + "\n";
+}
+
+/********************************
+ * Function: numbered_fcnname
+ * --------------------------
+ * given a function name, append the value of the current function counter and
+ * increment the counter
+ */
+string ParseUtils::numbered_fcnname(string fcnname){
+  stringstream ss; ss << fcncount;
+  string new_fcnname = fcnname + ss.str();
+  fcncount++;
+
+  return new_fcnname;
 }
 
 /********************************
@@ -170,6 +214,7 @@ obj_names ParseUtils::get_obj_names(string obj){
   on.dev = obj + "_dev";
   on.rows = obj + "_rows";
   on.cols = obj + "_cols";
+  on.datainfo = obj + "_datainfo";
   on.instream = obj + "_instream";
   on.outstream = obj + "_outstream";
   on.garbage = obj + "_garbage";
@@ -202,28 +247,87 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   string dev = objnames.dev;
   string rows = objnames.rows;
   string cols = objnames.cols;
+  string datainfo = objnames.datainfo;
   string instream = objnames.instream;
   string garbage = objnames.garbage;
 
-  outstr += prep_str("ifstream " + instream + ";");
-  outstr += prep_str(instream + ".open(\"" + fname + "\");");
-  outstr += "\n";
+  string fcnname = numbered_fcnname("readDatafile");
+  int old_indent = indent;
+  indent = 0;
 
-  outstr += prep_str("// read in rows and column data");
-  outstr += prep_str("string " + garbage + ";");
-  outstr += prep_str("int " + rows + ", " + cols +";");
-  outstr += prep_str(instream + " >> " + garbage + "; " + instream + " >> " + rows + ";");
-  outstr += prep_str(instream + " >> " + garbage + "; " + instream + " >> " + cols + ";");
-  outstr += "\n";
+  if (!cudalang_included){
+    // make sure cu file has cudalang.h included FIXME: won't always be
+    // cudalang
+    string cudalang = add_include("\"" + headerfile->fname() + "\"");
+    cudafile->pushInclude(cudalang);
+    cudalang_included = true;
+  }
 
+  if (!parselibs_included){
+    // make sure both header file and cu file have included ParseLibs
+    string parselibs = add_include("\"ParseLibs.h\"");
+    headerfile->pushInclude(parselibs);
+    cudafile->pushInclude(parselibs);
+    parselibs_included = true;
+  }
+
+  // write out function declaration to header file
+  string header_outstr;
+  header_outstr += prep_str("DataInfo<" + type + ">* " + fcnname + "(char* fname);");
+
+  // write out function definition in cpp file
+  string cpp_outstr;
+  cpp_outstr += prep_str("DataInfo<" + type + ">* " + fcnname + "(char* fname){"); indent++;
+  cpp_outstr += prep_str("ifstream instream;");
+  cpp_outstr += prep_str("instream.open(fname);");
+  cpp_outstr += "\n";
+
+  cpp_outstr += prep_str("// read in rows and column data");
+  cpp_outstr += prep_str("string garbage;");
+  cpp_outstr += prep_str("int rows, cols;");
+  cpp_outstr += prep_str("instream >> garbage; instream >> rows;");
+  cpp_outstr += prep_str("instream >> garbage; instream >> cols;");
+  cpp_outstr += "\n";
+
+  cpp_outstr += prep_str("// read in data from file");
+  cpp_outstr += prep_str(type + "* data = new " + type + "[rows*cols];");
+  cpp_outstr += prep_str("for (int r=0; r<rows; r++){"); indent++;
+  cpp_outstr += prep_str("for (int c=0; c<cols; c++){"); indent++;
+  cpp_outstr += prep_str("instream >> data[r*cols+c];"); indent--;
+  cpp_outstr += prep_str("}"); indent--;
+  cpp_outstr += prep_str("}");
+  cpp_outstr += prep_str("instream.close();");
+  cpp_outstr += "\n";
+
+  cpp_outstr += prep_str("// package data information in DataInfo object");
+  cpp_outstr += prep_str("DataInfo<" + type + ">* datainfo = new DataInfo<" + type + ">();");
+  cpp_outstr += prep_str("datainfo->rows = rows;");
+  cpp_outstr += prep_str("datainfo->cols = cols;");
+  cpp_outstr += prep_str("datainfo->data = data;");
+  cpp_outstr += prep_str("return datainfo;"); indent--;
+  cpp_outstr += prep_str("}");
+
+  indent = old_indent; // restore indent
   outstr += prep_str(type + "* " + host + "; // Memory on host (cpu) side");
   outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
+  outstr += prep_str("int " + rows + ", " + cols + ";");
   outstr += "\n";
 
+  outstr += prep_str("// Read in data");
+  outstr += prep_str("DataInfo<" + type + ">* " + datainfo + " = " 
+      + fcnname + "(\"" + fname + "\");");
+  outstr += prep_str(host + " = " + datainfo + "->data;");
+  outstr += prep_str(rows + " = " + datainfo + "->rows;");
+  outstr += prep_str(cols + " = " + datainfo + "->cols;");
+  //outstr += prep_str(host + " = " + fcnname + "(\"" + fname + "\");");
+  outstr += "\n";
+
+/*
   outstr += prep_str("// Allocate memory on the host that the gpu can access quickly");
   outstr += prep_str("cudaMallocHost((void**)&" + host + ", " 
       + rows + "*" + cols + "*sizeof(" + type + "));");
   outstr += "\n";
+*/
 
 /*
   outstr += prep_str(type + "** " + object + " = new " + type + "*[" + rows + "];");
@@ -233,17 +337,10 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   outstr += "\n";
 */
 
-  outstr += prep_str("// read in data from file");
-  outstr += prep_str("for (int r=0; r<" + rows + "; r++){"); indent++;
-  outstr += prep_str("for (int c=0; c<" + cols + "; c++){"); indent++;
-  outstr += prep_str(instream + " >> " + host + "[r*" + cols + "+c];"); indent--;
-  outstr += prep_str("}"); indent--;
-  outstr += prep_str("}");
-  outstr += prep_str(instream + ".close();");
-  outstr += "\n";
 
+  headerfile->pushFcnDec(header_outstr);
+  cppfile->pushFcnDef(cpp_outstr);
   cudafile->pushMain(outstr);
-  //mainStrs.push_back(outstr);
 }
 
 /********************************
@@ -294,7 +391,6 @@ void ParseUtils::writeDatafile(string fname, string object, string type){
   outstr += "\n";
 
   cudafile->pushMain(outstr);
-  //mainStrs.push_back(outstr);
 }
 
 /********************************
@@ -305,6 +401,7 @@ void ParseUtils::writeDatafile(string fname, string object, string type){
 void ParseUtils::mapFcn(string fcnname, string object, string type, string op, string alter){
   int old_indent = indent; // save indent level
   indent = 0; // since we're defining a function, we start at no indent
+  fcnname = numbered_fcnname(fcnname);
 
   // define names of vars in prog
   obj_names objnames = get_obj_names(object);
@@ -320,7 +417,6 @@ void ParseUtils::mapFcn(string fcnname, string object, string type, string op, s
   declaration += prep_str("__global__ void " + fcnname + "(" 
     + type + "* data, int cols);");
   cudafile->pushFcnDec(declaration);
-  //fcnDecStrs.push_back(declaration);
 
   // function definition
   string definition;
@@ -336,7 +432,6 @@ void ParseUtils::mapFcn(string fcnname, string object, string type, string op, s
   definition += prep_str("}");
   definition += "\n";
   cudafile->pushFcnDef(definition);
-  //fcnDefStrs.push_back(definition);
   
   indent = old_indent; // restore indent level
 
@@ -375,7 +470,6 @@ void ParseUtils::mapFcn(string fcnname, string object, string type, string op, s
   call += "\n";
     
   cudafile->pushMain(call);
-  //mainStrs.push_back(call);
 }
 
 /********************************
