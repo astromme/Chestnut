@@ -15,7 +15,6 @@ int yylex(void);
 
 SymbolTable symtab;
 ParseUtils parseutils("cudalang");
-int fcncount; // number of functions instantiated so far
 
 
 void yyerror(const char *str)
@@ -30,13 +29,16 @@ int yywrap()
 
 int main()
 {
-  fcncount = 0;
   parseutils.initializeIncludes();
   parseutils.initializeMain();
+  parseutils.initializeHeader();
 
 	yyparse();
 
   parseutils.finalizeMain();
+  parseutils.finalizeHeader();
+
+
   parseutils.writeAllFiles();
 
   symtab.print();
@@ -102,10 +104,7 @@ map_call:
     string alter = $5;
     string object = $7;
 
-
-    stringstream ss; ss << fcncount;
-    fcncount++;
-    string fcnname = "map" + ss.str();
+    string fcnname = "map";
 
     symtab.addEntry(fcnname, FUNCTION, FLOAT); // FIXME: FLOAT issue..
     parseutils.mapFcn(fcnname, object, datatype, op, alter);

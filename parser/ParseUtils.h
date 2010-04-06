@@ -14,6 +14,7 @@ typedef struct {
   string dev;
   string rows;
   string cols;
+  string datainfo;
   string instream;
   string outstream;
   string garbage;
@@ -23,9 +24,14 @@ class ParseUtils {
   public:
     ParseUtils(string myoutfile);
     ~ParseUtils();
+
     void initializeIncludes();
     void initializeMain();
+    void initializeHeader();
+
     void finalizeMain();
+    void finalizeHeader();
+
     void writeCuda(string str);
     void writeAllFiles();
     //void writeBuffer();
@@ -36,11 +42,16 @@ class ParseUtils {
   
   private:
     //std::ofstream cudafile;
-    FileUtils* cudafile;
+    FileUtils *cudafile, *cppfile, *headerfile;
     int indent; // number of indentations to make
+    int fcncount; // number of functions instantiated so far
+
+    bool parselibs_included;
+    bool cudalang_included;
 
     string add_include(string header);
     string prep_str(string str);
+    string numbered_fcnname(string fcnname);
     string cudamemcpy_str(string to, string from, string size, string directive);
     obj_names get_obj_names(string obj);
 

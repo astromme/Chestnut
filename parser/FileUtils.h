@@ -20,8 +20,11 @@ class FileUtils {
     void pushFcnDec(string fcnDec);
     void pushFcnDef(string fcnDef);
 
+    string fname();
+
   private:
     std::ofstream outfile;
+    string outfname;
 
     /***********************************************
      * A Note about these vectors: 

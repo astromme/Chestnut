@@ -10,6 +10,8 @@ include_directories("/usr/local/cuda/include" ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(cudalang_program_sources
     cudalang.cu
+    cudalang.cpp
+    ParseLibs.h
     )
 
 # set(fluid_headers
