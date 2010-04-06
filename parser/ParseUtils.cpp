@@ -239,8 +239,6 @@ obj_names ParseUtils::get_obj_names(string obj){
  */
 // TODO: throw error if file can't be opened
 void ParseUtils::readDatafile(string fname, string object, string type){
-  string outstr;
-
   // define names of vars in prog
   obj_names objnames = get_obj_names(object);
   string host = objnames.host;
@@ -274,6 +272,7 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   // write out function declaration to header file
   string header_outstr;
   header_outstr += prep_str("DataInfo<" + type + ">* " + fcnname + "(char* fname);");
+  headerfile->pushFcnDec(header_outstr);
 
   // write out function definition in cpp file
   string cpp_outstr;
@@ -306,21 +305,26 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   cpp_outstr += prep_str("datainfo->data = data;");
   cpp_outstr += prep_str("return datainfo;"); indent--;
   cpp_outstr += prep_str("}");
+  cpp_outstr += prep_str("\n");
+  cppfile->pushFcnDef(cpp_outstr);
 
   indent = old_indent; // restore indent
-  outstr += prep_str(type + "* " + host + "; // Memory on host (cpu) side");
-  outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
-  outstr += prep_str("int " + rows + ", " + cols + ";");
-  outstr += "\n";
 
-  outstr += prep_str("// Read in data");
-  outstr += prep_str("DataInfo<" + type + ">* " + datainfo + " = " 
+  string cuda_outstr;
+  cuda_outstr += prep_str(type + "* " + host + "; // Memory on host (cpu) side");
+  cuda_outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
+  cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
+  cuda_outstr += "\n";
+
+  cuda_outstr += prep_str("// Read in data");
+  cuda_outstr += prep_str("DataInfo<" + type + ">* " + datainfo + " = " 
       + fcnname + "(\"" + fname + "\");");
-  outstr += prep_str(host + " = " + datainfo + "->data;");
-  outstr += prep_str(rows + " = " + datainfo + "->rows;");
-  outstr += prep_str(cols + " = " + datainfo + "->cols;");
+  cuda_outstr += prep_str(host + " = " + datainfo + "->data;");
+  cuda_outstr += prep_str(rows + " = " + datainfo + "->rows;");
+  cuda_outstr += prep_str(cols + " = " + datainfo + "->cols;");
   //outstr += prep_str(host + " = " + fcnname + "(\"" + fname + "\");");
-  outstr += "\n";
+  cuda_outstr += "\n";
+  cudafile->pushMain(cuda_outstr);
 
 /*
   outstr += prep_str("// Allocate memory on the host that the gpu can access quickly");
@@ -336,11 +340,6 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   outstr += prep_str("}");
   outstr += "\n";
 */
-
-
-  headerfile->pushFcnDec(header_outstr);
-  cppfile->pushFcnDef(cpp_outstr);
-  cudafile->pushMain(outstr);
 }
 
 /********************************
@@ -369,28 +368,62 @@ void ParseUtils::writeDatafile(string fname, string object, string type){
   string cols = objnames.cols;
   string outstream = objnames.outstream;
 
-  outstr += prep_str("// output data to file");
-  outstr += prep_str("ofstream " + outstream + ";");
-  outstr += prep_str(outstream + ".open(\"" + fname + "\");");
-  outstr += "\n";
+  string fcnname = numbered_fcnname("writeDatafile");
+  int old_indent = indent;
+  indent = 0;
 
-  outstr += prep_str("// write data out to file");
-  outstr += prep_str(outstream + " << \"rows: \" << " + 
-      rows + " << \"\\n\";");
-  outstr += prep_str(outstream + " << \"cols: \" << " + 
-      cols + " << \"\\n\";");
+  if (!cudalang_included){
+    // make sure cu file has cudalang.h included FIXME: won't always be
+    // cudalang
+    string cudalang = add_include("\"" + headerfile->fname() + "\"");
+    cudafile->pushInclude(cudalang);
+    cudalang_included = true;
+  }
 
-  outstr += prep_str("for (int r=0; r<" + rows + "; r++){"); indent++;
-  outstr += prep_str("for (int c=0; c<" + cols + "; c++){"); indent++;
-  outstr += prep_str(outstream + " << " + host + 
-      "[r*" + cols + "+c] << \" \";"); indent--;
-  outstr += prep_str("}"); 
-  outstr += prep_str(outstream + " << \"\\n\";"); indent--;
-  outstr += prep_str("}");
-  outstr += prep_str(outstream + ".close();");
-  outstr += "\n";
+  if (!parselibs_included){
+    // make sure both header file and cu file have included ParseLibs
+    string parselibs = add_include("\"ParseLibs.h\"");
+    headerfile->pushInclude(parselibs);
+    cudafile->pushInclude(parselibs);
+    parselibs_included = true;
+  }
+  
+  // write out function declaration to header file
+  string header_outstr;
+  header_outstr += prep_str("void " + fcnname + "(char* fname, " + type + "* data, int rows, int cols);");
+  headerfile->pushFcnDec(header_outstr);
 
-  cudafile->pushMain(outstr);
+  string cpp_outstr;
+  cpp_outstr += prep_str("void " + fcnname + "(char* fname, " + type + "* data, int rows, int cols){"); indent++;
+  cpp_outstr += prep_str("// output data to file");
+  cpp_outstr += prep_str("ofstream outstream;");
+  cpp_outstr += prep_str("outstream.open(\"" + fname + "\");");
+  cpp_outstr += "\n";
+
+  cpp_outstr += prep_str("// write data out to file");
+  cpp_outstr += prep_str("outstream << \"rows: \" << rows << \"\\n\";");
+  cpp_outstr += prep_str("outstream << \"cols: \" << cols << \"\\n\";");
+
+  cpp_outstr += prep_str("for (int r=0; r<rows; r++){"); indent++;
+  cpp_outstr += prep_str("for (int c=0; c<cols; c++){"); indent++;
+  cpp_outstr += prep_str("outstream << data[r*cols+c] << \" \";"); indent--;
+  cpp_outstr += prep_str("}"); 
+  cpp_outstr += prep_str("outstream << \"\\n\";"); indent--;
+  cpp_outstr += prep_str("}");
+  cpp_outstr += prep_str("outstream.close();"); indent--;
+  cpp_outstr += prep_str("}");
+  cpp_outstr += "\n";
+  cppfile->pushFcnDef(cpp_outstr);
+
+  indent = old_indent; // restore indent
+
+  string cuda_outstr;
+  cuda_outstr += prep_str("// write data out to disk");
+  cuda_outstr += prep_str(fcnname + "(\"" + fname + "\", " + host +
+      ", " + rows + ", " + cols + ");");
+  cuda_outstr += "\n";
+  cudafile->pushMain(cuda_outstr);
+
 }
 
 /********************************

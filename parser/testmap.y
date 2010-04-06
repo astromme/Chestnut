@@ -106,7 +106,7 @@ map_call:
 
     string fcnname = "map";
 
-    symtab.addEntry(fcnname, FUNCTION, FLOAT); // FIXME: FLOAT issue..
+    //symtab.addEntry(fcnname, FUNCTION, FLOAT); // FIXME: FLOAT issue..
     parseutils.mapFcn(fcnname, object, datatype, op, alter);
     printf("Map >\tOperation: %s, Number: %s, Object: %s\n", $3, $5, $7);
     delete $5;
