@@ -221,6 +221,68 @@ obj_names ParseUtils::get_obj_names(string obj){
   return on;
 }
 
+
+/********************************
+ * Function: insertVerbatim
+ * ------------------------
+ * The user can insert code verbatim into their program. For example, to
+ * initialize an array the user might write the following code in our
+ * language:
+ *    STARTCPP
+ *      int* data = new data[100];
+ *      for (int i=0; i<100; i++){
+ *        data[i] = i;
+ *      }
+ *    ENDCPP
+ */
+void ParseUtils::insertVerbatim(string object, string code, string type){
+  // get the length of each special symbol
+  string startsym = "STARTCPP"; int startlen = startsym.length();
+  string endsym = "ENDCPP"; int endlen = endsym.length();
+
+  // code length is everything except start and end symbol
+  int codelen = code.length() - (startlen + endlen);
+
+  // find instance of start symbol
+  int startpos = code.find(startsym);
+
+  // isolate only the relevant code
+  code = code.substr(startpos+startlen, codelen);
+
+  // now replace all instances of the object with object_host defined by
+  // get_obj_names()
+  obj_names objnames = get_obj_names(object);
+  string host = objnames.host;
+  string dev = objnames.dev;
+  string rows = objnames.rows;
+  string cols = objnames.cols;
+  string datainfo = objnames.datainfo;
+
+  int pos=0;
+	while((pos=code.find(object, pos))!=string::npos)
+	{
+		code.erase(pos, object.length());
+		code.insert(pos, host);
+		pos+=host.length();
+	}
+
+  string code_outstr;
+  code_outstr += prep_str(code);
+  code_outstr += "\n";
+
+  if (symtab.addEntry(object, VARIABLE, type)){
+    // we assume that the user provided the host declaration in the given code
+    code_outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
+    code_outstr += prep_str("int " + rows + ", " + cols + ";");
+    code_outstr += prep_str("DataInfo<" + type + ">* " + datainfo + ";");
+    code_outstr += "\n";
+  }
+
+
+  cudafile->pushMain(code_outstr);
+}
+
+
 /********************************
  * Function: readDatafile
  * ----------------------
@@ -311,13 +373,16 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   indent = old_indent; // restore indent
 
   string cuda_outstr;
-  cuda_outstr += prep_str(type + "* " + host + "; // Memory on host (cpu) side");
-  cuda_outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
-  cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
-  cuda_outstr += "\n";
+  if (symtab.addEntry(object, VARIABLE, type)){
+    cuda_outstr += prep_str(type + "* " + host + "; // Memory on host (cpu) side");
+    cuda_outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
+    cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
+    cuda_outstr += prep_str("DataInfo<" + type + ">* " + datainfo + ";");
+    cuda_outstr += "\n";
+  }
 
   cuda_outstr += prep_str("// Read in data");
-  cuda_outstr += prep_str("DataInfo<" + type + ">* " + datainfo + " = " 
+  cuda_outstr += prep_str(datainfo + " = " 
       + fcnname + "(\"" + fname + "\");");
   cuda_outstr += prep_str(host + " = " + datainfo + "->data;");
   cuda_outstr += prep_str(rows + " = " + datainfo + "->rows;");

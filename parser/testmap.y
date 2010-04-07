@@ -13,7 +13,6 @@ using namespace std;
 int yyparse(void);
 int yylex(void);
 
-SymbolTable symtab;
 ParseUtils parseutils("cudalang");
 
 
@@ -41,7 +40,7 @@ int main()
 
   parseutils.writeAllFiles();
 
-  symtab.print();
+  //symtab.print();
 
   return 0;
 }
@@ -68,6 +67,7 @@ EQUALS ASSIGN SEMICOLON LPAREN RPAREN QUOTE COMMA
 %token <string> TOKINT
 %token <string> TOKFLOAT
 %token <string> TOKSTRING
+%token <string> TOKCPP
 %token <string> PLUS
 %token <string> MINUS
 %token <string> MULT
@@ -85,7 +85,7 @@ commands: /* empty */
 ;
 
 command:
-	datatype_set | readdata_set | map_call | write_call
+	datatype_set | cppdata_set | readdata_set | map_call | write_call
 
 write_call:
   TOKWRITE LPAREN WORD COMMA filename RPAREN
@@ -133,6 +133,16 @@ datatype_set:
   }
 ;
 
+cppdata_set:
+  WORD ASSIGN TOKCPP
+  {
+    //printf("cpp: %s\n", $3);
+    string object = $1;
+    string code = $3;
+    parseutils.insertVerbatim(object, code, datatype);
+  }
+;
+
 readdata_set:
   WORD ASSIGN TOKREAD LPAREN filename RPAREN
   {
@@ -140,7 +150,7 @@ readdata_set:
     string fname = $5;
 
     // FIXME!! -- FLOAT?? really..
-    symtab.addEntry(object, VARIABLE, FLOAT);
+    //symtab.addEntry(object, VARIABLE, FLOAT);
     parseutils.readDatafile(fname, object, datatype);
     
     printf("Read >\tObject: %s, Filename: %s\n", object.c_str(), fname.c_str());

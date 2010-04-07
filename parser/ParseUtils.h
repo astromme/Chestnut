@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "SymbolTable.h"
 #include "FileUtils.h"
 
 using std::vector;
@@ -36,6 +37,7 @@ class ParseUtils {
     void writeAllFiles();
     //void writeBuffer();
 
+    void insertVerbatim(string object, string code, string type);
     void readDatafile(string fname, string object, string type);
     void writeDatafile(string fname, string object, string type);
     void mapFcn(string fcnname, string object, string type, string op, string alter);
@@ -48,6 +50,9 @@ class ParseUtils {
 
     bool parselibs_included;
     bool cudalang_included;
+
+
+    SymbolTable symtab; // symbol table
 
     string add_include(string header);
     string prep_str(string str);
