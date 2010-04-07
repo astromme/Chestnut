@@ -4,6 +4,7 @@
 #include "parser.hpp"
 %}
 %%
+STARTCPP(.*[ \t\n])*ENDCPP yylval.string=strdup(yytext); return TOKCPP;
 [0-9]+       yylval.number=atoi(yytext); return NUMBER;
 type         return TOKTYPE;
 read         return TOKREAD;

@@ -15,22 +15,27 @@ SymbolTable::SymbolTable() {}; // do nothing
  * Inputs:
  *    name: name of function, variable, etc
  *    category: FUNCTION, VARIABLE, etc
- *    type: INT, FLOAT, STRING, etc
+ *    type: int, float, string, etc
  *    scope: scoping level. Defaults to zero. We may not run into scoping
  *           issues, but if we do, it's here
+ *
+ * Returns:
+ *    true on success, false on fail. Fails if entry is already in symtab
  */
-void SymbolTable::addEntry(string name, int category, int type, int scope){
+bool SymbolTable::addEntry(string name, int category, string type, int scope){
   if (isInSymtab(name)){
-    fprintf(stderr, "\"%s\" already in symbol table\n", name.c_str());
-    exit(2);
+    return false;
+    //fprintf(stderr, "\"%s\" already in symbol table\n", name.c_str());
+    //exit(2);
   }
 
-  SymbolEntry symentry;
+  symbol_entry symentry;
   symentry.name = name;
   symentry.category = category;
   symentry.type = type;
   symentry.scope = scope;
   symtab.push_back(symentry);
+  return true;
 } 
 
 
@@ -60,12 +65,12 @@ bool SymbolTable::isInSymtab(string name){
  *    name: name of function, variable, etc
  * TODO: throw an exception instead of returning -1
  */
-int SymbolTable::getTypeInSymtab(string name){
+string SymbolTable::getTypeInSymtab(string name){
   for (unsigned int i=0; i<symtab.size(); i++){
     if (name == symtab[i].name)
       return symtab[i].type;
   }
-  return -1;
+  return NULL;
 }
 
 
@@ -94,11 +99,11 @@ void SymbolTable::print(){
   printf("[idx]\tname\tcategory\ttype\tscope\n");
   printf("-----\t----\t--------\t----\t-----\n");
   for (unsigned int i=0; i<symtab.size(); i++){
-    printf("[%d]\t%s\t%d\t\t%d\t%d\n",
+    printf("[%d]\t%s\t%d\t\t%s\t%d\n",
         i,
         symtab[i].name.c_str(),
         symtab[i].category,
-        symtab[i].type,
+        symtab[i].type.c_str(),
         symtab[i].scope);
   }
 }

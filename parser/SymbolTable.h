@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "SymbolEntry.h"
+//#include "SymbolEntry.h"
 
 using std::string;
 
@@ -21,7 +21,7 @@ enum types {
 struct symbol_entry {
   string name;
   int category; // var, fcn, etc
-  int type; // int, float, string, etc
+  string type; // int, float, string, etc
   int scope;
 };
 
@@ -30,16 +30,16 @@ class SymbolTable{
     SymbolTable();
 
     // manipulators
-    void addEntry(string name, int category, int type, int scope=0);
+    bool addEntry(string name, int category, string type, int scope=0);
 
     // accessors 
     bool isInSymtab(string name);
-    int getTypeInSymtab(string name);
+    string getTypeInSymtab(string name);
     int getIdxInSymtab(string name);
     void print();
 
   private:
-    std::vector<SymbolEntry> symtab;
+    std::vector<symbol_entry> symtab;
 
 };
 
