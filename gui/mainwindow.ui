@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QToolBox" name="toolBox">
+     <widget class="QToolBox" name="controlBox">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -26,7 +26,7 @@
       <property name="currentIndex">
        <number>3</number>
       </property>
-      <widget class="QWidget" name="page">
+      <widget class="QWidget" name="variablesTab">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -39,7 +39,7 @@
         <string>Variables</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="page_2">
+      <widget class="QWidget" name="functionsTab">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -52,12 +52,12 @@
         <string>Functions</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="page_3">
+      <widget class="QWidget" name="operatorsTab">
        <attribute name="label">
         <string>Operators</string>
        </attribute>
       </widget>
-      <widget class="QWidget" name="page_4">
+      <widget class="QWidget" name="optionsTab">
        <attribute name="label">
         <string>Options</string>
        </attribute>
@@ -65,7 +65,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QGraphicsView" name="graphicsView"/>
+     <widget class="QGraphicsView" name="workflowEditor"/>
     </item>
    </layout>
   </widget>

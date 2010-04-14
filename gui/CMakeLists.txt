@@ -28,7 +28,7 @@ set(chestnut_sources
     chestnut.cpp
     function.cpp
     datablock.cpp
-    operator.cpp
+    operation.cpp
     value.cpp
     ${chestnut_functions}
     ${chestnut_operators}
