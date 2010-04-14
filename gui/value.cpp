@@ -1,12 +1,14 @@
 #include "value.h"
 
 #include <QPainter>
+#include <QApplication>
 
-Value::Value(QGraphicsObject* parent)
+Value::Value(const QString& name, QGraphicsObject* parent)
   : QGraphicsObject(parent)
 {
-  m_width = 20;
-  m_height = 20;
+  m_width = 60;
+  m_height = 60;
+  m_name = name;
 }
 
 Value::~Value()
@@ -28,9 +30,16 @@ void Value::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
   p2 = QPointF(x()-m_width/2, y()+m_height/2);
   p3 = QPointF(x()+m_width/2, y()+m_height/2);
   
+  // Draw Triangle
   painter->drawLine(p1, p2);
   painter->drawLine(p2, p3);
   painter->drawLine(p3, p1);
   
-  painter->drawText(x(), y(), "1");
+  // Layout and draw text
+  qreal xpos = x();
+  qreal ypos = p3.y();
+  
+  xpos -= 0.5*QApplication::fontMetrics().width(m_name);
+  ypos -= 5;
+  painter->drawText(xpos, ypos, m_name);
 }

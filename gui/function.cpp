@@ -1,10 +1,14 @@
 #include "function.h"
+#include <QApplication>
+#include <qfontmetrics.h>
+#include <QPainter>
 
-Function::Function(QGraphicsObject* parent)
+Function::Function(const QString& name, QGraphicsObject* parent)
   : QGraphicsObject(parent)
 {
   m_hasOperation = false;
   m_operation = 0;
+  m_name = name;
 }
 
 Function::~Function() {}
@@ -71,25 +75,56 @@ QList< OutputConnection > Function::outputs() const {
   return m_outputs;
 }
 
+/// Painting Goodness
+QRectF Function::boundingRect() const
+{
+}
+void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  // Draw Inputs
+  painter->drawRoundedRect(inputsRect(), 5, 5);
+  painter->drawText(inputsRect().topLeft()+QPointF(15, QApplication::fontMetrics().height()), "input1");
+  painter->drawEllipse(inputsRect().topLeft()+QPointF(10, QApplication::fontMetrics().height()/2.0+4), 3, 3); 
+  // Draw Internal Rect
+  qreal circleradius = 10;
+  qreal circlemargin = 3;
+  painter->drawRect(internalRect());
+  qreal xpos = x() - 0.5*QApplication::fontMetrics().width(m_name);
+  qreal ypos = y() - circleradius - circlemargin;
+  painter->drawText(xpos, ypos, m_name);
+  painter->save();
+    QPen pen(Qt::gray, 1, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
+    painter->setPen(pen);
+    painter->drawEllipse(QPointF(x(), y()), circleradius, circleradius);
+  painter->restore();
+  // Draw Outputs
+}
 
+QRectF Function::inputsRect() const
+{
+  qreal margin = 2;
+  QRectF internal = internalRect();
+  QPointF bottomRight = internal.topRight();
+  qreal width = internal.width();
+  qreal height = QApplication::fontMetrics().height() + 2*margin;
+  return QRectF(QPointF(bottomRight - QPointF(width, height)), bottomRight);
+}
+QRectF Function::internalRect() const
+{
+  qreal xmargin = 5;
+  qreal ymargin = 5;
+  qreal circleradius = 10;
+  qreal circlemargin = 3;
+  qreal width = 2*xmargin + QApplication::fontMetrics().width(m_name);
+  qreal height = 2*(circleradius + circlemargin) + 2*ymargin + QApplication::fontMetrics().height();
+  
+  qreal xpos = x() - width/2;
+  qreal ypos = y() - height/2;
+  
+  QRectF rect(QPointF(xpos, ypos), QSizeF(width, height));
+  return rect;
+}
+QRectF Function::outputsRect() const
+{
 
-
-
-//     QList<Option> inputsOptions() const;
-//     void connectInput(int location, Input *input);
-//     void disconnectInput(int location, Input *input);
-//     QList<InputConnection>inputs() const;
-//     
-//     QList<Option> outputOptions() const;
-//     void connectOutput(int location, Output *output);
-//     void disconnectOutput(int location, Output *output);
-//     QList<OutputConnection> outputs() const;
-//     
-//   protected:
-//     void setHasOperation(bool hasOperation);
-//     
-//     void addInputOption(Option option);
-//     void removeInputOption(Option option);
-//     
-//     void addOutputOption(Option option);
-//     void removeOutputOption(Option option);
+}

@@ -8,7 +8,7 @@
 
 class Value : public QGraphicsObject, Input, Output {
   public:
-    Value(QGraphicsObject *parent=0);
+    Value(const QString &name, QGraphicsObject *parent=0);
     virtual ~Value();
     
     virtual QRectF boundingRect() const;
@@ -16,6 +16,7 @@ class Value : public QGraphicsObject, Input, Output {
   private:
     qreal m_width;
     qreal m_height;
+    QString m_name;
 };
 
 #endif //CHESTNUT_VALUE_H
