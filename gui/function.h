@@ -18,7 +18,7 @@ typedef QPair<int, Output*> OutputConnection;
 
 class Function : public QGraphicsObject {
   public:
-    Function(QGraphicsObject *parent=0);
+    Function(const QString& name, QGraphicsObject* parent = 0);
     virtual ~Function();
     
     bool hasOperation();
@@ -35,6 +35,9 @@ class Function : public QGraphicsObject {
     void disconnectOutput(int location, Output *output);
     QList<OutputConnection> outputs() const;
     
+    virtual QRectF boundingRect() const;
+    virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
+    
   protected:
     void setHasOperation(bool hasOperation);
     
@@ -44,6 +47,10 @@ class Function : public QGraphicsObject {
     void addOutputOption(Option option);
     void removeOutputOption(Option option);
     
+    QRectF inputsRect() const;
+    QRectF internalRect() const;
+    QRectF outputsRect() const;
+    
   private:
     bool m_hasOperation;
     Operation *m_operation;
@@ -52,6 +59,8 @@ class Function : public QGraphicsObject {
     
     QList<Option> m_inputOptions;
     QList<Option> m_outputOptions;
+    
+    QString m_name;
     
 };
 
