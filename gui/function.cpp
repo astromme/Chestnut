@@ -89,13 +89,13 @@ void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
   qreal circleradius = 10;
   qreal circlemargin = 3;
   painter->drawRect(internalRect());
-  qreal xpos = x() - 0.5*QApplication::fontMetrics().width(m_name);
-  qreal ypos = y() - circleradius - circlemargin;
+  qreal xpos = 0 - 0.5*QApplication::fontMetrics().width(m_name);
+  qreal ypos = 0 - circleradius - circlemargin;
   painter->drawText(xpos, ypos, m_name);
   painter->save();
     QPen pen(Qt::gray, 1, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
     painter->setPen(pen);
-    painter->drawEllipse(QPointF(x(), y()), circleradius, circleradius);
+    painter->drawEllipse(QPointF(0, 0), circleradius, circleradius);
   painter->restore();
   // Draw Outputs
 }
@@ -118,8 +118,8 @@ QRectF Function::internalRect() const
   qreal width = 2*xmargin + QApplication::fontMetrics().width(m_name);
   qreal height = 2*(circleradius + circlemargin) + 2*ymargin + QApplication::fontMetrics().height();
   
-  qreal xpos = x() - width/2;
-  qreal ypos = y() - height/2;
+  qreal xpos = 0 - width/2;
+  qreal ypos = 0 - height/2;
   
   QRectF rect(QPointF(xpos, ypos), QSizeF(width, height));
   return rect;
