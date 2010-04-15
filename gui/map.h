@@ -5,7 +5,7 @@
 
 class Map : public Function {
   public:
-    
+    Map(QGraphicsObject* parent = 0);
   private:
 };
 

@@ -1,7 +1,7 @@
 #ifndef CHESTNUT_SOURCE_H
 #define CHESTNUT_SOURCE_H
 
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 
 #include "data.h"
 
@@ -9,7 +9,7 @@ class Connection;
 class Object;
 class Sink;
 
-class Source : public QGraphicsItem {
+class Source : public QGraphicsObject {
   public:
     Source(Data::Type type, Object *parent);
     Data::Type dataType() const;
@@ -22,6 +22,10 @@ class Source : public QGraphicsItem {
     
     QPointF connectedCenter() const;
     
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+    
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
   private:
@@ -29,6 +33,7 @@ class Source : public QGraphicsItem {
     QList<Connection*> m_connections;
     qreal m_width;
     qreal m_height;
+    Connection* m_activeConnection;
     
 };
 

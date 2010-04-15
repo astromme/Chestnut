@@ -1,17 +1,21 @@
 #ifndef CHESTNUT_OBJECT_H
 #define CHESTNUT_OBJECT_H
 
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 
 class Source;
 class Sink;
 
-class Object : public QGraphicsItem {
-    
+class Object : public QGraphicsObject {
   public:
+    Object(QGraphicsObject* parent = 0);
+    
     QList<Source*> sources() const;
     QList<Sink*> sinks() const;
-  private:
+    
+    void setSources(QList<Source*> sources);
+    void setSinks(QList<Sink*> sinks);
+  protected:
     QList<Source*> m_sources;
     QList<Sink*> m_sinks;
 };

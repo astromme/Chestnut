@@ -10,7 +10,7 @@
 
 
 Sink::Sink(Data::Types allowedTypes, Object* parent)
-  : QGraphicsItem(parent)
+  : QGraphicsObject(parent)
 {
   m_allowedTypes = allowedTypes;
   m_connection = 0;
