@@ -24,6 +24,17 @@ Connection::Connection(Source* source)
   m_partialEndpoint = source->connectedCenter();  
 }
 
+Connection::~Connection()
+{
+  if (m_source) {
+    m_source->removeConnection(this);
+  }
+  if (m_sink) {
+    m_sink->setConnection(0);
+  }
+}
+
+
 bool Connection::isPartial() const
 {
   return (m_sink == 0);
