@@ -27,7 +27,7 @@ QRectF Value::boundingRect() const
 void Value::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   
-  drawTriangle(painter, QPointF(0, 0), m_width, m_height);
+  painter->drawPath(triangle(QPointF(0, 0), m_width, m_height));
   
   // Layout and draw text
   qreal xpos = 0;

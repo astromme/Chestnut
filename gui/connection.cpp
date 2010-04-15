@@ -5,6 +5,7 @@
 
 #include <QPainter>
 #include <QDebug>
+#include "drawingutils.h"
 
 Connection::Connection(Source* source, Sink* sink)
   : QGraphicsItem(source)
@@ -58,7 +59,7 @@ QPointF Connection::endpoint() const
 }
 QRectF Connection::boundingRect() const
 {
-  return path().boundingRect();
+  return path().boundingRect().united(triangle(endpoint(), 8, 8).boundingRect());
 }
 
 Source* Connection::source() const
@@ -101,4 +102,15 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
   p.setWidth(2);
   painter->setPen(p);
   painter->drawPath(path());
+  
+  p.setWidth(1);
+  painter->setPen(p);
+  switch (source()->dataType()) {
+    case Data::DataBlock:
+      painter->drawEllipse(endpoint(), 8, 8);
+      break;
+    case Data::Value:
+      painter->drawPath(triangle(endpoint(), 8, 8));
+      break;
+  }
 }

@@ -61,7 +61,7 @@ void Source::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QW
   painter->setBrush(Qt::gray);
   switch (m_dataType) {
     case Data::Value:
-      drawTriangle(painter, center, m_width, m_height);
+      painter->drawPath(triangle(center, m_width, m_height));
       break;
    
     case Data::DataBlock:
@@ -93,7 +93,7 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   Sink *s = 0;
   foreach(QGraphicsItem *item, scene()->items(mapToScene(event->pos()))) {
     Sink* sink = qgraphicsitem_cast<Sink*>(item);
-    if (sink) {
+    if (sink && sink->allowedTypes().contains(dataType())) {
       m_activeConnection->setSink(sink);
       return;
     }

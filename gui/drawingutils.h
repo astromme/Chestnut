@@ -3,6 +3,6 @@
 
 #include <QPainter>
 
-void drawTriangle(QPainter* p, const QPointF& center, qreal width, qreal height);
+QPainterPath triangle(const QPointF &center, qreal width, qreal height);
 
 #endif //CHESTNUT_DRAWINGUTILS_H

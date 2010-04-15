@@ -83,7 +83,7 @@ void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
     QPointF center = topLeft + QPointF(m_width/2, m_height/2);
     switch (type) {
       case Data::Value:
-        drawTriangle(painter, center, m_width, m_height);
+        painter->drawPath(triangle(center, m_width, m_height));
         break;
     
       case Data::DataBlock:
