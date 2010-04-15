@@ -95,8 +95,11 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     Sink* sink = qgraphicsitem_cast<Sink*>(item);
     if (sink) {
       m_activeConnection->setSink(sink);
+      return;
     }
   }
+  delete m_activeConnection;
+  m_activeConnection = 0;
 }
 
 

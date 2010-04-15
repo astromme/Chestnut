@@ -10,6 +10,7 @@ class Connection : public QGraphicsItem {
   public:
     Connection(Source *source, Sink *sink);
     Connection(Source *source);
+    virtual ~Connection();
     
     bool isPartial() const;
     void setSink(Sink *sink);
