@@ -7,11 +7,6 @@ find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
 include_directories(${Chestnut_SOURCE_DIR} ${Chestnut_BINARY_DIR})
 
-set(chestnut_datablocks
-    array1d.cpp
-    array2d.cpp
-    array3d.cpp
-    )
 
 set(chestnut_operators
     plus.cpp
@@ -24,15 +19,28 @@ set(chestnut_functions
     sort.cpp
     )
 
+set(chestnut_datatypes
+    datablock.cpp
+    array1d.cpp
+    array2d.cpp
+    array3d.cpp
+
+    value.cpp
+    )
+
 set(chestnut_sources
     chestnut.cpp
+    object.cpp
     function.cpp
-    datablock.cpp
     operation.cpp
-    value.cpp
+    data.cpp
+    source.cpp
+    sink.cpp
+    connection.cpp
+    drawingutils.cpp
     ${chestnut_functions}
     ${chestnut_operators}
-    ${chestnut_datablocks}
+    ${chestnut_datatypes}
     )
 
 

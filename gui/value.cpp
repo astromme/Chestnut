@@ -2,6 +2,7 @@
 
 #include <QPainter>
 #include <QApplication>
+#include "drawingutils.h"
 
 Value::Value(const QString& name, QGraphicsObject* parent)
   : QGraphicsObject(parent)
@@ -25,19 +26,12 @@ QRectF Value::boundingRect() const
 
 void Value::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  QPointF p1, p2, p3;
-  p1 = QPointF(0, 0-m_height/2);
-  p2 = QPointF(0-m_width/2, 0+m_height/2);
-  p3 = QPointF(0+m_width/2, 0+m_height/2);
   
-  // Draw Triangle
-  painter->drawLine(p1, p2);
-  painter->drawLine(p2, p3);
-  painter->drawLine(p3, p1);
+  drawTriangle(painter, QPointF(0, 0), m_width, m_height);
   
   // Layout and draw text
   qreal xpos = 0;
-  qreal ypos = p3.y();
+  qreal ypos = m_height/2;
   
   xpos -= 0.5*QApplication::fontMetrics().width(m_name);
   ypos -= 5;
