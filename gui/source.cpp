@@ -78,22 +78,24 @@ void Source::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   // allow us to get mouseMove/mouseRelease events
   event->accept();
-  Connection *c = Connection::partialConnection(this);
-  c->setEndpoint(event->pos());
+  Connection *c = new Connection(this);
   m_activeConnection = c;
 }
 
 void Source::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  m_activeConnection->setEndpoint(event->pos());
+  m_activeConnection->setEndpoint(mapToScene(event->pos()));
 }
 
 void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   // Check for sink under mouse pointer. If it exists, connect it
   Sink *s = 0;
-  foreach(QGraphicsItem *item, scene()->items(event->pos())) {
-    qgraphicsitem_cast<Sink*>(item);
+  foreach(QGraphicsItem *item, scene()->items(mapToScene(event->pos()))) {
+    Sink* sink = qgraphicsitem_cast<Sink*>(item);
+    if (sink) {
+      m_activeConnection->setSink(sink);
+    }
   }
 }
 
