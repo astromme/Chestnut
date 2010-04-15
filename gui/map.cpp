@@ -4,7 +4,7 @@
 
 
 Map::Map(QGraphicsObject* parent)
-  : Function("map and then some to make", parent)
+  : Function("map", parent)
 {
   Data::Types in1;
   in1 << Data::Value;

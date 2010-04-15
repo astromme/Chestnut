@@ -2,7 +2,7 @@
 
 #include <QPainterPath>
 
-void drawTriangle(QPainter* p, const QPointF &center, qreal width, qreal height)
+QPainterPath triangle(const QPointF& center, qreal width, qreal height)
 {
   QPointF top, bottomLeft, bottomRight;
   top = center + QPointF(0, -height/2);
@@ -16,5 +16,5 @@ void drawTriangle(QPainter* p, const QPointF &center, qreal width, qreal height)
   path.lineTo(bottomRight);
   path.lineTo(top);
   
-  p->drawPath(path);
+  return path;
 }
