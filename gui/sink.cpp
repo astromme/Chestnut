@@ -23,6 +23,11 @@ Data::Types Sink::allowedTypes() const
   return m_allowedTypes;
 }
 
+int Sink::type() const
+{
+  return Type;
+}
+
 void Sink::setConnection(Connection* connection)
 {
   if (!connection) {

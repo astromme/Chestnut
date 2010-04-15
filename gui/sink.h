@@ -10,6 +10,9 @@ class Connection;
 
 class Sink : public QGraphicsObject {
   public:
+    enum { Type = UserType + 5 };
+    int type() const;
+    
     Sink(Data::Types allowedTypes, Object *parent);
     Data::Types allowedTypes() const;
     

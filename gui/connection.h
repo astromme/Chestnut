@@ -9,16 +9,17 @@ class Sink;
 class Connection : public QGraphicsItem {
   public:
     Connection(Source *source, Sink *sink);
-    Connection* partialConnection(Source *source);
+    Connection(Source *source);
     
     bool isPartial() const;
     void setSink(Sink *sink);
-    void setEndpoint(const QPointF &point);
-    QPointF endpoint();
+    void setEndpoint(const QPointF& scenePoint);
+    QPointF endpoint() const;
     
     Source* source() const;
     Sink* sink() const;
     
+    QPainterPath path() const;
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
     
