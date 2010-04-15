@@ -8,6 +8,7 @@
 #include "function.h"
 #include "source.h"
 #include "sink.h"
+#include "map.h"
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
@@ -35,7 +36,9 @@ int main(int argc, char* argv[]) {
   sink->moveBy(50, 50);
   //s.addItem(f);
  
-  
+  Map m;
+  m.setPos(0, 50);
+  s.addItem(&m);
   //f->moveBy(50, 50);
   
   ui.workflowEditor->setScene(&s);

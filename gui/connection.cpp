@@ -15,10 +15,34 @@ Connection::Connection(Source* source, Sink* sink)
   sink->setConnection(this);
 }
 
+Connection* Connection::partialConnection(Source* source)
+{
+  m_source = source;
+  source->addConnection(this);
+  m_sink = 0;
+  m_partialEndpoint = m_source->connectedCenter();
+}
+bool Connection::isPartial() const
+{
+  return (m_sink == 0);
+}
+void Connection::setSink(Sink* sink)
+{
+  m_sink = sink;
+}
+void Connection::setEndpoint(const QPointF& point)
+{
+  m_partialEndpoint = point;
+  update();
+}
+QPointF Connection::endpoint()
+{
+  return isPartial() ? m_partialEndpoint : mapFromItem(sink(), sink()->connectedCenter());
+}
 QRectF Connection::boundingRect() const
 {
   QPointF start = mapFromItem(source(), source()->connectedCenter());
-  QPointF end = mapFromItem(sink(), sink()->connectedCenter());
+  QPointF end = endpoint();
 
   return QRectF(start, end);
 }
@@ -35,7 +59,7 @@ Sink* Connection::sink() const
 void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   QPointF start = mapFromItem(source(), source()->connectedCenter());
-  QPointF end = mapFromItem(sink(), sink()->connectedCenter());
+  QPointF end = endpoint();
   
   QLineF line = QLineF(start, end);
   QPointF midpoint = line.pointAt(0.5);
@@ -53,5 +77,9 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
   path.moveTo(start);
   path.quadTo(controlPoint1, midpoint);
   path.quadTo(controlPoint2, end);
+  
+  QPen p;
+  p.setWidth(2);
+  painter->setPen(p);
   painter->drawPath(path);
 }

@@ -1,14 +1,14 @@
 #ifndef CHESTNUT_SINK_H
 #define CHESTNUT_SINK_H
 
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 
 #include "data.h"
 
 class Object;
 class Connection;
 
-class Sink : public QGraphicsItem {
+class Sink : public QGraphicsObject {
   public:
     Sink(Data::Types allowedTypes, Object *parent);
     Data::Types allowedTypes() const;

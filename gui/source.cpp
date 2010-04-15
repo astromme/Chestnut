@@ -7,13 +7,16 @@
 
 #include <QPainter>
 #include <QDebug>
+#include <QGraphicsSceneMouseEvent>
+#include <QGraphicsScene>
 
 Source::Source(Data::Type type, Object* parent)
-  : QGraphicsItem(parent)
+  : QGraphicsObject(parent)
 {
   m_dataType = type;
   m_width = 8;
   m_height = 8;
+  m_activeConnection = 0;
 }
 Data::Type Source::dataType() const
 {
@@ -70,6 +73,31 @@ void Source::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QW
       break;
   }
 }
+
+void Source::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  // allow us to get mouseMove/mouseRelease events
+  event->accept();
+  Connection *c = Connection::partialConnection(this);
+  c->setEndpoint(event->pos());
+  m_activeConnection = c;
+}
+
+void Source::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_activeConnection->setEndpoint(event->pos());
+}
+
+void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  // Check for sink under mouse pointer. If it exists, connect it
+  Sink *s = 0;
+  foreach(QGraphicsItem *item, scene()->items(event->pos())) {
+    qgraphicsitem_cast<Sink*>(item);
+  }
+}
+
+
 
 
 
