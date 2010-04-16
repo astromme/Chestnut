@@ -3,11 +3,13 @@
 
 #include <QGraphicsObject>
 
-#include "input.h"
-#include "output.h"
+#include "data.h"
 
-class DataBlock : public QGraphicsObject, Input, Output {
+class DataBlock : public Data {
   public:
+    DataBlock(const QString &name);
+    virtual ~DataBlock();
+    
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
   private:

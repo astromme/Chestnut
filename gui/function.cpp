@@ -4,11 +4,10 @@
 #include <QPainter>
 
 Function::Function(const QString& name, QGraphicsObject* parent)
-  : Object(parent)
+  : Object(name, parent)
 {
   m_hasOperation = false;
   m_operation = 0;
-  m_name = name;
 }
 
 Function::~Function() {}
@@ -23,7 +22,7 @@ bool Function::hasOperation() {
 void Function::setOperation(Operation* op) {
   m_operation = op;
 }
-Operation* Function::operation() {
+Operation* Function::operation() const {
   return m_operation;
 }
 

@@ -3,12 +3,11 @@
 
 #include <QGraphicsObject>
 
-#include "input.h"
-#include "output.h"
+#include "data.h"
 
-class Value : public QGraphicsObject, Input, Output {
+class Value : public Data {
   public:
-    Value(const QString &name, QGraphicsObject *parent=0);
+    Value(const QString &name);
     virtual ~Value();
     
     virtual QRectF boundingRect() const;

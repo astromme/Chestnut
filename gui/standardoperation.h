@@ -15,13 +15,11 @@ class StandardOperation : public Operation {
     StandardOperation(StandardOp type, Object *parent = 0);
     ~StandardOperation();
     
-    virtual QString flatten() const;
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
     
   private:
     StandardOp m_operationType;
-    int m_radius;
 };
 
 #endif //CHESTNUT_STANDARDOPERATION_H

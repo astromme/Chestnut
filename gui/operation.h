@@ -7,10 +7,12 @@ class Object;
 
 class Operation : public QGraphicsObject {
   public:
-    Operation(Object *parent);
+    Operation(const QString &name, Object *parent);
     virtual ~Operation();
     
-    virtual QString flatten() const = 0;
+    QString name() const;
+  protected:
+    QString m_name;
 };
 
 #endif //CHESTNUT_OPERATION_H

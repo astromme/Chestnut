@@ -1,9 +1,18 @@
 #include "object.h"
 
-Object::Object(QGraphicsObject* parent)
+Object::Object(const QString &name, QGraphicsObject* parent)
   : QGraphicsObject(parent)
 {
-  
+  m_name = name;
+}
+Object::~Object()
+{
+
+}
+
+QString Object::name() const
+{
+  return m_name;
 }
 
 QList< Source* > Object::sources() const

@@ -8,9 +8,11 @@ class Sink;
 
 class Object : public QGraphicsObject {
   public:
-    Object(QGraphicsObject* parent = 0);
+    Object(const QString &name, QGraphicsObject* parent = 0);
+    virtual ~Object();
     
-    virtual QList<QString> flatten() const = 0;
+    virtual QStringList flatten() const = 0;
+    QString name() const;
     
     QList<Source*> sources() const;
     QList<Sink*> sinks() const;
@@ -20,6 +22,7 @@ class Object : public QGraphicsObject {
   protected:
     QList<Source*> m_sources;
     QList<Sink*> m_sinks;
+    QString m_name;
 };
 
 #endif //CHESTNUT_OBJECT_H
