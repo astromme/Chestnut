@@ -26,4 +26,13 @@ Map::Map(QGraphicsObject* parent)
   input1->setPos(i1Pos);
   QPointF i2Pos = i1Pos + QPointF(2+input1->boundingRect().width(), 0);
   input2->setPos(i2Pos);
+  
+  setHasOperation(true);
+  setOperation();
 }
+
+QList< QString > Map::flatten() const
+{
+  QList<QString> operatorString = 
+}
+
