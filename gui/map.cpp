@@ -32,8 +32,10 @@ Map::Map(QGraphicsObject* parent)
   QPointF o1Pos = outputsRect().topLeft();
   output1->setPos(o1Pos);
   
+  Operation *op = new StandardOperation(StandardOperation::Multiply, this);
+  //op->setPos()
   setHasOperation(true);
-  setOperation(new StandardOperation(StandardOperation::Multiply, this));
+  setOperation(op);
 }
 
 QStringList Map::flatten() const
