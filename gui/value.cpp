@@ -4,8 +4,8 @@
 #include <QApplication>
 #include "drawingutils.h"
 
-Value::Value(const QString& name, QGraphicsObject* parent)
-  : QGraphicsObject(parent)
+Value::Value(const QString& name)
+  : Data(name)
 {
   m_width = 60;
   m_height = 60;

@@ -16,6 +16,9 @@ class Sink : public QGraphicsObject {
     Sink(Data::Types allowedTypes, Object *parent);
     Data::Types allowedTypes() const;
     
+    Object* parentObject() const;
+    
+    Source* connectedSource() const;
     void setConnection(Connection *connection);
     Connection* connection() const;
     QPointF connectedCenter();

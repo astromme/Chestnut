@@ -16,6 +16,9 @@ class Source : public QGraphicsObject {
     
     Connection* connectToSink(Sink *sink);
     
+    Object* parentObject() const;
+    
+    QList<Sink*> connectedSinks() const;
     void addConnection(Connection *connection);
     void removeConnection(Connection *connection);
     void removeAllConnections();

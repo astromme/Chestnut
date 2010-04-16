@@ -28,6 +28,18 @@ int Sink::type() const
   return Type;
 }
 
+Object* Sink::parentObject() const
+{
+  return static_cast<Object*>(parent());
+}
+
+Source* Sink::connectedSource() const
+{
+  if (m_connection) {
+    return m_connection->source();
+  }
+}
+
 void Sink::setConnection(Connection* connection)
 {
   if (!connection) {

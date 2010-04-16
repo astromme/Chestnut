@@ -29,6 +29,22 @@ Connection* Source::connectToSink(Sink* sink)
   return c;
 }
 
+Object* Source::parentObject() const
+{
+  return static_cast<Object*>(parent());
+}
+
+QList<Sink*> Source::connectedSinks() const
+{
+  QList<Sink*> connectedSinks;
+  foreach(Connection* c, m_connections) {
+    if (!c->isPartial()) {
+      connectedSinks.append(c->sink());
+    }
+  }
+  return connectedSinks;
+}
+
 void Source::addConnection(Connection* connection)
 {
   m_connections.append(connection);

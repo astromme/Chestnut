@@ -32,11 +32,23 @@ Map::Map(QGraphicsObject* parent)
   output1->setPos(o1Pos);
   
   setHasOperation(true);
-  setOperation(new StandardOperation(StandardOperation::Add, this));
+  setOperation(new StandardOperation(StandardOperation::Multiply, this));
 }
 
-QList< QString > Map::flatten() const
+QStringList Map::flatten() const
 {
-  //QList<QString> operatorString = 
+  foreach(Sink *connectedSink, m_sources[0]->connectedSinks()) {
+    Object *connectedObject = connectedSink->parentObject();
+    QString functionLine = QString("%1 = %2(%3, %4, %5);").arg(connectedObject->name())
+                                                          .arg(m_name)
+                                                          .arg(operation()->name())
+                                                          .arg(m_sinks[0]->connectedSource()->parentObject()->name())
+                                                          .arg(m_sinks[1]->connectedSource()->parentObject()->name());
+    QStringList l;
+    l.append(functionLine);
+    return l + connectedObject->flatten();
+  }
+  return QStringList();
+  //map(+,2,data);
 }
 
