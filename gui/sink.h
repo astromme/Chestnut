@@ -29,8 +29,6 @@ class Sink : public QGraphicsObject {
     Data::Types m_allowedTypes;
     Connection *m_connection;
     qreal m_internalMargin;
-    qreal m_width;
-    qreal m_height;
     Data::Type m_connectionType;
 };
 

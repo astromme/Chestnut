@@ -34,8 +34,6 @@ class Source : public QGraphicsObject {
   private:
     Data::Type m_dataType;
     QList<Connection*> m_connections;
-    qreal m_width;
-    qreal m_height;
     Connection* m_activeConnection;
     
 };
