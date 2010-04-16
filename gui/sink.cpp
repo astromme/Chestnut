@@ -109,4 +109,9 @@ void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
     }
   topLeft = QPointF(topLeft.x() + inputWidth + m_internalMargin, topLeft.y());
   }
+
+  //TODO Why does this take lots of cpu?
+  if (m_connection) {
+    m_connection->updateConnection();
+  }
 }

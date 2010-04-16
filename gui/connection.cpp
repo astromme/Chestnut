@@ -35,6 +35,10 @@ Connection::~Connection()
   }
 }
 
+void Connection::updateConnection()
+{
+  prepareGeometryChange();
+}
 
 bool Connection::isPartial() const
 {
