@@ -35,7 +35,7 @@ class Source : public QGraphicsObject {
     Data::Type m_dataType;
     QList<Connection*> m_connections;
     Connection* m_activeConnection;
-    
+    Object* m_parent;
 };
 
 #endif //CHESTNUT_SOURCE_H

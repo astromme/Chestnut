@@ -3,6 +3,7 @@
 #include "sink.h"
 #include "standardoperation.h"
 
+#include <QDebug>
 
 Map::Map(QGraphicsObject* parent)
   : Function("map", parent)
@@ -38,7 +39,9 @@ Map::Map(QGraphicsObject* parent)
 QStringList Map::flatten() const
 {
   //TODO Finish/talk to ryan
+  //qDebug() << m_sources[0]
   foreach(Sink *connectedSink, m_sources[0]->connectedSinks()) {
+    qDebug() << "connected sink";
     Object *connectedObject = connectedSink->parentObject();
     QString functionLine = QString("%1 = %2(%3, %4, %5);").arg(connectedObject->name())
                                                           .arg(m_name)

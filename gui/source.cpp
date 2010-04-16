@@ -18,6 +18,7 @@ Source::Source(Data::Type type, Object* parent)
 {
   m_dataType = type;
   m_activeConnection = 0;
+  m_parent = parent;
 }
 Data::Type Source::dataType() const
 {
@@ -32,7 +33,7 @@ Connection* Source::connectToSink(Sink* sink)
 
 Object* Source::parentObject() const
 {
-  return static_cast<Object*>(parent());
+  return m_parent;
 }
 
 QList<Sink*> Source::connectedSinks() const
