@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QApplication>
 #include "drawingutils.h"
+#include "source.h"
 
 Value::Value(const QString& name)
   : Data(name)
@@ -10,6 +11,11 @@ Value::Value(const QString& name)
   m_width = 60;
   m_height = 60;
   m_name = name;
+  
+  Source *outputValue = new Source(Data::Value, this);
+  m_sources.append(outputValue);
+  
+  outputValue->setPos(QPointF(0, m_height/2));
 }
 
 Value::~Value()
