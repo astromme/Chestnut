@@ -20,13 +20,10 @@ int main(int argc, char* argv[]) {
   widget->show();
   
   QGraphicsScene s;
-  Source *source = new Source(Data::Value, 0);
-  source->setPos(0, -25);
   Value *v = new Value("var");
   v->setPos(0, -50);
 
-  s.addItem(v);
-  s.addItem(source);
+  s.addItem(v);;
  
   Map m;
   m.setPos(0, 50);
