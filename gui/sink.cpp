@@ -17,6 +17,7 @@ Sink::Sink(Data::Types allowedTypes, Object* parent)
   m_allowedTypes = allowedTypes;
   m_connection = 0;
   m_internalMargin = 2;
+  m_parent = parent;
 }
 Data::Types Sink::allowedTypes() const
 {
@@ -30,7 +31,7 @@ int Sink::type() const
 
 Object* Sink::parentObject() const
 {
-  return static_cast<Object*>(parent());
+  return m_parent;
 }
 
 Source* Sink::connectedSource() const

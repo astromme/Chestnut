@@ -30,6 +30,7 @@ class Sink : public QGraphicsObject {
     Connection *m_connection;
     qreal m_internalMargin;
     Data::Type m_connectionType;
+    Object* m_parent;
 };
 
 #endif //CHESTNUT_SINK_H
