@@ -4,6 +4,7 @@ Object::Object(const QString &name, QGraphicsObject* parent)
   : QGraphicsObject(parent)
 {
   m_name = name;
+  setFlag(ItemIsMovable);
 }
 Object::~Object()
 {

@@ -1,5 +1,6 @@
 #include "source.h"
 
+#include "sizes.h"
 #include "drawingutils.h"
 #include "object.h"
 #include "sink.h"
@@ -10,12 +11,12 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
 
+using namespace Chestnut;
+
 Source::Source(Data::Type type, Object* parent)
   : QGraphicsObject(parent)
 {
   m_dataType = type;
-  m_width = 8;
-  m_height = 8;
   m_activeConnection = 0;
 }
 Data::Type Source::dataType() const
@@ -60,7 +61,7 @@ void Source::removeAllConnections()
 
 QPointF Source::connectedCenter() const
 {
-  QPointF center = QPointF(m_width/2, m_height/2);
+  QPointF center = QPointF(inputWidth/2, inputHeight/2);
   return center;
 }
 
@@ -68,20 +69,20 @@ QRectF Source::boundingRect() const
 {
   QPointF margin(1, 1);
   QPointF topLeft = QPointF(0, 0) - margin;
-  QPointF bottomRight = QPointF(m_width, m_height) + margin;
+  QPointF bottomRight = QPointF(inputWidth, inputHeight) + margin;
   return QRectF(topLeft, bottomRight);
 }
 void Source::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  QPointF center(m_width/2, m_height/2);
+  QPointF center(inputWidth/2, inputHeight/2);
   painter->setBrush(Qt::gray);
   switch (m_dataType) {
     case Data::Value:
-      painter->drawPath(triangle(center, m_width, m_height));
+      painter->drawPath(triangle(center, inputWidth, inputHeight));
       break;
    
     case Data::DataBlock:
-      painter->drawEllipse(center, m_width/2, m_height/2);
+      painter->drawEllipse(center, inputWidth/2, inputHeight/2);
       break;
       
     default:

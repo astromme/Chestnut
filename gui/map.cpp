@@ -37,6 +37,7 @@ Map::Map(QGraphicsObject* parent)
 
 QStringList Map::flatten() const
 {
+  //TODO Finish/talk to ryan
   foreach(Sink *connectedSink, m_sources[0]->connectedSinks()) {
     Object *connectedObject = connectedSink->parentObject();
     QString functionLine = QString("%1 = %2(%3, %4, %5);").arg(connectedObject->name())

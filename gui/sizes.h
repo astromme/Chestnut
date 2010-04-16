@@ -4,8 +4,15 @@
 #include "qglobal.h"
 
 namespace Chestnut {
-  qreal operatorRadius = 10;
+  static qreal operatorRadius = 10;
   
+  static qreal inputRadius = 5;
+  static qreal inputHeight = 2*inputRadius;
+  static qreal inputWidth = 2*inputRadius;
+  
+  static qreal outputRadius = 5;
+  static qreal outputHeight = 2*outputRadius;
+  static qreal outputWidth = 2*outputRadius;
 }
 
 #endif //CHESTNUT_SIZES_H
