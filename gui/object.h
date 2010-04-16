@@ -10,6 +10,8 @@ class Object : public QGraphicsObject {
   public:
     Object(QGraphicsObject* parent = 0);
     
+    virtual QList<QString> flatten() const = 0;
+    
     QList<Source*> sources() const;
     QList<Sink*> sinks() const;
     

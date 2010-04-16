@@ -6,6 +6,8 @@
 class Map : public Function {
   public:
     Map(QGraphicsObject* parent = 0);
+    
+    virtual QList< QString > flatten() const;
   private:
 };
 
