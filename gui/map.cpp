@@ -1,13 +1,14 @@
 #include "map.h"
 #include "source.h"
 #include "sink.h"
+#include "standardoperation.h"
 
 
 Map::Map(QGraphicsObject* parent)
   : Function("map", parent)
 {
   Data::Types in1;
-  in1 << Data::Value;
+  in1 << Data::DataBlock;
  
   Data::Types in2;
   in2 << Data::DataBlock;
@@ -27,12 +28,15 @@ Map::Map(QGraphicsObject* parent)
   QPointF i2Pos = i1Pos + QPointF(2+input1->boundingRect().width(), 0);
   input2->setPos(i2Pos);
   
+  QPointF o1Pos = outputsRect().topLeft();
+  output1->setPos(o1Pos);
+  
   setHasOperation(true);
-  setOperation();
+  setOperation(new StandardOperation(StandardOperation::Add, this));
 }
 
 QList< QString > Map::flatten() const
 {
-  QList<QString> operatorString = 
+  //QList<QString> operatorString = 
 }
 
