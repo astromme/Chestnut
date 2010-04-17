@@ -1,4 +1,4 @@
-project(cudalang)
+project(chestnut)
 cmake_minimum_required(VERSION 2.8)
 
 find_package(CUDA REQUIRED)
@@ -8,9 +8,9 @@ set(CUDA_BUILD_EMULATION OFF)
 include_directories("/usr/local/cuda/include" ${CMAKE_CURRENT_SOURCE_DIR})
 #include(${QT_USE_FILE})
 
-set(cudalang_program_sources
-    cudalang.cu
-    cudalang.cpp
+set(chestnut_program_sources
+    chestnut.cu
+    chestnut.cpp
     ParseLibs.h
     )
 
@@ -20,7 +20,7 @@ set(cudalang_program_sources
 
 # qt4_wrap_cpp(fluid_mocs ${fluid_headers})
 
-cuda_add_executable(cudalang_example ${cudalang_program_sources})
+cuda_add_executable(chestnut_example ${chestnut_program_sources})
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 

@@ -38,9 +38,10 @@ class ParseUtils {
     //void writeBuffer();
 
     void insertVerbatim(string object, string code, string type);
+    void makeForeach(string object, string type, string datarows, string datacols, string expr);
     void readDatafile(string fname, string object, string type);
-    void writeDatafile(string fname, string object, string type);
-    void mapFcn(string fcnname, string object, string type, string op, string alter);
+    void writeDatafile(string fname, string object);
+    void mapFcn(string fcnname, string object, string op, string alter);
   
   private:
     //std::ofstream cudafile;
@@ -51,6 +52,7 @@ class ParseUtils {
     bool parselibs_included;
     bool cudalang_included;
 
+    string processForeachExpr(string expr, const obj_names &objnames);
 
     SymbolTable symtab; // symbol table
 

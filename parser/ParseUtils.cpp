@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <boost/algorithm/string/replace.hpp>
 #include "ParseUtils.h"
 
 using namespace std;
+using boost::algorithm::replace_all;
 
 // constructor
 ParseUtils::ParseUtils(string outfname) {
@@ -221,7 +223,7 @@ obj_names ParseUtils::get_obj_names(string obj){
   return on;
 }
 
-
+// TODO DEFUNCT!
 /********************************
  * Function: insertVerbatim
  * ------------------------
@@ -282,6 +284,92 @@ void ParseUtils::insertVerbatim(string object, string code, string type){
   cudafile->pushMain(code_outstr);
 }
 
+/********************************
+ * Function: makeForeach
+ * ---------------------
+ * Associated with the syntax in Chestnut
+ *      <type> <data> <rows> <cols> foreach ( <expr> );
+ *
+ * Generates code to fill data with given expression.
+ *
+ * FIXME: more specific
+ * Expression can consist of a bunch of stuff like rows, cols, maxrows, etc
+ * that we have to deal with
+ */
+void ParseUtils::makeForeach(string object, string type, string datarows, string datacols, string expr){
+  // define names of vars in prog
+  obj_names objnames = get_obj_names(object);
+  string host = objnames.host;
+  string dev = objnames.dev;
+  string rows = objnames.rows;
+  string cols = objnames.cols;
+
+  expr = processForeachExpr(expr, objnames);
+  
+  string cuda_outstr;
+  if (symtab.addEntry(object, VARIABLE, type)){
+    cuda_outstr += prep_str(type + "* " + host + "; // Memory on host (cpu) side");
+    cuda_outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
+    cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
+    cuda_outstr += "\n";
+  } // TODO: else we need to delete some memory? i.e. host has already been allocated
+
+  cuda_outstr += prep_str("// Set rows, cols");
+  cuda_outstr += prep_str(rows + " = " + datarows + ";");
+  cuda_outstr += prep_str(cols + " = " + datacols + ";");
+  cuda_outstr += "\n";
+
+  cuda_outstr += prep_str("// Allocate memory for host");
+  cuda_outstr += prep_str(host + " = new " + type +
+      "[" + rows + "*" + cols + "];");
+  cuda_outstr += prep_str("for (int row=0; row<" + rows + "; row++){"); indent++;
+  cuda_outstr += prep_str("for (int col=0; col<" + cols + "; col++){"); indent++;
+  cuda_outstr += prep_str(expr); indent--;
+  cuda_outstr += prep_str("}"); indent--;
+  cuda_outstr += prep_str("}");
+  cuda_outstr += "\n";
+  cudafile->pushMain(cuda_outstr);
+}
+
+/********************************
+ * Function: processForeachExpr
+ * ----------------------------
+ * a `foreach` expression can consist of more than just simple arithmetic
+ * expressions. We have a set of reserved words which can be used at a high
+ * level to indicate lower-level changes. They are as follows.
+ *
+ * ==> maxrows: total number of rows in data block
+ * ==> maxcols: total number of columns in data block
+ * ==> row: current row index
+ * ==> col: current column index
+ * ==> value: current index of array, 
+ *    i.e. arr[row][col], represented as arr[row*maxcols+col]
+ * ==> rand: a random real number between 0 and 1
+ *
+ * Thus, as we see these reserved words, we must replace them in the code with
+ * the correct names, as given by the object name with which the foreach
+ * statement is associated. Also, row and col will be replaced by 'r' and 'c',
+ * respectively, which is object-name independent.
+ */
+string ParseUtils::processForeachExpr(string expr, const obj_names &objnames){
+  string decimalcast = "(float)";
+  
+  // since the right hand side may have something like "row/maxrows" we want
+  // that to be a float, not an int, so let's cast variables as floats
+  // TODO: make sure this doesn't break anything
+  replace_all(expr, "row", decimalcast + "row");
+  replace_all(expr, "max" + decimalcast + "rows", decimalcast + objnames.rows);
+
+  replace_all(expr, "col", decimalcast + "col");
+  replace_all(expr, "maxcols", decimalcast + objnames.cols);
+
+  replace_all(expr, "value", objnames.host + "[row*" + objnames.cols + "+col]");
+  replace_all(expr, "=", " = ");
+  // TODO: implement rand
+
+  expr += ";";
+  return expr;
+}
 
 /********************************
  * Function: readDatafile
@@ -423,7 +511,7 @@ void ParseUtils::readDatafile(string fname, string object, string type){
  * Returns:
  *    C++ code to implement this data write
  */
-void ParseUtils::writeDatafile(string fname, string object, string type){
+void ParseUtils::writeDatafile(string fname, string object){
   string outstr;
 
   // define names of vars in prog
@@ -432,6 +520,7 @@ void ParseUtils::writeDatafile(string fname, string object, string type){
   string rows = objnames.rows;
   string cols = objnames.cols;
   string outstream = objnames.outstream;
+  string type = symtab.getType(object);
 
   string fcnname = numbered_fcnname("writeDatafile");
   int old_indent = indent;
@@ -496,7 +585,7 @@ void ParseUtils::writeDatafile(string fname, string object, string type){
  * ----------------
  * Generates code for a map across an object
  */
-void ParseUtils::mapFcn(string fcnname, string object, string type, string op, string alter){
+void ParseUtils::mapFcn(string fcnname, string object, string op, string alter){
   int old_indent = indent; // save indent level
   indent = 0; // since we're defining a function, we start at no indent
   fcnname = numbered_fcnname(fcnname);
@@ -507,6 +596,7 @@ void ParseUtils::mapFcn(string fcnname, string object, string type, string op, s
   string dev = objnames.dev;
   string rows = objnames.rows;
   string cols = objnames.cols;
+  string type = symtab.getType(object);
 
   // function declaration
   // example:

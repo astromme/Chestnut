@@ -4,12 +4,14 @@
 #include <thrust/reduce.h>
 #include <thrust/functional.h>
 #include <cstdlib>
+#include <cstdio>
 
 int main(void)
 {
+  int numvals = 10000000;
   // generate random data on the host
-  thrust::host_vector<int> h_vec(100);
-  for (int i=0; i<100; i++){
+  thrust::host_vector<int> h_vec(numvals);
+  for (int i=0; i<numvals; i++){
     h_vec[i] = 1;
   }
   //thrust::generate(h_vec.begin(), h_vec.end(), rand);

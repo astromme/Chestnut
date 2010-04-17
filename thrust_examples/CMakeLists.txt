@@ -10,5 +10,6 @@ include_directories("/usr/local/cuda/include" ${CMAKE_CURRENT_SOURCE_DIR})
 include(${QT_USE_FILE})
 
 cuda_add_executable(thrust-sum sum.cu)
+cuda_add_executable(thrust-minmax minmax.cu)
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
