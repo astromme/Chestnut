@@ -34,8 +34,8 @@ class SymbolTable{
 
     // accessors 
     bool isInSymtab(string name);
-    string getTypeInSymtab(string name);
-    int getIdxInSymtab(string name);
+    string getType(string name);
+    int getIdx(string name);
     void print();
 
   private:

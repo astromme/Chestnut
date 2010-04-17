@@ -65,7 +65,7 @@ bool SymbolTable::isInSymtab(string name){
  *    name: name of function, variable, etc
  * TODO: throw an exception instead of returning -1
  */
-string SymbolTable::getTypeInSymtab(string name){
+string SymbolTable::getType(string name){
   for (unsigned int i=0; i<symtab.size(); i++){
     if (name == symtab[i].name)
       return symtab[i].type;
@@ -82,7 +82,7 @@ string SymbolTable::getTypeInSymtab(string name){
  * Input:
  *    name: name of function, variable, etc
  */
-int SymbolTable::getIdxInSymtab(string name){
+int SymbolTable::getIdx(string name){
   for (unsigned int i=0; i<symtab.size(); i++){
     if (name == symtab[i].name)
       return i;
