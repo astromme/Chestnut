@@ -16,6 +16,9 @@ class Sink : public QGraphicsObject {
     Sink(Data::Types allowedTypes, Object *parent);
     Data::Types allowedTypes() const;
     
+    Object* parentObject() const;
+    
+    Source* connectedSource() const;
     void setConnection(Connection *connection);
     Connection* connection() const;
     QPointF connectedCenter();
@@ -26,9 +29,8 @@ class Sink : public QGraphicsObject {
     Data::Types m_allowedTypes;
     Connection *m_connection;
     qreal m_internalMargin;
-    qreal m_width;
-    qreal m_height;
     Data::Type m_connectionType;
+    Object* m_parent;
 };
 
 #endif //CHESTNUT_SINK_H

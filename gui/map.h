@@ -6,7 +6,9 @@
 class Map : public Function {
   public:
     Map(QGraphicsObject* parent = 0);
+    
+    virtual QStringList flatten() const;
   private:
 };
 
-#endif // CHESTNUT_MAP_H
+#endif //CHESTNUT_MAP_H

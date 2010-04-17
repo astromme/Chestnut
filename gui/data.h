@@ -1,9 +1,12 @@
 #ifndef CHESTNUT_DATA_H
 #define CHESTNUT_DATA_H
 
-#include <QObject>
+#include <QList>
+#include <QString>
 
-class Data {
+#include "object.h"
+
+class Data : public Object {
   public:
     enum Type {
       Value = 0x0,
@@ -11,9 +14,12 @@ class Data {
     };
     
     typedef QList<Type> Types;
-    //Q_DECLARE_FLAGS(Types, Type)
+    
+    Data(const QString &name);
+    virtual ~Data();
+    
+    virtual QStringList flatten() const {return QStringList();} //TODO Fix
 };
 
-//Q_DECLARE_OPERATORS_FOR_FLAGS(Data::Types)
 
 #endif //CHESTNUT_DATA_H
