@@ -55,8 +55,7 @@ void ParseUtils::writeAllFiles(){
  */
 void ParseUtils::initializeMain(){
   string startmain;
-  // use standard namespace (?)
-  startmain += "using namespace std;\n\n";
+  startmain += "using namespace thrust;\n\n";
   startmain += "int main() {\n";
 
   cudafile->pushMain(startmain);
@@ -82,7 +81,7 @@ void ParseUtils::finalizeMain(){
  * Function: initializeIncludes
  * ----------------------------
  * Consolidates some baseline #includes. These are stored as strings and
- * returned to be stored in a vector. The vector is eventually written out to
+j* returned to be stored in a vector. The vector is eventually written out to
  * the file, but in case we want to add more #includes later on, we can.
  */
 void ParseUtils::initializeIncludes(){
@@ -98,6 +97,9 @@ void ParseUtils::initializeIncludes(){
   cuda_includes += prep_str("// CUDA includes");
   cuda_includes += add_include("<cuda.h>");
   cuda_includes += add_include("<cuda_runtime_api.h>");
+  cuda_includes += prep_str("// Thrust includes");
+  cuda_includes += add_include("<thrust/host_vector.h>");
+  cuda_includes += add_include("<thrust/device_vector.h>");
   cudafile->pushInclude(cuda_includes);
 
   // cpp includes
@@ -279,22 +281,81 @@ void ParseUtils::insertVerbatim(string object, string code, string type){
     code_outstr += prep_str("DataInfo<" + type + ">* " + datainfo + ";");
     code_outstr += "\n";
   }
-
-
   cudafile->pushMain(code_outstr);
+}
+
+/********************************
+ * Function: makeVector
+ * --------------------
+ * Assocated with the syntax in Chestnut
+ *    <type> <name> vector
+ *
+ * These are variables that will be used in the program execution but are not
+ * inititalized from the outset. For example, if you map across some data A
+ * and you want to send it to B, we would declare B here
+ *
+ *
+ * TODO: Inputs/Returns
+ */ 
+void ParseUtils::makeVector(string object, string type){
+  // define names of vars in prog
+  obj_names objnames = get_obj_names(object);
+  string host = objnames.host;
+  string dev = objnames.dev;
+
+  string cuda_outstr;
+  if (symtab.addEntry(object, VARIABLE, type)){
+    cuda_outstr += prep_str("host_vector<" + type + "> " + host + "; // Memory on host (cpu) side");
+    cuda_outstr += prep_str("device_vector<" + type + "> " + dev + "; // Memory on device (gpu) side");
+    cuda_outstr += "\n";
+  } // TODO: else we need to delete some memory? i.e. host has already been allocated
+  cudafile->pushMain(cuda_outstr);
+}
+
+/********************************
+ * Function: makeScalar
+ * --------------------
+ * Assocated with the syntax in Chestnut
+ *    <type> <name> scalar
+ *
+ * These are variables that will be used in the program execution but are not
+ * inititalized from the outset. For example, if you map across some data A
+ * and you want to send it to B, we would declare B here
+ *
+ *
+ * TODO: Inputs/Returns
+ */ 
+void ParseUtils::makeScalar(string object, string type){
+  // define names of vars in prog
+  obj_names objnames = get_obj_names(object);
+  string host = objnames.host;
+
+  string cuda_outstr;
+  if (symtab.addEntry(object, VARIABLE, type)){
+    cuda_outstr += prep_str(type + " " + host + "; // scalar on host (cpu) side");
+    cuda_outstr += "\n";
+  } // TODO: else we need to delete some memory? i.e. host has already been allocated
+  cudafile->pushMain(cuda_outstr);
 }
 
 /********************************
  * Function: makeForeach
  * ---------------------
  * Associated with the syntax in Chestnut
- *      <type> <data> <rows> <cols> foreach ( <expr> );
+ *      <type> <name> <rows> <cols> foreach ( <expr> );
  *
  * Generates code to fill data with given expression.
  *
  * FIXME: more specific
  * Expression can consist of a bunch of stuff like rows, cols, maxrows, etc
  * that we have to deal with
+ *
+ * Inputs:
+ *    object: name of variable to be initialized
+ *    type: type of var (int, float, etc)
+ *    datarows: number of rows to initialize
+ *    datacols: number of columns to initialize
+ *    expr: expression used to populate variable
  */
 void ParseUtils::makeForeach(string object, string type, string datarows, string datacols, string expr){
   // define names of vars in prog
@@ -308,8 +369,8 @@ void ParseUtils::makeForeach(string object, string type, string datarows, string
   
   string cuda_outstr;
   if (symtab.addEntry(object, VARIABLE, type)){
-    cuda_outstr += prep_str(type + "* " + host + "; // Memory on host (cpu) side");
-    cuda_outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
+    cuda_outstr += prep_str("host_vector<" + type + "> " + host + "; // Memory on host (cpu) side");
+    cuda_outstr += prep_str("device_vector<" + type + "> " + dev + "; // Memory on device (gpu) side");
     cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
     cuda_outstr += "\n";
   } // TODO: else we need to delete some memory? i.e. host has already been allocated
@@ -319,14 +380,14 @@ void ParseUtils::makeForeach(string object, string type, string datarows, string
   cuda_outstr += prep_str(cols + " = " + datacols + ";");
   cuda_outstr += "\n";
 
-  cuda_outstr += prep_str("// Allocate memory for host");
-  cuda_outstr += prep_str(host + " = new " + type +
-      "[" + rows + "*" + cols + "];");
+  cuda_outstr += prep_str(host + ".clear(); // make sure vector is empty");
+  cuda_outstr += prep_str("// populate data");
   cuda_outstr += prep_str("for (int row=0; row<" + rows + "; row++){"); indent++;
   cuda_outstr += prep_str("for (int col=0; col<" + cols + "; col++){"); indent++;
   cuda_outstr += prep_str(expr); indent--;
   cuda_outstr += prep_str("}"); indent--;
   cuda_outstr += prep_str("}");
+  cuda_outstr += prep_str(dev + " = " + host + "; // copy host data to GPU");
   cuda_outstr += "\n";
   cudafile->pushMain(cuda_outstr);
 }
@@ -363,19 +424,19 @@ string ParseUtils::processForeachExpr(string expr, const obj_names &objnames){
   replace_all(expr, "col", decimalcast + "col");
   replace_all(expr, "maxcols", decimalcast + objnames.cols);
 
-  replace_all(expr, "value", objnames.host + "[row*" + objnames.cols + "+col]");
-  replace_all(expr, "=", " = ");
+  replace_all(expr, "value", objnames.host); // + "[row*" + objnames.cols + "+col]");
+  replace_all(expr, "=", ".push_back(");
   // TODO: implement rand
 
-  expr += ";";
+  expr += ");";
   return expr;
 }
 
 /********************************
  * Function: readDatafile
  * ----------------------
- * Associated with the syntax in our language (TODO: name our language)
- *      <data> = read("<infile>");
+ * Associated with the syntax in Chestnut
+ *      <type> <name> read("<infile>");
  *
  * Generates code to read in data from a file.
  *
@@ -439,7 +500,7 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   cpp_outstr += "\n";
 
   cpp_outstr += prep_str("// read in data from file");
-  cpp_outstr += prep_str(type + "* data = new " + type + "[rows*cols];");
+  cpp_outstr += prep_str("thrust::host_vector<" + type + "> data(rows*cols);");
   cpp_outstr += prep_str("for (int r=0; r<rows; r++){"); indent++;
   cpp_outstr += prep_str("for (int c=0; c<cols; c++){"); indent++;
   cpp_outstr += prep_str("instream >> data[r*cols+c];"); indent--;
@@ -459,15 +520,15 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   cppfile->pushFcnDef(cpp_outstr);
 
   indent = old_indent; // restore indent
-
+  
   string cuda_outstr;
   if (symtab.addEntry(object, VARIABLE, type)){
-    cuda_outstr += prep_str(type + "* " + host + "; // Memory on host (cpu) side");
-    cuda_outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
+    cuda_outstr += prep_str("host_vector<" + type + "> " + host + "; // Memory on host (cpu) side");
+    cuda_outstr += prep_str("device_vector<" + type + "> " + dev + "; // Memory on device (gpu) side");
     cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
     cuda_outstr += prep_str("DataInfo<" + type + ">* " + datainfo + ";");
     cuda_outstr += "\n";
-  }
+  } // TODO: else we need to delete some memory? i.e. host has already been allocated
 
   cuda_outstr += prep_str("// Read in data");
   cuda_outstr += prep_str(datainfo + " = " 
@@ -476,6 +537,7 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   cuda_outstr += prep_str(rows + " = " + datainfo + "->rows;");
   cuda_outstr += prep_str(cols + " = " + datainfo + "->cols;");
   //outstr += prep_str(host + " = " + fcnname + "(\"" + fname + "\");");
+  cuda_outstr += prep_str(dev + " = " + host + "; // copy host data to GPU");
   cuda_outstr += "\n";
   cudafile->pushMain(cuda_outstr);
 

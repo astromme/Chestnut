@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <cstdio>
 #include <cstdlib>
 #include "SymbolTable.h"
@@ -67,10 +68,14 @@ bool SymbolTable::isInSymtab(string name){
  */
 string SymbolTable::getType(string name){
   for (unsigned int i=0; i<symtab.size(); i++){
+    printf("size: %d, name: %s\n", symtab.size(), symtab[i].name.c_str());
     if (name == symtab[i].name)
       return symtab[i].type;
   }
-  return NULL;
+  // if we're here, name is not in symtab, so let's throw an error
+  char error_msg[100];
+  sprintf(error_msg, "in getTypeInSymtab: '%s' not found in SymbolTable", name.c_str());
+  throw runtime_error(error_msg);
 }
 
 
