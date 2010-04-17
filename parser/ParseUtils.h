@@ -39,6 +39,8 @@ class ParseUtils {
 
     void insertVerbatim(string object, string code, string type);
     void makeForeach(string object, string type, string datarows, string datacols, string expr);
+    void makeVector(string object, string type);
+    void makeScalar(string object, string type);
     void readDatafile(string fname, string object, string type);
     void writeDatafile(string fname, string object);
     void mapFcn(string fcnname, string object, string op, string alter);

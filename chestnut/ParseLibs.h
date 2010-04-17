@@ -1,14 +1,18 @@
 #ifndef _PARSE_LIBS_H
 #define _PARSE_LIBS_H
 
-// include all the boost libraries
+// Thrust includes
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+
+using thrust::host_vector;
 
 template <typename TYPE>
 class DataInfo {
   public:
     int rows;
     int cols;
-    TYPE* data;
+    host_vector<TYPE> data;
 };
 
 template <typename TYPE>
