@@ -1,5 +1,6 @@
 #include "sink.h"
 
+#include "sizes.h"
 #include "drawingutils.h"
 #include "connection.h"
 #include "source.h"
@@ -8,6 +9,7 @@
 #include <QPainter>
 #include <QDebug>
 
+using namespace Chestnut;
 
 Sink::Sink(Data::Types allowedTypes, Object* parent)
   : QGraphicsObject(parent)
@@ -15,8 +17,7 @@ Sink::Sink(Data::Types allowedTypes, Object* parent)
   m_allowedTypes = allowedTypes;
   m_connection = 0;
   m_internalMargin = 2;
-  m_width = 8;
-  m_height = 8;
+  m_parent = parent;
 }
 Data::Types Sink::allowedTypes() const
 {
@@ -26,6 +27,18 @@ Data::Types Sink::allowedTypes() const
 int Sink::type() const
 {
   return Type;
+}
+
+Object* Sink::parentObject() const
+{
+  return m_parent;
+}
+
+Source* Sink::connectedSource() const
+{
+  if (m_connection) {
+    return m_connection->source();
+  }
 }
 
 void Sink::setConnection(Connection* connection)
@@ -54,8 +67,8 @@ QPointF Sink::connectedCenter()
   }
   
   int location = m_allowedTypes.indexOf(m_connectionType);
-  QPointF center(m_width/2, m_height/2);
-  center += QPointF(location*(m_internalMargin + m_width), 0);
+  QPointF center(inputWidth/2, inputHeight/2);
+  center += QPointF(location*(m_internalMargin + inputWidth), 0);
   return center;
 }
 
@@ -64,12 +77,12 @@ QRectF Sink::boundingRect() const
   QPointF margin(1, 1);
   qreal totalWidth = 0;
   foreach(Data::Type type, m_allowedTypes) {
-    totalWidth += m_width;
+    totalWidth += inputWidth;
   }
   totalWidth += m_internalMargin*m_allowedTypes.length();
   
   QPointF topLeft = QPointF(0, 0) - margin;
-  QPointF bottomRight = QPointF(totalWidth, m_height) + margin;
+  QPointF bottomRight = QPointF(totalWidth, inputHeight) + margin;
   return QRectF(topLeft, bottomRight);
 }
 void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -80,20 +93,25 @@ void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
   QPointF topLeft = QPointF(0, 0);
   
   foreach(Data::Type type, m_allowedTypes) {
-    QPointF center = topLeft + QPointF(m_width/2, m_height/2);
+    QPointF center = topLeft + QPointF(inputWidth/2, inputHeight/2);
     switch (type) {
       case Data::Value:
-        painter->drawPath(triangle(center, m_width, m_height));
+        painter->drawPath(triangle(center, inputWidth, inputHeight));
         break;
     
       case Data::DataBlock:
-        painter->drawEllipse(center, m_width/2, m_height/2);
+        painter->drawEllipse(center, inputWidth/2, inputHeight/2);
         break;
         
       default:
         qDebug() << "Unhandled datatype" << type;
         break;
     }
-  topLeft = QPointF(topLeft.x() + m_width + m_internalMargin, topLeft.y());
+  topLeft = QPointF(topLeft.x() + inputWidth + m_internalMargin, topLeft.y());
+  }
+
+  //TODO Why does this take lots of cpu?
+  if (m_connection) {
+    m_connection->updateConnection();
   }
 }

@@ -9,8 +9,7 @@ include_directories(${Chestnut_SOURCE_DIR} ${Chestnut_BINARY_DIR})
 
 
 set(chestnut_operators
-    plus.cpp
-    minus.cpp
+    standardoperation.cpp
     )
 
 set(chestnut_functions

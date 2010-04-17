@@ -1,9 +1,22 @@
 #include "object.h"
 
-Object::Object(QGraphicsObject* parent)
+#include "sink.h"
+#include <QDebug>
+
+Object::Object(const QString &name, QGraphicsObject* parent)
   : QGraphicsObject(parent)
 {
-  
+  m_name = name;
+  setFlag(ItemIsMovable);
+}
+Object::~Object()
+{
+
+}
+
+QString Object::name() const
+{
+  return m_name;
 }
 
 QList< Source* > Object::sources() const

@@ -16,6 +16,9 @@ class Source : public QGraphicsObject {
     
     Connection* connectToSink(Sink *sink);
     
+    Object* parentObject() const;
+    
+    QList<Sink*> connectedSinks() const;
     void addConnection(Connection *connection);
     void removeConnection(Connection *connection);
     void removeAllConnections();
@@ -31,10 +34,8 @@ class Source : public QGraphicsObject {
   private:
     Data::Type m_dataType;
     QList<Connection*> m_connections;
-    qreal m_width;
-    qreal m_height;
     Connection* m_activeConnection;
-    
+    Object* m_parent;
 };
 
 #endif //CHESTNUT_SOURCE_H

@@ -12,6 +12,8 @@ class Connection : public QGraphicsItem {
     Connection(Source *source);
     virtual ~Connection();
     
+    void updateConnection();
+    
     bool isPartial() const;
     void setSink(Sink *sink);
     void setEndpoint(const QPointF& scenePoint);

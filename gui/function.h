@@ -18,8 +18,11 @@ class Function : public Object {
     Function(const QString& name, QGraphicsObject* parent = 0);
     virtual ~Function();
     
+    //virtual QStringList flatten() const = 0;
+    QString name() const;
+    
     bool hasOperation();
-    Operation* operation();
+    Operation* operation() const;
     void setOperation(Operation *op);
         
     virtual QRectF boundingRect() const;
@@ -32,11 +35,9 @@ class Function : public Object {
     QRectF internalRect() const;
     QRectF outputsRect() const;
     
-  private:
+  protected:
     bool m_hasOperation;
     Operation *m_operation;
-
-    QString m_name;
     
 };
 
