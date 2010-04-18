@@ -64,7 +64,6 @@ bool SymbolTable::isInSymtab(string name){
  *
  * Input:
  *    name: name of function, variable, etc
- * TODO: throw an exception instead of returning -1
  */
 string SymbolTable::getType(string name){
   for (unsigned int i=0; i<symtab.size(); i++){
@@ -72,10 +71,30 @@ string SymbolTable::getType(string name){
       return symtab[i].type;
   }
   // if we're here, name is not in symtab, so let's throw an error
-  char error_msg[100];
-  sprintf(error_msg, "in getTypeInSymtab: '%s' not found in SymbolTable", name.c_str());
+  char error_msg[100+name.length()];
+  sprintf(error_msg, "in getType: '%s' not found in SymbolTable", name.c_str());
   throw runtime_error(error_msg);
 }
+
+/********************************
+ * Function: getTypeInSymtab
+ * -------------------------
+ * Grabs the type of an entry in the symbol table
+ *
+ * Input:
+ *    name: name of function, variable, etc
+ */
+int SymbolTable::getCategory(string name){
+  for (unsigned int i=0; i<symtab.size(); i++){
+    if (name == symtab[i].name)
+      return symtab[i].category;
+  }
+  // if we're here, name is not in symtab, so let's throw an error
+  char error_msg[100+name.length()];
+  sprintf(error_msg, "in getCategory: '%s' not found in SymbolTable", name.c_str());
+  throw runtime_error(error_msg);
+}
+
 
 
 /********************************
