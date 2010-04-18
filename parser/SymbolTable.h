@@ -3,12 +3,12 @@
 
 #include <string>
 #include <vector>
-//#include "SymbolEntry.h"
 
 using std::string;
 
 enum categories {
-  VARIABLE = 20,
+  VARIABLE_SCALAR = 20,
+  VARIABLE_VECTOR,
   FUNCTION
 };
 
@@ -35,6 +35,7 @@ class SymbolTable{
     // accessors 
     bool isInSymtab(string name);
     string getType(string name);
+    int getCategory(string name);
     int getIdx(string name);
     void print();
 

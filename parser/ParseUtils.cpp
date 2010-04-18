@@ -244,7 +244,7 @@ void ParseUtils::makeVector(string object, string type){
   string cols = objnames.cols;
 
   string cuda_outstr;
-  if (symtab.addEntry(object, VARIABLE, type)){
+  if (symtab.addEntry(object, VARIABLE_VECTOR, type)){
     cuda_outstr += prep_str("host_vector<" + type + "> " + host + "; // Memory on host (cpu) side");
     cuda_outstr += prep_str("device_vector<" + type + "> " + dev + "; // Memory on device (gpu) side");
     cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
@@ -272,7 +272,7 @@ void ParseUtils::makeScalar(string object, string type){
   string host = objnames.host;
 
   string cuda_outstr;
-  if (symtab.addEntry(object, VARIABLE, type)){
+  if (symtab.addEntry(object, VARIABLE_SCALAR, type)){
     cuda_outstr += prep_str(type + " " + host + "; // scalar on host (cpu) side");
     cuda_outstr += "\n";
   } // TODO: else we need to delete some memory? i.e. host has already been allocated
@@ -309,7 +309,7 @@ void ParseUtils::makeForeach(string object, string type, string datarows, string
   expr = processForeachExpr(expr, objnames);
   
   string cuda_outstr;
-  if (symtab.addEntry(object, VARIABLE, type)){
+  if (symtab.addEntry(object, VARIABLE_VECTOR, type)){
     cuda_outstr += prep_str("host_vector<" + type + "> " + host + "; // Memory on host (cpu) side");
     cuda_outstr += prep_str("device_vector<" + type + "> " + dev + "; // Memory on device (gpu) side");
     cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
@@ -463,7 +463,7 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   indent = old_indent; // restore indent
   
   string cuda_outstr;
-  if (symtab.addEntry(object, VARIABLE, type)){
+  if (symtab.addEntry(object, VARIABLE_VECTOR, type)){
     cuda_outstr += prep_str("host_vector<" + type + "> " + host + "; // Memory on host (cpu) side");
     cuda_outstr += prep_str("device_vector<" + type + "> " + dev + "; // Memory on device (gpu) side");
     cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
@@ -548,14 +548,23 @@ void ParseUtils::makeWriteDatafile(string fname, string object){
 void ParseUtils::makePrintData(string object){
   // define names of vars in prog
   obj_names objnames = get_obj_names(object);
+  string host = objnames.host;
   string dev = objnames.dev;
   string type = symtab.getType(object);
+  int category = symtab.getCategory(object);
 
   string cuda_outstr;
   cuda_outstr += prep_str("// print out data");
-  cuda_outstr += prep_str("thrust::copy(" + 
-      dev + ".begin(), " + dev + ".end(), " +
-      "std::ostream_iterator<" + type + ">(std::cout, \"\\n\"));");
+  switch (category){
+    case VARIABLE_VECTOR:
+      cuda_outstr += prep_str("thrust::copy(" + 
+          dev + ".begin(), " + dev + ".end(), " +
+          "std::ostream_iterator<" + type + ">(std::cout, \"\\n\"));");
+      break;
+    case VARIABLE_SCALAR:
+      cuda_outstr += prep_str("std::cout << " + host + " << std::endl;");
+      break;
+  }
   cuda_outstr += "\n";
   cudafile->pushMain(cuda_outstr);
 }
@@ -621,7 +630,7 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
   string thrustop = getThrustOp(op, dest_type);
 
   string cuda_outstr;
-  cuda_outstr += prep_str("/* Map Function Called */");
+  cuda_outstr += prep_str("/* Begin Map Function */");
   cuda_outstr += "\n";
 
   // if destination is not source -- if we're not modifying data in place but
@@ -669,6 +678,8 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
       dest_dev + ".begin(), " + // written to destination.
       thrustop + ");"); // source and mapmodify are compsed with thrustop
   cuda_outstr += "\n";
+  cuda_outstr += prep_str("/* End Map Function */");
+  cuda_outstr += "\n";
 
   cudafile->pushMain(cuda_outstr);
 
@@ -695,15 +706,12 @@ void ParseUtils::makeReduce(string source, string destination, string op){
   cudafile->pushInclude(cuda_include);
 
   string cuda_outstr;
-  cuda_outstr += prep_str("/* Reduce Function Called */");
+  cuda_outstr += prep_str("/* Begin Reduce Function */");
   cuda_outstr += "\n";
 
-  // if destination is not source -- if we're not modifying data in place but
-  // instead want to leave the original unchanged -- we need to copy source
-  // into destination and then operate on that
+  // throw exception because dest_type needs to be same as src_type for
+  // copy to succeed
   if (dest_type != src_type){
-    // throw exception because dest_type needs to be same as src_type for
-    // copy to succeed
     char error_msg[100+destination.length()+source.length()];
     sprintf(error_msg, "in makeMap: destination (%s) and source (%s) are different types", 
         destination.c_str(), source.c_str());
@@ -714,8 +722,10 @@ void ParseUtils::makeReduce(string source, string destination, string op){
   cuda_outstr += prep_str("// Call reduce function");
   cuda_outstr += prep_str(dest_host + " = thrust::reduce(" +
       src_dev + ".begin(), " + src_dev + ".end(), " + // source is
-      "(int) 0, " + // initial value -- almost always want this to be zero
+      "(" + src_type + ") 0, " + // initial value -- almost always want this to be zero
       thrustop + ");"); // source and mapmodify are compsed with thrustop
+  cuda_outstr += "\n";
+  cuda_outstr += prep_str("/* End Reduce Function */");
   cuda_outstr += "\n";
 
   cudafile->pushMain(cuda_outstr);
