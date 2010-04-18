@@ -41,9 +41,15 @@ class ParseUtils {
     void makeForeach(string object, string type, string datarows, string datacols, string expr);
     void makeVector(string object, string type);
     void makeScalar(string object, string type);
+
+    void makeMap(string source, string destination, string op, string modify);
+    void makeReduce(string source, string destination, string op);
+
     void readDatafile(string fname, string object, string type);
-    void writeDatafile(string fname, string object);
-    void mapFcn(string fcnname, string object, string op, string alter);
+    void makeWriteDatafile(string fname, string object);
+
+    void makePrintData(string object);
+    void makePrintData2D(string object);
   
   private:
     //std::ofstream cudafile;
@@ -55,12 +61,13 @@ class ParseUtils {
     bool cudalang_included;
 
     string processForeachExpr(string expr, const obj_names &objnames);
+    string numbered_id(string fcnname);
+    string getThrustOp(string op, string type);
 
     SymbolTable symtab; // symbol table
 
     string add_include(string header);
     string prep_str(string str);
-    string numbered_fcnname(string fcnname);
     string cudamemcpy_str(string to, string from, string size, string directive);
     obj_names get_obj_names(string obj);
 
