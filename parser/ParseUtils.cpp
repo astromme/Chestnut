@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -185,12 +186,12 @@ string ParseUtils::prep_str(string str) {
 }
 
 /********************************
- * Function: numbered_fcnname
- * --------------------------
+ * Function: numbered_id
+ * ---------------------
  * given a function name, append the value of the current function counter and
  * increment the counter
  */
-string ParseUtils::numbered_fcnname(string fcnname){
+string ParseUtils::numbered_id(string fcnname){
   stringstream ss; ss << fcncount;
   string new_fcnname = fcnname + ss.str();
   fcncount++;
@@ -302,11 +303,14 @@ void ParseUtils::makeVector(string object, string type){
   obj_names objnames = get_obj_names(object);
   string host = objnames.host;
   string dev = objnames.dev;
+  string rows = objnames.rows;
+  string cols = objnames.cols;
 
   string cuda_outstr;
   if (symtab.addEntry(object, VARIABLE, type)){
     cuda_outstr += prep_str("host_vector<" + type + "> " + host + "; // Memory on host (cpu) side");
     cuda_outstr += prep_str("device_vector<" + type + "> " + dev + "; // Memory on device (gpu) side");
+    cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
     cuda_outstr += "\n";
   } // TODO: else we need to delete some memory? i.e. host has already been allocated
   cudafile->pushMain(cuda_outstr);
@@ -460,7 +464,7 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   string instream = objnames.instream;
   string garbage = objnames.garbage;
 
-  string fcnname = numbered_fcnname("readDatafile");
+  string fcnname = numbered_id("readDatafile");
   int old_indent = indent;
   indent = 0;
 
@@ -573,28 +577,21 @@ void ParseUtils::readDatafile(string fname, string object, string type){
  * Returns:
  *    C++ code to implement this data write
  */
-void ParseUtils::writeDatafile(string fname, string object){
+void ParseUtils::makeWriteDatafile(string fname, string object){
   string outstr;
 
   // define names of vars in prog
   obj_names objnames = get_obj_names(object);
   string host = objnames.host;
+  string dev = objnames.dev;
   string rows = objnames.rows;
   string cols = objnames.cols;
   string outstream = objnames.outstream;
   string type = symtab.getType(object);
 
-  string fcnname = numbered_fcnname("writeDatafile");
+  string fcnname = numbered_id("writeDatafile");
   int old_indent = indent;
   indent = 0;
-
-  if (!cudalang_included){
-    // make sure cu file has cudalang.h included FIXME: won't always be
-    // cudalang
-    string cudalang = add_include("\"" + headerfile->fname() + "\"");
-    cudafile->pushInclude(cudalang);
-    cudalang_included = true;
-  }
 
   if (!parselibs_included){
     // make sure both header file and cu file have included ParseLibs
@@ -604,54 +601,62 @@ void ParseUtils::writeDatafile(string fname, string object){
     parselibs_included = true;
   }
   
-  // write out function declaration to header file
-  string header_outstr;
-  header_outstr += prep_str("void " + fcnname + "(char* fname, " + type + "* data, int rows, int cols);");
-  headerfile->pushFcnDec(header_outstr);
-
-  string cpp_outstr;
-  cpp_outstr += prep_str("void " + fcnname + "(char* fname, " + type + "* data, int rows, int cols){"); indent++;
-  cpp_outstr += prep_str("// output data to file");
-  cpp_outstr += prep_str("ofstream outstream;");
-  cpp_outstr += prep_str("outstream.open(\"" + fname + "\");");
-  cpp_outstr += "\n";
-
-  cpp_outstr += prep_str("// write data out to file");
-  cpp_outstr += prep_str("outstream << \"rows: \" << rows << \"\\n\";");
-  cpp_outstr += prep_str("outstream << \"cols: \" << cols << \"\\n\";");
-
-  cpp_outstr += prep_str("for (int r=0; r<rows; r++){"); indent++;
-  cpp_outstr += prep_str("for (int c=0; c<cols; c++){"); indent++;
-  cpp_outstr += prep_str("outstream << data[r*cols+c] << \" \";"); indent--;
-  cpp_outstr += prep_str("}"); 
-  cpp_outstr += prep_str("outstream << \"\\n\";"); indent--;
-  cpp_outstr += prep_str("}");
-  cpp_outstr += prep_str("outstream.close();"); indent--;
-  cpp_outstr += prep_str("}");
-  cpp_outstr += "\n";
-  cppfile->pushFcnDef(cpp_outstr);
-
   indent = old_indent; // restore indent
 
   string cuda_outstr;
+  cuda_outstr += prep_str("// copy data from gpu to cpu");
+  cuda_outstr += prep_str(host + " = " + dev + ";");
   cuda_outstr += prep_str("// write data out to disk");
-  cuda_outstr += prep_str(fcnname + "(\"" + fname + "\", " + host +
-      ", " + rows + ", " + cols + ");");
+  cuda_outstr += prep_str("writeDatafile(\"" + fname + "\", " +
+      host + ", " + rows + ", " + cols + ");");
   cuda_outstr += "\n";
   cudafile->pushMain(cuda_outstr);
 
 }
 
 /********************************
- * Function: mapFcn
- * ----------------
- * Generates code for a map across an object
+ * Function: makePrintData
+ * -----------------------
+ * Generates code to print out an object (in one dimension).
+ * We don't need to explicitly copy device data onto the CPU, so this function
+ * might be a bit faster to run than makePrintData2D
+ *
+ * Input:
+ *    object: variable to be printed
  */
-void ParseUtils::mapFcn(string fcnname, string object, string op, string alter){
-  int old_indent = indent; // save indent level
-  indent = 0; // since we're defining a function, we start at no indent
-  fcnname = numbered_fcnname(fcnname);
+void ParseUtils::makePrintData(string object){
+  // define names of vars in prog
+  obj_names objnames = get_obj_names(object);
+  string dev = objnames.dev;
+  string type = symtab.getType(object);
 
+  string cuda_outstr;
+  cuda_outstr += prep_str("// print out data");
+  cuda_outstr += prep_str("thrust::copy(" + 
+      dev + ".begin(), " + dev + ".end(), " +
+      "std::ostream_iterator<" + type + ">(std::cout, \"\\n\"));");
+  cuda_outstr += "\n";
+  cudafile->pushMain(cuda_outstr);
+}
+
+/********************************
+ * Function: makePrintData2D
+ * -------------------------
+ * Generates code to print out an object in two dimensions
+ * Unlike makePrintData, we need to copy data over to the CPU from the GPU,
+ * but we then gain the ability to structure output in two dimensions
+ *
+ * For example can print out
+ *    1 2 3
+ *    4 5 6
+ *    7 8 9
+ * instead of
+ *    1 2 3 4 5 6 7 8 9
+ *
+ * Input:
+ *    object: variable to be printed
+ */
+void ParseUtils::makePrintData2D(string object){
   // define names of vars in prog
   obj_names objnames = get_obj_names(object);
   string host = objnames.host;
@@ -660,66 +665,163 @@ void ParseUtils::mapFcn(string fcnname, string object, string op, string alter){
   string cols = objnames.cols;
   string type = symtab.getType(object);
 
-  // function declaration
-  // example:
-  //    int** map(int** data, int rows, int cols);
-  string declaration; 
-  declaration += prep_str("__global__ void " + fcnname + "(" 
-    + type + "* data, int cols);");
-  cudafile->pushFcnDec(declaration);
+  string cuda_outstr;
+  cuda_outstr += prep_str("// copy data to cpu then print it");
+  cuda_outstr += prep_str(host + " = " + dev + ";");
+  cuda_outstr += prep_str("for (int r=0; r<" + rows + "; r++){"); indent++;
+  cuda_outstr += prep_str("for (int c=0; c<" + cols + "; c++){"); indent++;
+  cuda_outstr += prep_str("std::cout << " + host + "[r*" + cols + "+c] << \" \";"); indent--;
+  cuda_outstr += prep_str("}"); 
+  cuda_outstr += prep_str("std::cout << \"\\n\";"); indent--;
+  cuda_outstr += prep_str("}");
 
-  // function definition
-  string definition;
-  definition += prep_str("__global__ void " + fcnname + "(" 
-    + type + "* data, int cols){"); indent++;
+  cudafile->pushMain(cuda_outstr);
+}
 
-  definition += prep_str("int row = threadIdx.x;");
-  definition += prep_str("int col = threadIdx.y;");
-  definition += "\n";
+/********************************
+ * Function: makeMap
+ * -----------------
+ * Generates code for a map across an object
+ */
+void ParseUtils::makeMap(string source, string destination, string op, string modify){
+  // define names of vars in prog
+  obj_names src_objnames = get_obj_names(source);
+  string src_dev = src_objnames.dev;
+  string src_rows = src_objnames.rows;
+  string src_cols = src_objnames.cols;
+  string src_type = symtab.getType(source);
 
-  definition += prep_str("// operate on data");
-  definition += prep_str("data[row*cols + col] " + op + "= " + alter + ";"); indent--;
-  definition += prep_str("}");
-  definition += "\n";
-  cudafile->pushFcnDef(definition);
-  
-  indent = old_indent; // restore indent level
+  obj_names dest_objnames = get_obj_names(destination);
+  string dest_dev = dest_objnames.dev;
+  string dest_rows = dest_objnames.rows;
+  string dest_cols = dest_objnames.cols;
+  string dest_type = symtab.getType(destination);
 
-  // function call (in main)
-  string call;
-  call += prep_str("// Allocate memory on the device that is of the same size as our host array");
-  call += prep_str("cudaMalloc((void**)&" + dev + ", " 
-      + rows + "*" + cols + "*sizeof(" + type + "));");
-  call += "\n";
+  string thrustop = getThrustOp(op, dest_type);
 
-  call += prep_str("// Copy host to device");
-  call += prep_str(
-      cudamemcpy_str(
-        dev, 
-        host, 
-        rows + "*" + cols + "*sizeof(" + type + ")",
-        "cudaMemcpyHostToDevice"));
-  call += "\n";
+  string cuda_outstr;
+  cuda_outstr += prep_str("/* Map Function Called */");
+  cuda_outstr += "\n";
 
-  call += prep_str("// Run the '" + fcnname + "' kernel on the device");
-  call += prep_str("// 1 tells it to have one single block");
-  call += prep_str("// dim3(row,col) tells it to have row by col threads in that block");
-  call += prep_str("// Give kernel the 'dev' array and the number of cols");
-  call += prep_str(fcnname + "<<<1, dim3(" + 
-      rows + "," + cols + ")>>>(" + dev + "," + cols + ");");
-  call += "\n";
+  // if destination is not source -- if we're not modifying data in place but
+  // instead want to leave the original unchanged -- we need to copy source
+  // into destination and then operate on that
+  if (destination != source){
+    if (dest_type != src_type){
+      // throw exception because dest_type needs to be same as src_type for
+      // copy to succeed
+      char error_msg[100+destination.length()+source.length()];
+      sprintf(error_msg, "in makeMap: destination (%s) and source (%s) are different types", 
+          destination.c_str(), source.c_str());
+      throw runtime_error(error_msg);
+    }
+
+    cuda_outstr += prep_str(dest_dev + " = " + src_dev + "; // copy destination to source");
+
+    // also need to make sure rows/cols are set
+    cuda_outstr += prep_str(dest_rows + " = " + src_rows + ";");
+    cuda_outstr += prep_str(dest_cols + " = " + src_cols + ";");
+    cuda_outstr += "\n";
+  }
+
+  // if 'modify' is not in the symtab, then we need to create a device_vector
+  // full of the given value
+  string mapmodify = get_obj_names(modify).dev;
+  if (!symtab.isInSymtab(modify)){
+    mapmodify = numbered_id("mapmodify");
+    cuda_outstr += prep_str("// Fill mapmodify with " + modify + "'s");
+
+    cuda_outstr += prep_str("device_vector<" + dest_type + "> " + 
+        mapmodify + "(" + dest_dev + ".size());");
+
+    cuda_outstr += prep_str("fill(" + mapmodify + ".begin(), " + 
+        mapmodify + ".end(), " + modify + ");");
+
+    cuda_outstr += "\n";
+  }
+
+  // call actual map function (using thrust::transform)
+  cuda_outstr += prep_str("// Call map function");
+  cuda_outstr += prep_str("thrust::transform(" +
+      src_dev + ".begin(), " + src_dev + ".end(), " + // source is
+      mapmodify + ".begin(), " + // combined with mapmodify and
+      dest_dev + ".begin(), " + // written to destination.
+      thrustop + ");"); // source and mapmodify are compsed with thrustop
+  cuda_outstr += "\n";
+
+  cudafile->pushMain(cuda_outstr);
+
+}
+
+/********************************
+ * Function: makeReduce
+ * --------------------
+ * Generates code for a reduce of an object
+ */
+void ParseUtils::makeReduce(string source, string destination, string op){
+  // define names of vars in prog
+  obj_names src_objnames = get_obj_names(source);
+  string src_dev = src_objnames.dev;
+  string src_type = symtab.getType(source);
+
+  obj_names dest_objnames = get_obj_names(destination);
+  string dest_host = dest_objnames.host;
+  string dest_type = symtab.getType(destination);
+
+  string thrustop = getThrustOp(op, dest_type);
+
+  string cuda_include = add_include("<thrust/reduce.h>");
+  cudafile->pushInclude(cuda_include);
+
+  string cuda_outstr;
+  cuda_outstr += prep_str("/* Reduce Function Called */");
+  cuda_outstr += "\n";
+
+  // if destination is not source -- if we're not modifying data in place but
+  // instead want to leave the original unchanged -- we need to copy source
+  // into destination and then operate on that
+  if (dest_type != src_type){
+    // throw exception because dest_type needs to be same as src_type for
+    // copy to succeed
+    char error_msg[100+destination.length()+source.length()];
+    sprintf(error_msg, "in makeMap: destination (%s) and source (%s) are different types", 
+        destination.c_str(), source.c_str());
+    throw runtime_error(error_msg);
+  }
+
+  // call actual reduce function
+  cuda_outstr += prep_str("// Call reduce function");
+  cuda_outstr += prep_str(dest_host + " = thrust::reduce(" +
+      src_dev + ".begin(), " + src_dev + ".end(), " + // source is
+      "(int) 0, " + // initial value -- almost always want this to be zero
+      thrustop + ");"); // source and mapmodify are compsed with thrustop
+  cuda_outstr += "\n";
+
+  cudafile->pushMain(cuda_outstr);
+}
 
 
-  call += prep_str("// Once the kernel has run, copy back dev to host");
-  call += prep_str(
-      cudamemcpy_str(
-        host, 
-        dev, 
-        rows + "*" + cols + "*sizeof(" + type + ")",
-        "cudaMemcpyDeviceToHost"));
-  call += "\n";
-    
-  cudafile->pushMain(call);
+/********************************
+ * Function: getThrustOp
+ * ---------------------
+ * Given one of the following operations
+ *    "+" "-" "*" "/" "%"
+ * we need to turn it into a thrust-ready function, for example:
+ *    "+" becomes "plus<type>()"
+ *
+ * Inputs:
+ *    op: operation as described above
+ *    type: type that operation will be acting on
+ */
+string ParseUtils::getThrustOp(string op, string type){
+  string thrustop;
+  if (op == "+") thrustop = "plus";
+  else if (op == "-") thrustop = "minus";
+  else if (op == "*") thrustop = "multiplies";
+  else if (op == "/") thrustop = "divides";
+  else if (op == "%") thrustop = "modulus";
+  thrustop += "<" + type + ">()";
+  return thrustop;
 }
 
 /********************************

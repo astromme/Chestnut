@@ -68,7 +68,6 @@ bool SymbolTable::isInSymtab(string name){
  */
 string SymbolTable::getType(string name){
   for (unsigned int i=0; i<symtab.size(); i++){
-    printf("size: %d, name: %s\n", symtab.size(), symtab[i].name.c_str());
     if (name == symtab[i].name)
       return symtab[i].type;
   }
