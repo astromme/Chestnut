@@ -15,7 +15,6 @@ ParseUtils::ParseUtils(string outfname) {
   string headerfname = outfname + ".h";
 
   // initialize files so that it's blank (with ios::trunc)
-  //cudafile.open(cudafname.c_str(), ios::trunc);
   cudafile = new FileUtils(cudafname);
   cppfile = new FileUtils(cppfname);
   headerfile = new FileUtils(headerfname);
@@ -32,9 +31,6 @@ ParseUtils::~ParseUtils(){
   delete cudafile;
   delete cppfile;
   delete headerfile;
-
-  // close files
-  //cudafile.close(); 
 }
 
 /********************************
@@ -188,7 +184,7 @@ string ParseUtils::prep_str(string str) {
 /********************************
  * Function: numbered_id
  * ---------------------
- * given a function name, append the value of the current function counter and
+ * given a id name, append the value of the current function counter and
  * increment the counter
  */
 string ParseUtils::numbered_id(string fcnname){
@@ -224,65 +220,6 @@ obj_names ParseUtils::get_obj_names(string obj){
   on.outstream = obj + "_outstream";
   on.garbage = obj + "_garbage";
   return on;
-}
-
-// TODO DEFUNCT!
-/********************************
- * Function: insertVerbatim
- * ------------------------
- * The user can insert code verbatim into their program. For example, to
- * initialize an array the user might write the following code in our
- * language:
- *    STARTCPP
- *      int* data = new data[100];
- *      for (int i=0; i<100; i++){
- *        data[i] = i;
- *      }
- *    ENDCPP
- */
-void ParseUtils::insertVerbatim(string object, string code, string type){
-  // get the length of each special symbol
-  string startsym = "STARTCPP"; int startlen = startsym.length();
-  string endsym = "ENDCPP"; int endlen = endsym.length();
-
-  // code length is everything except start and end symbol
-  int codelen = code.length() - (startlen + endlen);
-
-  // find instance of start symbol
-  int startpos = code.find(startsym);
-
-  // isolate only the relevant code
-  code = code.substr(startpos+startlen, codelen);
-
-  // now replace all instances of the object with object_host defined by
-  // get_obj_names()
-  obj_names objnames = get_obj_names(object);
-  string host = objnames.host;
-  string dev = objnames.dev;
-  string rows = objnames.rows;
-  string cols = objnames.cols;
-  string datainfo = objnames.datainfo;
-
-  int pos=0;
-	while((pos=code.find(object, pos))!=string::npos)
-	{
-		code.erase(pos, object.length());
-		code.insert(pos, host);
-		pos+=host.length();
-	}
-
-  string code_outstr;
-  code_outstr += prep_str(code);
-  code_outstr += "\n";
-
-  if (symtab.addEntry(object, VARIABLE, type)){
-    // we assume that the user provided the host declaration in the given code
-    code_outstr += prep_str(type + "* " + dev + "; // Memory on device (gpu) side");
-    code_outstr += prep_str("int " + rows + ", " + cols + ";");
-    code_outstr += prep_str("DataInfo<" + type + ">* " + datainfo + ";");
-    code_outstr += "\n";
-  }
-  cudafile->pushMain(code_outstr);
 }
 
 /********************************
@@ -540,25 +477,9 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   cuda_outstr += prep_str(host + " = " + datainfo + "->data;");
   cuda_outstr += prep_str(rows + " = " + datainfo + "->rows;");
   cuda_outstr += prep_str(cols + " = " + datainfo + "->cols;");
-  //outstr += prep_str(host + " = " + fcnname + "(\"" + fname + "\");");
   cuda_outstr += prep_str(dev + " = " + host + "; // copy host data to GPU");
   cuda_outstr += "\n";
   cudafile->pushMain(cuda_outstr);
-
-/*
-  outstr += prep_str("// Allocate memory on the host that the gpu can access quickly");
-  outstr += prep_str("cudaMallocHost((void**)&" + host + ", " 
-      + rows + "*" + cols + "*sizeof(" + type + "));");
-  outstr += "\n";
-*/
-
-/*
-  outstr += prep_str(type + "** " + object + " = new " + type + "*[" + rows + "];");
-  outstr += prep_str("for (int r=0; r< " + rows + "; r++){"); indent++;
-  outstr += prep_str(object + "[r] = new " + type + "[" + cols + "];"); indent--;
-  outstr += prep_str("}");
-  outstr += "\n";
-*/
 }
 
 /********************************
@@ -823,30 +744,3 @@ string ParseUtils::getThrustOp(string op, string type){
   thrustop += "<" + type + ">()";
   return thrustop;
 }
-
-/********************************
- * Function: cudamemcpy_str
- * ------------------------
- * Since the cudaMemcpy calls are really gross, we run the four parameters
- * through this string processing function to make the process a bit cleaner.
- *
- * Inputs:
- *    to: variable to copy memory to
- *    from: variable to copy memory from
- *    size: size of data being copied
- *    directive: a CUDA directive 
- *        (i.e. "cudaMemcpyHostToDevice")
- *
- * Returns:
- *    fully realized cudaMemcpy command
- */
-string ParseUtils::cudamemcpy_str(
-    string to, string from, string size, string directive){
-  return "cudaMemcpy(" 
-    + to + ", " 
-    + from + ", " 
-    + size + ", " 
-    + directive + ");";
-}
-
-
