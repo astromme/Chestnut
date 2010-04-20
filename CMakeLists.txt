@@ -5,6 +5,7 @@ set( CUDA_NVCC_FLAGS "--compiler-bindir=/usr/bin/gcc-4.3")
 
 add_subdirectory(parser)
 add_subdirectory(CUDA)
+add_subdirectory(sequential)
 add_subdirectory(thrust_examples)
 add_subdirectory(gui)
 
