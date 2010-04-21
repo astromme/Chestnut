@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/regex.hpp>
 #include "ParseUtils.h"
 
 using namespace std;
@@ -305,30 +306,59 @@ void ParseUtils::makeForeach(string object, string type, string datarows, string
   string dev = objnames.dev;
   string rows = objnames.rows;
   string cols = objnames.cols;
-
   expr = processForeachExpr(expr, objnames);
+
+  /* We want to check if the keywords "row" or "col" are in the given
+   * expression. If they are, we need to use the expanded for-loop syntax to
+   * populate the data on the CPU and then copy over to GPU. This is slow.
+   *
+   * If those keywords are not in the expression, then we know all of the
+   * variable values without the need of a for-loop. We can thus optimize this
+   * by using thrust::fill.
+   */
+  
+  // right hand side of expression
+  string expr_rhs = expr.substr(expr.find("=")+1,expr.length()); 
+  boost::regex row_or_col("\\<row\\>|\\<col\\>");
+
+  bool optimize_fill = true;
+	if (boost::regex_search (expr_rhs, row_or_col)){
+    optimize_fill = false;
+  }
   
   string cuda_outstr;
   if (symtab.addEntry(object, VARIABLE_VECTOR, type)){
-    cuda_outstr += prep_str("host_vector<" + type + "> " + host + "; // Memory on host (cpu) side");
-    cuda_outstr += prep_str("device_vector<" + type + "> " + dev + "; // Memory on device (gpu) side");
-    cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
+    cuda_outstr += prep_str("int " + rows + " = " + datarows + ";");
+    cuda_outstr += prep_str("int " + cols + " = " + datarows + ";"); 
+
+    // if we decided to optimize, we don't want to waste time allocating space
+    // on the host_vector
+    string host_declaration = "host_vector<" + type + "> " + host;
+    if (!optimize_fill){
+      host_declaration += "(" + rows + "*" + cols + ")";
+    }
+    host_declaration += "; // Memsory on host (cpu) side";
+    cuda_outstr += prep_str(host_declaration);
+
+    // need to allocate space on device regardless of optimization
+    cuda_outstr += prep_str("device_vector<" + type + "> " + dev + 
+        "(" + rows + "*" + cols + "); // Memory on device (gpu) side");
     cuda_outstr += "\n";
   } // TODO: else we need to delete some memory? i.e. host has already been allocated
 
-  cuda_outstr += prep_str("// Set rows, cols");
-  cuda_outstr += prep_str(rows + " = " + datarows + ";");
-  cuda_outstr += prep_str(cols + " = " + datacols + ";");
-  cuda_outstr += "\n";
-
-  cuda_outstr += prep_str(host + ".clear(); // make sure vector is empty");
   cuda_outstr += prep_str("// populate data");
-  cuda_outstr += prep_str("for (int row=0; row<" + rows + "; row++){"); indent++;
-  cuda_outstr += prep_str("for (int col=0; col<" + cols + "; col++){"); indent++;
-  cuda_outstr += prep_str(expr); indent--;
-  cuda_outstr += prep_str("}"); indent--;
-  cuda_outstr += prep_str("}");
-  cuda_outstr += prep_str(dev + " = " + host + "; // copy host data to GPU");
+  // if we can optimize using fill, do so
+  if (optimize_fill){
+    cuda_outstr += prep_str("thrust::fill(" + dev + ".begin(), " +
+        dev + ".end(), " + expr_rhs + ");");
+  } else {
+    cuda_outstr += prep_str("for (int row=0; row<" + rows + "; row++){"); indent++;
+    cuda_outstr += prep_str("for (int col=0; col<" + cols + "; col++){"); indent++;
+    cuda_outstr += prep_str(expr + ";"); indent--;
+    cuda_outstr += prep_str("}"); indent--;
+    cuda_outstr += prep_str("}");
+    cuda_outstr += prep_str(dev + " = " + host + "; // copy host data to GPU");
+  }
   cuda_outstr += "\n";
   cudafile->pushMain(cuda_outstr);
 }
@@ -363,13 +393,13 @@ string ParseUtils::processForeachExpr(string expr, const obj_names &objnames){
   replace_all(expr, "max" + decimalcast + "rows", decimalcast + objnames.rows);
 
   replace_all(expr, "col", decimalcast + "col");
-  replace_all(expr, "maxcols", decimalcast + objnames.cols);
+  replace_all(expr, "max" + decimalcast + "cols", decimalcast + objnames.cols);
 
-  replace_all(expr, "value", objnames.host); // + "[row*" + objnames.cols + "+col]");
-  replace_all(expr, "=", ".push_back(");
+  replace_all(expr, "value", objnames.host + "[row*" + objnames.cols + "+col]");
+  replace_all(expr, "=", " = ");
+  //replace_all(expr, "=", ".push_back(");
   // TODO: implement rand
 
-  expr += ");";
   return expr;
 }
 
@@ -483,8 +513,8 @@ void ParseUtils::readDatafile(string fname, string object, string type){
 }
 
 /********************************
- * Function: writeDatafile
- * -----------------------
+ * Function: makewriteDatafile
+ * ---------------------------
  * Associated with the syntax in our language (TODO: name our language)
  *      write(<data>, "<outfile>");
  *

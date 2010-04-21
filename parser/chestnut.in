@@ -1,13 +1,19 @@
     //int dataread read ("testdata");
-float datafor 2 2 foreach ( value = 1/maxrows );
-float datafor2 2 2 foreach ( value = 2 );
+int data 5000 5000 foreach ( value = 1+2 );
+int twos 5000 5000 foreach ( value = 2 );
     //float datamap vector;
-float dataRes scalar;
+int dataRes scalar;
 
-dataRes = reduce(+,datafor); // TODO: check to make sure dataRes is a scalar
-datafor = map(+,datafor2,datafor);
-    //print2D datamap;
-print datafor;
-print2D datafor;
+data = map(+, 1, data);
+data = map(+, twos, data);
+data = map(+, 1, data);
+
+dataRes = reduce(+,data); // TODO: check to make sure dataRes is a scalar
+    //datafor = map(+,datafor2,datafor);
+    
+
 print dataRes;
-write(datafor,"testoutput");
+    //write(datafor,"testoutput");
+    //print2D datamap;
+    //print datafor;
+    //print2D datafor;
