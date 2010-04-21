@@ -45,7 +45,7 @@ class ParseUtils {
     void makeMap(string source, string destination, string op, string modify);
     void makeReduce(string source, string destination, string op);
 
-    void readDatafile(string fname, string object, string type);
+    void makeReadDatafile(string fname, string object, string type);
     void makeWriteDatafile(string fname, string object);
 
     void makePrintData(string object);

@@ -21,6 +21,9 @@ template <typename TYPE>
 void writeDatafile(string fname, thrust::host_vector<TYPE> data, int rows, int cols);
 
 template <typename TYPE>
+DataInfo<TYPE>* readDatafile(char* fname);
+
+template <typename TYPE>
 TYPE* copyData(TYPE* source, int rows, int cols);
 
 #include "ParseLibs.inl"
