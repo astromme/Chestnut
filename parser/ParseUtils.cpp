@@ -20,7 +20,7 @@ ParseUtils::ParseUtils(string outfname) {
   cppfile = new FileUtils(cppfname);
   headerfile = new FileUtils(headerfname);
 
-  parselibs_included = cudalang_included = false;
+  parselibs_included = cudalang_included = false; // TODO Don't need cudalang?
 
   indent = 0; // initially no indent offset 
   fcncount = 0; // no functions yet
@@ -48,8 +48,7 @@ void ParseUtils::writeAllFiles(){
 /********************************
  * Function: initializeMain
  * ------------------------
- * Consolidates the namespace and beginning of main(). Returns a string which
- * gets put into a vector so we can add more later.
+ * Consolidates the namespace and beginning of main(). 
  */
 void ParseUtils::initializeMain(){
   string startmain;
@@ -64,8 +63,7 @@ void ParseUtils::initializeMain(){
 /********************************
  * Function: finalizeMain
  * ----------------------
- * We're done with main(), so return a string with the `return 0` standard
- * stuff and a close brace.
+ * We're done with main(), so push "return 0" standard and a close brace.
  */
 void ParseUtils::finalizeMain(){
   string endmain;
@@ -79,7 +77,7 @@ void ParseUtils::finalizeMain(){
  * Function: initializeIncludes
  * ----------------------------
  * Consolidates some baseline #includes. These are stored as strings and
-j* returned to be stored in a vector. The vector is eventually written out to
+ * returned to be stored in a vector. The vector is eventually written out to
  * the file, but in case we want to add more #includes later on, we can.
  */
 void ParseUtils::initializeIncludes(){
@@ -100,26 +98,26 @@ void ParseUtils::initializeIncludes(){
   cuda_includes += add_include("<thrust/device_vector.h>");
   cudafile->pushInclude(cuda_includes);
 
-  // cpp includes
-  string cpp_includes;
+  // cpp includes  TODO remove
+  /*string cpp_includes;
   cpp_includes += add_include("<fstream>");
   cpp_includes += add_include("<iostream>");
   cpp_includes += add_include("<string>");
   cpp_includes += add_include("\"" + headerfile->fname() + "\"");
-  cppfile->pushInclude(cpp_includes);
+  cppfile->pushInclude(cpp_includes);*/
 
   // also throw in "using namespace std" into cpp function declarations, which
   // will always come before the definition but after all the includes
-  string namespace_std = prep_str("using namespace std;");
-  cppfile->pushFcnDec(namespace_std);
+  /*string namespace_std = prep_str("using namespace std;");
+  cppfile->pushFcnDec(namespace_std);*/
 }
 
-
+// TODO remove
 /********************************
  * Function: initializeHeader
  * --------------------------
  * Initializes header file with the customary #define syntax
- */
+ *
 void ParseUtils::initializeHeader(){
   string headername = headerfile->fname();
 
@@ -142,8 +140,9 @@ void ParseUtils::initializeHeader(){
   headerfile->pushInclude(includes);
 
   indent = old_indent;
-}
+}*/
 
+/* TODO remove
 void ParseUtils::finalizeHeader(){
   int old_indent = indent;
   indent = 0;
@@ -156,7 +155,8 @@ void ParseUtils::finalizeHeader(){
   headerfile->pushFcnDef(endheader);
 
   indent = old_indent;
-}
+}*/
+
 /********************************
  * Function: add_include
  * ---------------------
@@ -329,7 +329,7 @@ void ParseUtils::makeForeach(string object, string type, string datarows, string
   string cuda_outstr;
   if (symtab.addEntry(object, VARIABLE_VECTOR, type)){
     cuda_outstr += prep_str("int " + rows + " = " + datarows + ";");
-    cuda_outstr += prep_str("int " + cols + " = " + datarows + ";"); 
+    cuda_outstr += prep_str("int " + cols + " = " + datacols + ";"); 
 
     // if we decided to optimize, we don't want to waste time allocating space
     // on the host_vector
@@ -420,7 +420,7 @@ string ParseUtils::processForeachExpr(string expr, const obj_names &objnames){
  *    C++ code to implement this data read
  */
 // TODO: throw error if file can't be opened
-void ParseUtils::readDatafile(string fname, string object, string type){
+void ParseUtils::makeReadDatafile(string fname, string object, string type){
   // define names of vars in prog
   obj_names objnames = get_obj_names(object);
   string host = objnames.host;
@@ -431,10 +431,9 @@ void ParseUtils::readDatafile(string fname, string object, string type){
   string instream = objnames.instream;
   string garbage = objnames.garbage;
 
-  string fcnname = numbered_id("readDatafile");
   int old_indent = indent;
   indent = 0;
-
+/* TODO remove
   if (!cudalang_included){
     // make sure cu file has cudalang.h included FIXME: won't always be
     // cudalang
@@ -442,53 +441,15 @@ void ParseUtils::readDatafile(string fname, string object, string type){
     cudafile->pushInclude(cudalang);
     cudalang_included = true;
   }
+*/
 
   if (!parselibs_included){
     // make sure both header file and cu file have included ParseLibs
     string parselibs = add_include("\"ParseLibs.h\"");
-    headerfile->pushInclude(parselibs);
+    // headerfile->pushInclude(parselibs); // TODO remove
     cudafile->pushInclude(parselibs);
     parselibs_included = true;
   }
-
-  // write out function declaration to header file
-  string header_outstr;
-  header_outstr += prep_str("DataInfo<" + type + ">* " + fcnname + "(char* fname);");
-  headerfile->pushFcnDec(header_outstr);
-
-  // write out function definition in cpp file
-  string cpp_outstr;
-  cpp_outstr += prep_str("DataInfo<" + type + ">* " + fcnname + "(char* fname){"); indent++;
-  cpp_outstr += prep_str("ifstream instream;");
-  cpp_outstr += prep_str("instream.open(fname);");
-  cpp_outstr += "\n";
-
-  cpp_outstr += prep_str("// read in rows and column data");
-  cpp_outstr += prep_str("string garbage;");
-  cpp_outstr += prep_str("int rows, cols;");
-  cpp_outstr += prep_str("instream >> garbage; instream >> rows;");
-  cpp_outstr += prep_str("instream >> garbage; instream >> cols;");
-  cpp_outstr += "\n";
-
-  cpp_outstr += prep_str("// read in data from file");
-  cpp_outstr += prep_str("thrust::host_vector<" + type + "> data(rows*cols);");
-  cpp_outstr += prep_str("for (int r=0; r<rows; r++){"); indent++;
-  cpp_outstr += prep_str("for (int c=0; c<cols; c++){"); indent++;
-  cpp_outstr += prep_str("instream >> data[r*cols+c];"); indent--;
-  cpp_outstr += prep_str("}"); indent--;
-  cpp_outstr += prep_str("}");
-  cpp_outstr += prep_str("instream.close();");
-  cpp_outstr += "\n";
-
-  cpp_outstr += prep_str("// package data information in DataInfo object");
-  cpp_outstr += prep_str("DataInfo<" + type + ">* datainfo = new DataInfo<" + type + ">();");
-  cpp_outstr += prep_str("datainfo->rows = rows;");
-  cpp_outstr += prep_str("datainfo->cols = cols;");
-  cpp_outstr += prep_str("datainfo->data = data;");
-  cpp_outstr += prep_str("return datainfo;"); indent--;
-  cpp_outstr += prep_str("}");
-  cpp_outstr += prep_str("\n");
-  cppfile->pushFcnDef(cpp_outstr);
 
   indent = old_indent; // restore indent
   
@@ -501,9 +462,8 @@ void ParseUtils::readDatafile(string fname, string object, string type){
     cuda_outstr += "\n";
   } // TODO: else we need to delete some memory? i.e. host has already been allocated
 
-  cuda_outstr += prep_str("// Read in data");
-  cuda_outstr += prep_str(datainfo + " = " 
-      + fcnname + "(\"" + fname + "\");");
+  cuda_outstr += prep_str("// Read in data (using ParseLibs)");
+  cuda_outstr += prep_str(datainfo + " = readDatafile<" + type +">(\"" + fname + "\");");
   cuda_outstr += prep_str(host + " = " + datainfo + "->data;");
   cuda_outstr += prep_str(rows + " = " + datainfo + "->rows;");
   cuda_outstr += prep_str(cols + " = " + datainfo + "->cols;");
@@ -557,7 +517,7 @@ void ParseUtils::makeWriteDatafile(string fname, string object){
   string cuda_outstr;
   cuda_outstr += prep_str("// copy data from gpu to cpu");
   cuda_outstr += prep_str(host + " = " + dev + ";");
-  cuda_outstr += prep_str("// write data out to disk");
+  cuda_outstr += prep_str("// write data out to disk (using ParseLibs)");
   cuda_outstr += prep_str("writeDatafile(\"" + fname + "\", " +
       host + ", " + rows + ", " + cols + ");");
   cuda_outstr += "\n";
@@ -661,7 +621,6 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
 
   string cuda_outstr;
   cuda_outstr += prep_str("/* Begin Map Function */");
-  cuda_outstr += "\n";
 
   // if destination is not source -- if we're not modifying data in place but
   // instead want to leave the original unchanged -- we need to copy source
@@ -701,13 +660,11 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
   }
 
   // call actual map function (using thrust::transform)
-  cuda_outstr += prep_str("// Call map function");
   cuda_outstr += prep_str("thrust::transform(" +
       src_dev + ".begin(), " + src_dev + ".end(), " + // source is
       mapmodify + ".begin(), " + // combined with mapmodify and
       dest_dev + ".begin(), " + // written to destination.
       thrustop + ");"); // source and mapmodify are compsed with thrustop
-  cuda_outstr += "\n";
   cuda_outstr += prep_str("/* End Map Function */");
   cuda_outstr += "\n";
 
@@ -737,7 +694,6 @@ void ParseUtils::makeReduce(string source, string destination, string op){
 
   string cuda_outstr;
   cuda_outstr += prep_str("/* Begin Reduce Function */");
-  cuda_outstr += "\n";
 
   // throw exception because dest_type needs to be same as src_type for
   // copy to succeed
@@ -749,12 +705,10 @@ void ParseUtils::makeReduce(string source, string destination, string op){
   }
 
   // call actual reduce function
-  cuda_outstr += prep_str("// Call reduce function");
   cuda_outstr += prep_str(dest_host + " = thrust::reduce(" +
       src_dev + ".begin(), " + src_dev + ".end(), " + // source is
       "(" + src_type + ") 0, " + // initial value -- almost always want this to be zero
       thrustop + ");"); // source and mapmodify are compsed with thrustop
-  cuda_outstr += "\n";
   cuda_outstr += prep_str("/* End Reduce Function */");
   cuda_outstr += "\n";
 

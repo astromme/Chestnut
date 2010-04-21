@@ -1,4 +1,4 @@
-    //int dataread read ("testdata");
+int dataread read ("testdata");
 int data 5000 5000 foreach ( value = 1+2 );
 int twos 5000 5000 foreach ( value = 2 );
     //float datamap vector;
@@ -11,7 +11,7 @@ data = map(+, 1, data);
 dataRes = reduce(+,data); // TODO: check to make sure dataRes is a scalar
     //datafor = map(+,datafor2,datafor);
     
-
+    //print2D dataread;
 print dataRes;
     //write(datafor,"testoutput");
     //print2D datamap;
