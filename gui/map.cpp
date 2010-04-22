@@ -29,7 +29,7 @@ Map::Map(QGraphicsObject* parent)
   QPointF i2Pos = i1Pos + QPointF(2+input1->boundingRect().width(), 0);
   input2->setPos(i2Pos);
   
-  QPointF o1Pos = outputsRect().topLeft();
+  QPointF o1Pos = outputsRect().topLeft() + QPointF(2, 2);
   output1->setPos(o1Pos);
   
   Operation *op = new StandardOperation(StandardOperation::Multiply, this);
