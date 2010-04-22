@@ -57,6 +57,7 @@ void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
     painter->drawEllipse(operationPos(), circleradius, circleradius);
   painter->restore();
   // Draw Outputs
+  painter->drawRoundedRect(outputsRect(), 5, 5);
 }
 
 QRectF Function::inputsRect() const
