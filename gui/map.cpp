@@ -23,7 +23,6 @@ Map::Map(QGraphicsObject* parent)
   Source *output1 = new Source(Data::DataBlock, this);
   addSource(output1);
   
-  
   Operation *op = new StandardOperation(StandardOperation::Multiply, this);
   setHasOperation(true);
   setOperation(op);
