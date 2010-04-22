@@ -44,6 +44,7 @@ class ParseUtils {
 
     void makeMap(string source, string destination, string op, string modify);
     void makeReduce(string source, string destination, string op);
+    void makeSort(string source, string destination);
 
     void makeReadDatafile(string fname, string object, string type);
     void makeWriteDatafile(string fname, string object);
@@ -59,10 +60,12 @@ class ParseUtils {
 
     bool parselibs_included;
     bool cudalang_included;
+    bool rand_included; // #includes and srand(time(NULL)) conditions satisfied
 
     string processForeachExpr(string expr, const obj_names &objnames);
-    string numbered_id(string fcnname);
+    string numberedId(string fcnname);
     string getThrustOp(string op, string type);
+    string copyDevData(string source, string destination);
 
     SymbolTable symtab; // symbol table
 

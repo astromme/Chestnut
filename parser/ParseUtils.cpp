@@ -20,7 +20,9 @@ ParseUtils::ParseUtils(string outfname) {
   cppfile = new FileUtils(cppfname);
   headerfile = new FileUtils(headerfname);
 
-  parselibs_included = cudalang_included = false; // TODO Don't need cudalang?
+  parselibs_included = false;
+  // cudalang_included = false; // TODO Don't need cudalang?
+  rand_included = false;
 
   indent = 0; // initially no indent offset 
   fcncount = 0; // no functions yet
@@ -183,12 +185,12 @@ string ParseUtils::prep_str(string str) {
 }
 
 /********************************
- * Function: numbered_id
- * ---------------------
+ * Function: numberedId
+ * --------------------
  * given a id name, append the value of the current function counter and
  * increment the counter
  */
-string ParseUtils::numbered_id(string fcnname){
+string ParseUtils::numberedId(string fcnname){
   stringstream ss; ss << fcncount;
   string new_fcnname = fcnname + ss.str();
   fcncount++;
@@ -325,6 +327,26 @@ void ParseUtils::makeForeach(string object, string type, string datarows, string
 	if (boost::regex_search (expr_rhs, row_or_col)){
     optimize_fill = false;
   }
+
+  // check if rand exists, and, if so, whether we have seeded the random
+  // number generator
+  boost::regex rand("\\<rand\\>");
+  if (boost::regex_search (expr_rhs, rand)){
+    optimize_fill = false;
+
+    if (!rand_included){
+      string randincl;
+      randincl += add_include("<cstdlib>");
+      randincl += add_include("<ctime>");
+      cudafile->pushInclude(randincl);
+
+      string randstr = prep_str("srand( time(NULL) ); // seed random number generator");
+      randstr += "\n";
+      cudafile->pushMain(randstr);
+
+      rand_included = true;
+    }
+  }
   
   string cuda_outstr;
   if (symtab.addEntry(object, VARIABLE_VECTOR, type)){
@@ -337,7 +359,7 @@ void ParseUtils::makeForeach(string object, string type, string datarows, string
     if (!optimize_fill){
       host_declaration += "(" + rows + "*" + cols + ")";
     }
-    host_declaration += "; // Memsory on host (cpu) side";
+    host_declaration += "; // Memory on host (cpu) side";
     cuda_outstr += prep_str(host_declaration);
 
     // need to allocate space on device regardless of optimization
@@ -394,6 +416,8 @@ string ParseUtils::processForeachExpr(string expr, const obj_names &objnames){
 
   replace_all(expr, "col", decimalcast + "col");
   replace_all(expr, "max" + decimalcast + "cols", decimalcast + objnames.cols);
+
+  replace_all(expr, "rand", decimalcast + "rand()");
 
   replace_all(expr, "value", objnames.host + "[row*" + objnames.cols + "+col]");
   replace_all(expr, "=", " = ");
@@ -500,7 +524,7 @@ void ParseUtils::makeWriteDatafile(string fname, string object){
   string outstream = objnames.outstream;
   string type = symtab.getType(object);
 
-  string fcnname = numbered_id("writeDatafile");
+  string fcnname = numberedId("writeDatafile");
   int old_indent = indent;
   indent = 0;
 
@@ -555,6 +579,8 @@ void ParseUtils::makePrintData(string object){
       cuda_outstr += prep_str("std::cout << " + host + " << std::endl;");
       break;
   }
+  cuda_outstr += prep_str("std::cout << \"\\n\";");
+
   cuda_outstr += "\n";
   cudafile->pushMain(cuda_outstr);
 }
@@ -594,6 +620,7 @@ void ParseUtils::makePrintData2D(string object){
   cuda_outstr += prep_str("}"); 
   cuda_outstr += prep_str("std::cout << \"\\n\";"); indent--;
   cuda_outstr += prep_str("}");
+  cuda_outstr += prep_str("std::cout << \"\\n\";");
 
   cudafile->pushMain(cuda_outstr);
 }
@@ -626,6 +653,9 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
   // instead want to leave the original unchanged -- we need to copy source
   // into destination and then operate on that
   if (destination != source){
+    cuda_outstr += copyDevData(source, destination);
+
+    /*
     if (dest_type != src_type){
       // throw exception because dest_type needs to be same as src_type for
       // copy to succeed
@@ -640,14 +670,14 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
     // also need to make sure rows/cols are set
     cuda_outstr += prep_str(dest_rows + " = " + src_rows + ";");
     cuda_outstr += prep_str(dest_cols + " = " + src_cols + ";");
-    cuda_outstr += "\n";
+    cuda_outstr += "\n";*/
   }
 
   // if 'modify' is not in the symtab, then we need to create a device_vector
   // full of the given value
   string mapmodify = get_obj_names(modify).dev;
   if (!symtab.isInSymtab(modify)){
-    mapmodify = numbered_id("mapmodify");
+    mapmodify = numberedId("mapmodify");
     cuda_outstr += prep_str("// Fill mapmodify with " + modify + "'s");
 
     cuda_outstr += prep_str("device_vector<" + dest_type + "> " + 
@@ -715,6 +745,88 @@ void ParseUtils::makeReduce(string source, string destination, string op){
   cudafile->pushMain(cuda_outstr);
 }
 
+/********************************
+ * Function: makeSort
+ * ------------------
+ * Generates code for sorting data
+ */
+void ParseUtils::makeSort(string source, string destination){
+  obj_names src_objnames = get_obj_names(source);
+  string src_dev = src_objnames.dev;
+  string src_type = symtab.getType(source);
+
+  obj_names dest_objnames = get_obj_names(destination);
+  string dest_dev = dest_objnames.dev;
+  string dest_type = symtab.getType(destination);
+  
+  string cuda_include = add_include("<thrust/sort.h>");
+  cudafile->pushInclude(cuda_include);
+
+  string cuda_outstr;
+  cuda_outstr += prep_str("/* Begin Sort Function */");
+
+  if (source != destination){
+    cuda_outstr += copyDevData(source, destination);
+  }
+
+  cuda_outstr += prep_str("thrust::sort(" +
+      dest_dev + ".begin(), " +
+      dest_dev + ".end()); // sort data");
+
+  cuda_outstr += prep_str("/* End Sort Function */");
+  cuda_outstr += "\n";
+
+  cudafile->pushMain(cuda_outstr);
+}
+
+/********************************
+ * Function: copyDevData
+ * ---------------------
+ * Returns code that copies data from one thrust::device_vector to another. We
+ * might want to do this in the case of a map() where the user does not want
+ * to matify the source vector. Code would look like
+ *    data_mapped = map(+, 1, data_source)
+ *
+ * Inputs:
+ *    source: data that will be copied
+ *    destination: destination of copied data
+ *
+ * Returns:
+ *    string containing the code necessary to copy destination to source
+ */
+string ParseUtils::copyDevData(string source, string destination){
+  // define names of vars in prog
+  obj_names src_objnames = get_obj_names(source);
+  string src_dev = src_objnames.dev;
+  string src_rows = src_objnames.rows;
+  string src_cols = src_objnames.cols;
+  string src_type = symtab.getType(source);
+
+  obj_names dest_objnames = get_obj_names(destination);
+  string dest_dev = dest_objnames.dev;
+  string dest_rows = dest_objnames.rows;
+  string dest_cols = dest_objnames.cols;
+  string dest_type = symtab.getType(destination);
+
+  string copy_outstr;
+  if (dest_type != src_type){
+    // throw exception because dest_type needs to be same as src_type for
+    // copy to succeed
+    char error_msg[100+destination.length()+source.length()];
+    sprintf(error_msg, "in makeMap: destination (%s) and source (%s) are different types", 
+        destination.c_str(), source.c_str());
+    throw runtime_error(error_msg);
+  }
+
+  copy_outstr += prep_str(dest_dev + " = " + src_dev + "; // copy destination to source");
+
+  // also need to make sure rows/cols are set
+  copy_outstr += prep_str(dest_rows + " = " + src_rows + ";");
+  copy_outstr += prep_str(dest_cols + " = " + src_cols + ";");
+  copy_outstr += "\n";
+
+  return copy_outstr;
+}
 
 /********************************
  * Function: getThrustOp
