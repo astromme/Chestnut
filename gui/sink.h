@@ -9,6 +9,7 @@ class Object;
 class Connection;
 
 class Sink : public QGraphicsObject {
+  Q_OBJECT
   public:
     enum { Type = UserType + 5 };
     int type() const;
@@ -22,9 +23,13 @@ class Sink : public QGraphicsObject {
     void setConnection(Connection *connection);
     Connection* connection() const;
     QPointF connectedCenter();
-    
+
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
+
+  private slots:
+    void moved();
+
   private:
     Data::Types m_allowedTypes;
     Connection *m_connection;

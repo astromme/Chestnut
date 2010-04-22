@@ -38,6 +38,7 @@ Connection::~Connection()
 void Connection::updateConnection()
 {
   prepareGeometryChange();
+  update();
 }
 
 bool Connection::isPartial() const
@@ -77,6 +78,7 @@ Sink* Connection::sink() const
 
 QPainterPath Connection::path() const
 {
+  //qDebug() << "Path of Connection";
   QPointF start = mapFromItem(source(), source()->connectedCenter());
   QPointF end = endpoint();
   
@@ -102,6 +104,7 @@ QPainterPath Connection::path() const
 
 void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {  
+  //qDebug() << "Painting Connection";
   QPen p;
   p.setWidth(2);
   painter->setPen(p);

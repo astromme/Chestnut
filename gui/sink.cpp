@@ -18,6 +18,8 @@ Sink::Sink(Data::Types allowedTypes, Object* parent)
   m_connection = 0;
   m_internalMargin = 2;
   m_parent = parent;
+  connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
+  connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
 Data::Types Sink::allowedTypes() const
 {
@@ -109,9 +111,12 @@ void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
     }
   topLeft = QPointF(topLeft.x() + inputWidth + m_internalMargin, topLeft.y());
   }
+}
 
-  //TODO Why does this take lots of cpu?
+void Sink::moved() {
+  //qDebug() << "sink moved";
   if (m_connection) {
     m_connection->updateConnection();
   }
 }
+

@@ -1,6 +1,7 @@
 #include "object.h"
 
 #include "sink.h"
+#include "source.h"
 #include <QDebug>
 
 Object::Object(const QString &name, QGraphicsObject* parent)
