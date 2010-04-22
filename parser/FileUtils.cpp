@@ -20,8 +20,8 @@ FileUtils::~FileUtils(){
  * Writes contents of vectors containing C++ code to the outfile
  */
 void FileUtils::writeAll(){
-  // add newlines to each vector so we have some readable code
-  // (but only if theres something in that vector)
+  // add newlines to each vector so we produce more readable code
+  // (but only if there's something in that vector)
   if (includeStrs.size() > 0)
     includeStrs.push_back("\n");
 

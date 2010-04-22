@@ -1,18 +1,23 @@
-int dataread read ("testdata");
-int data 5000 5000 foreach ( value = 1+2 );
-int twos 5000 5000 foreach ( value = 2 );
-    //float datamap vector;
+    //int dataread read ("testdata");
+int data 2 2 foreach ( value = rand/RAND_MAX );
+    //int data 5000 5000 foreach ( value = 1+2 );
+    //int twos 5000 5000 foreach ( value = 2 );
+int datasort vector;
 int dataRes scalar;
 
-data = map(+, 1, data);
-data = map(+, twos, data);
-data = map(+, 1, data);
+//data = map(+, 1, data);
+//datamap = map(+, twos, data);
+//data = map(+, 1, data);
 
-dataRes = reduce(+,data); // TODO: check to make sure dataRes is a scalar
+print2D data;
+data = sort(data);
+print2D data;
+
+//dataRes = reduce(+,data); // TODO: check to make sure dataRes is a scalar
     //datafor = map(+,datafor2,datafor);
     
     //print2D dataread;
-print dataRes;
+//print dataRes;
     //write(datafor,"testoutput");
     //print2D datamap;
     //print datafor;
