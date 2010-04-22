@@ -24,13 +24,15 @@ class Function : public Object {
     bool hasOperation();
     Operation* operation() const;
     QPointF operationPos() const;
-    void setOperation(Operation *op);
+    void setOperation(Operation *op); /**< Adds and sets the position of the given operation */
         
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
     
   protected:
     void setHasOperation(bool hasOperation);
+    void addSource(Source *source); /**< Adds and sets the position of the given source */
+    void addSink(Sink *sink); /**< Adds and sets the position of the given sink */
         
     QRectF inputsRect() const;
     QRectF internalRect() const;

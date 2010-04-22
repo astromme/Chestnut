@@ -74,18 +74,21 @@ QPointF Sink::connectedCenter()
   return center;
 }
 
-QRectF Sink::boundingRect() const
-{
-  QPointF margin(1, 1);
+QRectF Sink::rect() const {
   qreal totalWidth = 0;
   foreach(Data::Type type, m_allowedTypes) {
     totalWidth += inputWidth;
   }
   totalWidth += m_internalMargin*m_allowedTypes.length();
-  
-  QPointF topLeft = QPointF(0, 0) - margin;
-  QPointF bottomRight = QPointF(totalWidth, inputHeight) + margin;
+
+  QPointF topLeft = QPointF(0, 0);
+  QPointF bottomRight = QPointF(totalWidth, inputHeight);
   return QRectF(topLeft, bottomRight);
+}
+
+QRectF Sink::boundingRect() const
+{
+  return rect().adjusted(-1, -1, 1, 1);
 }
 void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
