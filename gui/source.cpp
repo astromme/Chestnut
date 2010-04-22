@@ -64,13 +64,13 @@ void Source::removeAllConnections()
 
 QPointF Source::connectedCenter() const
 {
-  QPointF center = QPointF(inputWidth/2, inputHeight/2);
+  QPointF center = QPointF(Size::inputWidth/2, Size::inputHeight/2);
   return center;
 }
 
 QRectF Source::rect() const {
   QPointF topLeft = QPointF(0, 0);
-  QPointF bottomRight = QPointF(inputWidth, inputHeight);
+  QPointF bottomRight = QPointF(Size::inputWidth, Size::inputHeight);
   return QRectF(topLeft, bottomRight);
 }
 
@@ -80,15 +80,15 @@ QRectF Source::boundingRect() const
 }
 void Source::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  QPointF center(inputWidth/2, inputHeight/2);
+  QPointF center(Size::inputWidth/2, Size::inputHeight/2);
   painter->setBrush(Qt::gray);
   switch (m_dataType) {
     case Data::Value:
-      painter->drawPath(triangle(center, inputWidth, inputHeight));
+      painter->drawPath(triangle(center, Size::inputWidth, Size::inputHeight));
       break;
    
     case Data::DataBlock:
-      painter->drawEllipse(center, inputWidth/2, inputHeight/2);
+      painter->drawEllipse(center, Size::inputWidth/2, Size::inputHeight/2);
       break;
       
     default:

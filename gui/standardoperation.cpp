@@ -38,13 +38,13 @@ StandardOperation::~StandardOperation()
 QRectF StandardOperation::boundingRect() const
 {
   QPointF topLeft(0, 0);
-  QPointF bottomRight = QPointF(2*operatorRadius, 2*operatorRadius) + QPointF(1, 1);
+  QPointF bottomRight = QPointF(2*Size::operatorRadius, 2*Size::operatorRadius) + QPointF(1, 1);
   return QRectF(topLeft, bottomRight);
 }
 void StandardOperation::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  QPointF center = QPointF(operatorRadius, operatorRadius);
-  painter->drawEllipse(center, operatorRadius, operatorRadius);
+  QPointF center = QPointF(Size::operatorRadius, Size::operatorRadius);
+  painter->drawEllipse(center, Size::operatorRadius, Size::operatorRadius);
   
   switch (m_operationType) {
     case Add:

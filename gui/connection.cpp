@@ -8,6 +8,8 @@
 #include <QPainter>
 #include <QDebug>
 
+using namespace Chestnut;
+
 
 Connection::Connection(Source* source, Sink* sink)
   : QGraphicsItem(source)
@@ -109,11 +111,11 @@ QPainterPath Connection::endShape() const
   QPainterPath p;
   switch (source()->dataType()) {
     case Data::DataBlock:
-      p.addEllipse(endpoint(), Chestnut::inputRadius, Chestnut::inputRadius);
+      p.addEllipse(endpoint(), Size::inputRadius, Size::inputRadius);
       return p;
       break;
     case Data::Value:
-      return triangle(endpoint(), Chestnut::inputHeight, Chestnut::inputWidth);
+      return triangle(endpoint(), Size::inputHeight, Size::inputWidth);
       break;
   }
 }
