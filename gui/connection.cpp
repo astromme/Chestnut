@@ -2,10 +2,12 @@
 
 #include "source.h"
 #include "sink.h"
+#include "drawingutils.h"
+#include "sizes.h"
 
 #include <QPainter>
 #include <QDebug>
-#include "drawingutils.h"
+
 
 Connection::Connection(Source* source, Sink* sink)
   : QGraphicsItem(source)
@@ -64,7 +66,7 @@ QPointF Connection::endpoint() const
 }
 QRectF Connection::boundingRect() const
 {
-  return path().boundingRect().united(triangle(endpoint(), 8, 8).boundingRect());
+  return path().boundingRect().united(endShape().boundingRect()).adjusted(-2, -2, 2, 2); // margin is 2
 }
 
 Source* Connection::source() const
@@ -102,6 +104,20 @@ QPainterPath Connection::path() const
   return path;
 }
 
+QPainterPath Connection::endShape() const
+{
+  QPainterPath p;
+  switch (source()->dataType()) {
+    case Data::DataBlock:
+      p.addEllipse(endpoint(), Chestnut::inputRadius, Chestnut::inputRadius);
+      return p;
+      break;
+    case Data::Value:
+      return triangle(endpoint(), Chestnut::inputHeight, Chestnut::inputWidth);
+      break;
+  }
+}
+
 void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {  
   //qDebug() << "Painting Connection";
@@ -112,12 +128,5 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
   
   p.setWidth(1);
   painter->setPen(p);
-  switch (source()->dataType()) {
-    case Data::DataBlock:
-      painter->drawEllipse(endpoint(), 8, 8);
-      break;
-    case Data::Value:
-      painter->drawPath(triangle(endpoint(), 8, 8));
-      break;
-  }
+  painter->drawPath(endShape());
 }

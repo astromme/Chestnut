@@ -23,6 +23,7 @@ class Connection : public QGraphicsItem {
     Sink* sink() const;
     
     QPainterPath path() const;
+    QPainterPath endShape() const;
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
     
