@@ -10,6 +10,8 @@
 #include <QPainter>
 #include <QDebug>
 
+using namespace Chestnut;
+
 Function::Function(const QString& name, QGraphicsObject* parent)
   : Object(name, parent)
 {
@@ -28,7 +30,7 @@ bool Function::hasOperation() {
 }
 void Function::setOperation(Operation* op) {
   m_operation = op;
-  m_operation->setPos(operationPos() - QPointF(Chestnut::operatorRadius, Chestnut::operatorRadius)); //TODO fix positioning
+  m_operation->setPos(operationPos() - QPointF(Size::operatorRadius, Size::operatorRadius)); //TODO fix positioning
 }
 Operation* Function::operation() const {
   return m_operation;
@@ -46,11 +48,11 @@ void Function::addSink(Sink *sink) {
 
   QPointF topLeft;
   if (m_sinks.isEmpty()) {
-    topLeft = inputsRect().topLeft() + QPointF(Chestnut::inputsMarginX, Chestnut::inputsMarginY);
+    topLeft = inputsRect().topLeft() + QPointF(Size::inputsMarginX, Size::inputsMarginY);
   } else {
     Sink *furthestRight = m_sinks.last();
     QPointF topRight = mapFromItem(furthestRight, furthestRight->rect().topRight());
-    topLeft = topRight  + QPointF(Chestnut::outputsMarginX, 0);
+    topLeft = topRight  + QPointF(Size::outputsMarginX, 0);
   }
   sink->setPos(topLeft);
   m_sinks.append(sink);
@@ -64,11 +66,11 @@ void Function::addSource(Source *source) {
 
   QPointF topLeft;
   if (m_sources.isEmpty()) {
-    topLeft = outputsRect().topLeft() + QPointF(Chestnut::outputsMarginX, Chestnut::outputsMarginY);
+    topLeft = outputsRect().topLeft() + QPointF(Size::outputsMarginX, Size::outputsMarginY);
   } else {
     Source *furthestRight = m_sources.last();
     QPointF topRight = mapFromItem(furthestRight, furthestRight->rect().topRight());
-    topLeft = topRight  + QPointF(Chestnut::outputsMarginX, 0);
+    topLeft = topRight  + QPointF(Size::outputsMarginX, 0);
   }
   source->setPos(topLeft);
   m_sources.append(source);
@@ -84,16 +86,14 @@ void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
   // Draw Inputs
   painter->drawRoundedRect(inputsRect(), 5, 5);
   // Draw Internal Rect
-  qreal circleradius = 10;
-  qreal circlemargin = 3;
   painter->drawRect(internalRect());
   qreal xpos = 0 - 0.5*QApplication::fontMetrics().width(m_name);
-  qreal ypos = 0 - circleradius - circlemargin;
+  qreal ypos = 0 - Size::operatorRadius - Size::operatorMargin;
   painter->drawText(xpos, ypos, m_name);
   painter->save();
     QPen pen(Qt::gray, 1, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
     painter->setPen(pen);
-    painter->drawEllipse(operationPos(), circleradius, circleradius);
+    painter->drawEllipse(operationPos(), Size::operatorRadius, Size::operatorRadius);
   painter->restore();
   // Draw Outputs
   painter->drawRoundedRect(outputsRect(), 5, 5);
@@ -112,10 +112,8 @@ QRectF Function::internalRect() const
 {
   qreal xmargin = 5;
   qreal ymargin = 5;
-  qreal circleradius = 10;
-  qreal circlemargin = 3;
   qreal width = 2*xmargin + QApplication::fontMetrics().width(m_name);
-  qreal height = 2*(circleradius + circlemargin) + 2*ymargin + QApplication::fontMetrics().height();
+  qreal height = 2*(Size::operatorRadius + Size::operatorMargin) + 2*ymargin + QApplication::fontMetrics().height();
   
   qreal xpos = 0 - width/2;
   qreal ypos = 0 - height/2;

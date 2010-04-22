@@ -69,20 +69,20 @@ QPointF Sink::connectedCenter()
   }
   
   int location = m_allowedTypes.indexOf(m_connectionType);
-  QPointF center(inputWidth/2, inputHeight/2);
-  center += QPointF(location*(m_internalMargin + inputWidth), 0);
+  QPointF center(Size::inputHeight/2, Size::inputHeight/2);
+  center += QPointF(location*(m_internalMargin + Size::inputHeight), 0);
   return center;
 }
 
 QRectF Sink::rect() const {
   qreal totalWidth = 0;
   foreach(Data::Type type, m_allowedTypes) {
-    totalWidth += inputWidth;
+    totalWidth += Size::inputHeight;
   }
   totalWidth += m_internalMargin*m_allowedTypes.length();
 
   QPointF topLeft = QPointF(0, 0);
-  QPointF bottomRight = QPointF(totalWidth, inputHeight);
+  QPointF bottomRight = QPointF(totalWidth, Size::inputHeight);
   return QRectF(topLeft, bottomRight);
 }
 
@@ -98,21 +98,21 @@ void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
   QPointF topLeft = QPointF(0, 0);
   
   foreach(Data::Type type, m_allowedTypes) {
-    QPointF center = topLeft + QPointF(inputWidth/2, inputHeight/2);
+    QPointF center = topLeft + QPointF(Size::inputHeight/2, Size::inputHeight/2);
     switch (type) {
       case Data::Value:
-        painter->drawPath(triangle(center, inputWidth, inputHeight));
+        painter->drawPath(triangle(center, Size::inputHeight, Size::inputHeight));
         break;
     
       case Data::DataBlock:
-        painter->drawEllipse(center, inputWidth/2, inputHeight/2);
+        painter->drawEllipse(center, Size::inputHeight/2, Size::inputHeight/2);
         break;
         
       default:
         qDebug() << "Unhandled datatype" << type;
         break;
     }
-  topLeft = QPointF(topLeft.x() + inputWidth + m_internalMargin, topLeft.y());
+  topLeft = QPointF(topLeft.x() + Size::inputHeight + m_internalMargin, topLeft.y());
   }
 }
 
