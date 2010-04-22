@@ -19,6 +19,8 @@ Source::Source(Data::Type type, Object* parent)
   m_dataType = type;
   m_activeConnection = 0;
   m_parent = parent;
+  connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
+  connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
 Data::Type Source::dataType() const
 {
@@ -120,8 +122,9 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   m_activeConnection = 0;
 }
 
-
-
-
-
-
+void Source::moved() {
+  //qDebug() << "source moved";
+  if (m_activeConnection) {
+    m_activeConnection->updateConnection();
+  }
+}

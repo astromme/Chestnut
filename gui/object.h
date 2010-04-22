@@ -7,6 +7,7 @@ class Source;
 class Sink;
 
 class Object : public QGraphicsObject {
+  Q_OBJECT
   public:
     Object(const QString &name, QGraphicsObject* parent = 0);
     virtual ~Object();
