@@ -24,6 +24,7 @@ class Sink : public QGraphicsObject {
     Connection* connection() const;
     QPointF connectedCenter();
 
+    virtual QRectF rect() const;
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
 

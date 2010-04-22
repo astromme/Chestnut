@@ -68,12 +68,15 @@ QPointF Source::connectedCenter() const
   return center;
 }
 
+QRectF Source::rect() const {
+  QPointF topLeft = QPointF(0, 0);
+  QPointF bottomRight = QPointF(inputWidth, inputHeight);
+  return QRectF(topLeft, bottomRight);
+}
+
 QRectF Source::boundingRect() const
 {
-  QPointF margin(1, 1);
-  QPointF topLeft = QPointF(0, 0) - margin;
-  QPointF bottomRight = QPointF(inputWidth, inputHeight) + margin;
-  return QRectF(topLeft, bottomRight);
+  return rect().adjusted(-1, -1, 1, 1);
 }
 void Source::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
