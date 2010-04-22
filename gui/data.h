@@ -18,6 +18,8 @@ class Data : public Object {
     Data(const QString &name);
     virtual ~Data();
     
+    /** returns a unique name for a temporary variable of type t */
+    static QString tempData(Type t);
     virtual QStringList flatten() const {return QStringList();} //TODO Fix
 };
 
