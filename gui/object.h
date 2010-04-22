@@ -18,8 +18,6 @@ class Object : public QGraphicsObject {
     QList<Source*> sources() const;
     QList<Sink*> sinks() const;
     
-    void setSources(QList<Source*> sources);
-    void setSinks(QList<Sink*> sinks);
   protected:
     QList<Source*> m_sources;
     QList<Sink*> m_sinks;
