@@ -33,7 +33,6 @@ Map::Map(QGraphicsObject* parent)
   output1->setPos(o1Pos);
   
   Operation *op = new StandardOperation(StandardOperation::Multiply, this);
-  //op->setPos()
   setHasOperation(true);
   setOperation(op);
 }

@@ -1,4 +1,8 @@
 #include "function.h"
+
+#include "operation.h"
+#include "sizes.h"
+
 #include <QApplication>
 #include <qfontmetrics.h>
 #include <QPainter>
@@ -21,9 +25,14 @@ bool Function::hasOperation() {
 }
 void Function::setOperation(Operation* op) {
   m_operation = op;
+  m_operation->setPos(operationPos() - QPointF(Chestnut::operatorRadius, Chestnut::operatorRadius)); //TODO fix positioning
 }
 Operation* Function::operation() const {
   return m_operation;
+}
+
+QPointF Function::operationPos() const {
+  return QPointF(0, 0);
 }
 
 /// Painting Goodness
@@ -45,7 +54,7 @@ void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
   painter->save();
     QPen pen(Qt::gray, 1, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
     painter->setPen(pen);
-    painter->drawEllipse(QPointF(0, 0), circleradius, circleradius);
+    painter->drawEllipse(operationPos(), circleradius, circleradius);
   painter->restore();
   // Draw Outputs
 }
@@ -76,5 +85,10 @@ QRectF Function::internalRect() const
 }
 QRectF Function::outputsRect() const
 {
-  return internalRect();
+  qreal margin = 2;
+  QRectF internal = internalRect();
+  QPointF topLeft = internal.bottomLeft();
+  qreal width = internal.width();
+  qreal height = QApplication::fontMetrics().height() + 2*margin;
+  return QRectF(QPointF(topLeft), topLeft + QPointF(width, height));
 }
