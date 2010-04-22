@@ -23,6 +23,7 @@ class Function : public Object {
     
     bool hasOperation();
     Operation* operation() const;
+    QPointF operationPos() const;
     void setOperation(Operation *op);
         
     virtual QRectF boundingRect() const;
