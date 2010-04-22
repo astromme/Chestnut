@@ -1,27 +1,48 @@
-Some notes about stuff
+Final Presentation:
+==================
 
-Solution
---------
-* Create language that abstracts CUDA
-* make GPGPU paradigm explicit --> pipeline
-* have a readable language (from ground-up)
-* low floor, high ceiling, wide walls
-* GUI
-* features of language
-==> objects
-==> pipelining
-==> map
-==> toolbox of data manipulation --> solving the hard problems
+Cuda
+  Programming Models
+  thrust
+  
+Frontend Gui
+  dataflow model of programming
+  Visualizing dataflow
+  define->place->connect->run flow
+  How it supports the chosen cuda model
+  Qt
+  Sample program
 
-What we want at the End User level
-----------------------------------
-* Barrier synchronization
-* modular/pipelining design/flow
+Backend
+  translating an intermediate language into thrust
+  Lex/Yacc
+  Functions we support
+    Map
+    Reduce
+    Sort
+    Convolve
+  Data types we support
+  Specification
+  Sample code -> translated code
+  
+Experiments
+  Speedups
+    CPU
+    Native GPU
+    Chestnut
+  Comparisons of code verbosity
 
-What we want to hide from the End User
---------------------------------------
-* making (certain) data types "Cuda-ready"
-==> i.e. Graph to Adjacency Matrix
 
-Use Cases
----------
+TODO by Monday
+==============
+  Why Chestnut?
+  flatten gui schematic to chestnut code
+  variable declarations
+  single button execution
+
+TODO by Paper
+=============
+  Get nvidia's reduce kernel working
+
+
+
