@@ -17,6 +17,12 @@ namespace Chestnut {
   static qreal outputRadius = 4;
   static qreal outputHeight = 2*outputRadius;
   static qreal outputWidth = 2*outputRadius;
+
+  static qreal valueWidth = 60;
+  static qreal valueHeight = 60;
+
+  static qreal dataBlockWidth = 100;
+  static qreal dataBlockHeight = 60;
 }
 
 #endif //CHESTNUT_SIZES_H

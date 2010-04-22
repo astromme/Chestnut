@@ -12,15 +12,13 @@ using namespace Chestnut;
 Value::Value(const QString& name)
   : Data(name)
 {
-  m_width = 60;
-  m_height = 60;
   m_name = name;
   
   Source *outputValue = new Source(Data::Value, this);
   m_sources.append(outputValue);
   
-  qreal xpos = m_width/2 - outputWidth/2;
-  outputValue->setPos(QPointF(xpos, m_height));
+  qreal xpos = valueWidth/2 - outputWidth/2;
+  outputValue->setPos(QPointF(xpos, valueHeight));
 }
 
 Value::~Value()
@@ -32,18 +30,18 @@ QRectF Value::boundingRect() const
 {
   QPointF margin(1, 1);
   return QRectF(QPointF(0, 0) - margin,
-                QPointF(m_width, m_height) + margin);
+                QPointF(valueWidth, valueHeight) + margin);
 }
 
 void Value::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   
-  QPointF center = QPointF(m_width/2, m_height/2);
-  painter->drawPath(triangle(center, m_width, m_height));
+  QPointF center = QPointF(valueWidth/2, valueHeight/2);
+  painter->drawPath(triangle(center, valueWidth, valueHeight));
   
   // Layout and draw text
-  qreal xpos = m_width/2;
-  qreal ypos = m_height;
+  qreal xpos = valueWidth/2;
+  qreal ypos = valueHeight;
   
   xpos -= 0.5*QApplication::fontMetrics().width(m_name);
   ypos -= 5;
