@@ -28,13 +28,3 @@ QList< Sink* > Object::sinks() const
 {
   return m_sinks;
 }
-
-
-void Object::setSources(QList< Source* > sources)
-{
-
-}
-void Object::setSinks(QList< Sink* > sinks)
-{
-
-}
