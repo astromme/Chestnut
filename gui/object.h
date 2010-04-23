@@ -2,6 +2,7 @@
 #define CHESTNUT_OBJECT_H
 
 #include <QGraphicsObject>
+#include "datautils.h"
 
 class Source;
 class Sink;
@@ -12,7 +13,7 @@ class Object : public QGraphicsObject {
     Object(const QString &name, QGraphicsObject* parent = 0);
     virtual ~Object();
     
-    virtual QStringList flatten() const = 0;
+    virtual ProgramStrings flatten() const = 0;
     QString name() const;
     
     QList<Source*> sources() const;
