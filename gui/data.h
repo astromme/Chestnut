@@ -20,7 +20,7 @@ class Data : public Object {
     
     /** returns a unique name for a temporary variable of type t */
     static QString tempData(Type t);
-    virtual QStringList flatten() const {return QStringList();} //TODO Fix
+    virtual ProgramStrings flatten() const {return ProgramStrings	();} //TODO Fix
 };
 
 

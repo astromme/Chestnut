@@ -2,6 +2,7 @@
 #include "source.h"
 #include "sink.h"
 #include "standardoperation.h"
+#include "data.h"
 
 #include <QDebug>
 
@@ -28,23 +29,28 @@ Map::Map(QGraphicsObject* parent)
   setOperation(op);
 }
 
-QStringList Map::flatten() const
+ProgramStrings Map::flatten() const
 {
   //TODO Finish/talk to ryan
+  //TODO Make flatten return ProgramStrings
   //qDebug() << m_sources[0]
   foreach(Sink *connectedSink, m_sources[0]->connectedSinks()) {
     qDebug() << "connected sink";
     Object *connectedObject = connectedSink->parentObject();
-    QString functionLine = QString("%1 = %2(%3, %4, %5);").arg(connectedObject->name())
-                                                          .arg(m_name)
-                                                          .arg(operation()->name())
-                                                          .arg(m_sinks[0]->connectedSource()->parentObject()->name())
-                                                          .arg(m_sinks[1]->connectedSource()->parentObject()->name());
-    QStringList l;
-    l.append(functionLine);
-    return l + connectedObject->flatten();
+    
+    QString functionLine = QString("%1 = map(%2, %3, %4);")
+      .arg(connectedObject->name())
+      .arg(operation()->name())
+      .arg(m_sinks[1]->connectedSource()->parentObject()->name())
+      .arg(m_sinks[0]->connectedSource()->parentObject()->name());
+      
+    ProgramStrings ps;
+    ps.second.append(functionLine);
+    ProgramStrings connected = connectedObject->flatten();
+    return ProgramStrings(ps.first + ps.first, ps.second + connected.second);
+    //return ps + connectedObject->flatten();
   }
-  return QStringList();
+  Data::tempData(Data::DataBlock);
+  return ProgramStrings();
   //map(+,2,data);
 }
-

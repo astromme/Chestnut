@@ -46,6 +46,6 @@ int main(int argc, char* argv[]) {
   ui.workflowEditor->setScene(&s);
   ui.workflowEditor->setRenderHint(QPainter::Antialiasing);
   ui.workflowEditor->setDragMode(QGraphicsView::RubberBandDrag);
-  
+ 
   app.exec();
 }
