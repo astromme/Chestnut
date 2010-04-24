@@ -36,15 +36,23 @@ ProgramStrings Map::flatten() const
   //qDebug() << m_sources[0]
   
   // set visited flag
+ 
+  ProgramStrings ps;
   
   foreach(Sink *sink, sinks()){
-    //Data* sinkData = sink->sourceData();
+    Data* sinkData = sink->sourceData();
+    //ps += sinkData->flatten();
+    ps = ps + sinkData->flatten();
   }
   
   // do map stuff
   
   foreach(Source *source, sources()){
   }
+  
+  qDebug() << "ProgStrings:" << ps;
+
+  return ps;
   
 /* 
   foreach(Sink *connectedSink, m_sources[0]->connectedSinks()) {
@@ -72,6 +80,5 @@ ProgramStrings Map::flatten() const
   }
   QString tmpData = Data::tempData(Data::DataBlock);
 */
-  return ProgramStrings();
   //map(+,2,data);
 }
