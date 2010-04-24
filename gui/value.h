@@ -7,7 +7,7 @@
 
 class Value : public Data {
   public:
-    Value(const QString &name);
+    Value(const QString &name, const QString &datatype="int");
     virtual ~Value();
 
     virtual ProgramStrings flatten() const;

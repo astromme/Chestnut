@@ -8,7 +8,7 @@
 // assumed to be 2d
 class DataBlock : public Data {
   public:
-    DataBlock(const QString &name, int rows, int columns);
+    DataBlock(const QString &name, const QString &datatype, int rows, int columns);
     virtual ~DataBlock();
     
     int rows() const;
