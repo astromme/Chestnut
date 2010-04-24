@@ -26,7 +26,14 @@ Sink::Sink(Data::Format allowedFormat, Object* parent)
 {
   Data::Formats allowedFormats;
   allowedFormats << allowedFormat;
-  Sink(allowedFormats, parent);
+  
+  // Important! Code copied from above constructor Sink::Sink()
+  m_allowedFormats = allowedFormats;
+  m_connection = 0;
+  m_internalMargin = 2;
+  m_parent = parent;
+  connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
+  connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
 
 
@@ -55,6 +62,10 @@ Function* Sink::sourceFunction() const
   return (Function*)connectedSource()->parentObject();
 }
 
+bool Sink::isConnected() const
+{
+  return (m_connection != 0);
+}
 
 Source* Sink::connectedSource() const
 {
