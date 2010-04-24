@@ -60,9 +60,13 @@ ProgramStrings DataBlock::flatten() const
   }
 
   QString datablockInChestnut = "vector";	
-  QString declaration = datatype() + " " + name() + " " + datablockInChestnut + ";";
-  /*QString declaration = datatype() + " " +
-    name() + " " +*/
+  //QString declaration = datatype() + " " + name() + " " + datablockInChestnut + ";";
+  QString declaration = datatype() + " " +
+    name() + " " +
+    QString::number(m_rows) + " " +
+    QString::number(m_columns) + " " +
+    "foreach ( value = 1 )" + ";";
+    
     
   ps.first.append(declaration);
   
