@@ -42,12 +42,12 @@ ProgramStrings Map::flatten() const
   
   setVisited(true);
  
-  ProgramStrings ps;
+  ProgramStrings prog;
   
   foreach(Sink *sink, sinks()){
     Data* sinkData = sink->sourceData();
     //ps += sinkData->flatten();
-    ps = ps + sinkData->flatten();
+    prog = prog + sinkData->flatten();
   }
 
   QString functioncall;
@@ -65,44 +65,14 @@ ProgramStrings Map::flatten() const
       .arg(m_sinks[0]->sourceData()->name());
   }
     
-  ps.second.append(functioncall);
+  prog.second.append(functioncall);
   
   foreach(Source *source, sources()){
     QList<Data*> sourceData = source->connectedData();
     foreach (Data* sData, sourceData){
-      ps = ps + sData->flatten();
+      prog = prog + sData->flatten();
     }
   }
   
-  // qDebug() << "ProgStrings:" << ps; // TODO: remove
-
-  return ps;
-  
-/* 
-  foreach(Sink *connectedSink, m_sources[0]->connectedSinks()) {
-    qDebug() << "connected sink";
-    Object *connectedObject = connectedSink->parentObject();
-   
-    // if either of the sinks are coming from a DataBlock source, we need to create a temporary variable in between the two functions
-    if (m_sinks[1]->connectedSource()->dataType() == Data::DataBlock){
-      qDebug() << "Connected Source at location 1 is a DataBlock";
-    }
-    if (m_sinks[0]->connectedSource()->dataType() == Data::DataBlock){
-      qDebug() << "Connected Source at location 0 is a DataBlock";
-    }
-    
-    QString functionLine = QString("%1 = map(%2, %3, %4);")
-      .arg(connectedObject->name())
-      .arg(operation()->name())
-      .arg(m_sinks[1]->connectedSource()->parentObject()->name())
-      .arg(m_sinks[0]->connectedSource()->parentObject()->name());
-      
-    ProgramStrings ps;
-    ps.second.append(functionLine);
-   
-    return ps + connectedObject->flatten();
-  }
-  QString tmpData = Data::tempData(Data::DataBlock);
-*/
-  //map(+,2,data);
+  return prog;
 }
