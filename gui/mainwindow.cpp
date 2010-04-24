@@ -102,15 +102,12 @@ MainWindow::~MainWindow()
 void MainWindow::writeFile()
 {
   //TODO: Make less hacky
-  qDebug() << "Write File";
   foreach(QGraphicsItem *item, m_scene->items()) {
     if (item->type() != ChestnutItemType::Map) {
       continue;
     }
     Object *object = (Object*)item;
     if (object) {
-      object->isFunction();
-      qDebug() << "yay";
       ProgramStrings prog = object->flatten();
       
       // Show resulting program in a window
