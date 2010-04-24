@@ -10,7 +10,7 @@
 using namespace Chestnut;
 
 Value::Value(const QString& name)
-  : Data(name)
+  : Data(name, Data::Value)
 {
   m_name = name;
   

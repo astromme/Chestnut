@@ -1,11 +1,12 @@
 #include "datablock.h"
 
 #include "sizes.h"
+#include "data.h"
 
 using namespace Chestnut;
 
 DataBlock::DataBlock(const QString& name, int rows, int columns)
-  : Data(name)
+  : Data(name, Data::DataBlock)
 {
   m_rows = rows;
   m_columns = columns;
