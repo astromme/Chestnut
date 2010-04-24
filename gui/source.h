@@ -19,8 +19,17 @@ class Source : public QGraphicsObject {
     Connection* connectToSink(Sink *sink);
     
     Object* parentObject() const;
-    
+  
+    /** @returns the list of connected data objects that are taking data from this source
+        if this is unconnected, @returns 0
+        if this is connected to functions, @returns 0
+     */
     QList<Data*> connectedData() const;
+    
+    /** @returns the list of connected function objects that are taking data from this source
+        if this is unconnected, @returns 0
+        if this is connected to data, @returns 0
+     */
     QList<Function*> connectedFunctions() const;
     
     QList<Sink*> connectedSinks() const;

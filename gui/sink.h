@@ -20,9 +20,20 @@ class Sink : public QGraphicsObject {
     
     Object* parentObject() const;
     
+    /** @returns the connected data that is providing the source for this sink.
+        if this is unconnected, @returns 0
+        if this is connected to a function, @returns 0
+     */
     Data* sourceData() const;
+    
+    /** @returns the connected function that is providing the source for this sink.
+        if this is unconnected, @returns 0
+        if this is connected to data, @returns 0
+     */
     Function* sourceFunction() const;
     
+    /** @returns true if a source is connected to this sink */
+    bool isConnected() const;
     Source* connectedSource() const;
     void setConnection(Connection *connection);
     Connection* connection() const;
