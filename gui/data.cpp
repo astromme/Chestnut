@@ -55,6 +55,12 @@ QString Data::name() const
 {
   return m_name;
 }
+void Data::setName(const QString& name)
+{
+  m_name = name;
+  update();
+}
+
 
 Data::Format Data::format() const
 {
@@ -64,6 +70,11 @@ Data::Format Data::format() const
 QString Data::datatype() const
 {
   return m_datatype;
+}
+void Data::setDatatype(const QString& datatype)
+{
+  m_datatype = datatype;
+  update();
 }
 
 QString Data::tempData(Data::Format f) {

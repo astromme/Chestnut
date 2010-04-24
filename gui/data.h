@@ -28,8 +28,10 @@ class Data : public Object {
     
     QString expression() const;
     QString name() const;
+    void setName(const QString &name);
     Format format() const;
     QString datatype() const;
+    void setDatatype(const QString &datatype);
     
     /** returns a unique name for a temporary variable of category t */
     static QString tempData(Data::Format f);
