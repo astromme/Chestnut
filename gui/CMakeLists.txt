@@ -20,10 +20,6 @@ set(chestnut_functions
 
 set(chestnut_datatypes
     datablock.cpp
-    array1d.cpp
-    array2d.cpp
-    array3d.cpp
-
     value.cpp
     )
 
