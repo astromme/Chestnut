@@ -52,11 +52,12 @@ QVariant Object::itemChange ( QGraphicsItem::GraphicsItemChange change, const QV
   return QGraphicsItem::itemChange(change, value);
 }
 
-bool Object::visited()
+bool Object::visited() const
 {
   return m_visited;
 }
-void Object::setVisited ( bool visited )
+void Object::setVisited ( bool visited ) const
 {
-  m_visited = visited;
+  Object* fakeThis = (Object*) this;
+  fakeThis->m_visited = visited;
 }
