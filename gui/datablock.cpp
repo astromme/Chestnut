@@ -3,6 +3,8 @@
 #include "sizes.h"
 #include "data.h"
 
+#include <QDebug>
+
 using namespace Chestnut;
 
 DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, int columns)
@@ -29,9 +31,14 @@ int DataBlock::columns() const
 
 ProgramStrings DataBlock::flatten() const
 {
+  QString datablockInChestnut = "vector";	
+  QString declaration = datatype() + " " + name() + " " + datablockInChestnut;
+  qDebug() << "flatten called on datablock: " << declaration;
+  ProgramStrings ps;
+  ps.first.append(declaration);
+  
   return ProgramStrings();
 }
-
 
 QRectF DataBlock::rect() const
 {

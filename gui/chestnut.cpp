@@ -32,6 +32,8 @@ int main(int argc, char* argv[]) {
   m1->sources()[0]->connectToSink(m3->sinks()[0]);
   
   qDebug() << m1->flatten();
+  qDebug() << m2->flatten();
+  qDebug() << m3->flatten();
  
   s.addItem(v);
   s.addItem(m1);
