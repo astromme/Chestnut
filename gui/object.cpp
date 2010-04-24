@@ -17,6 +17,15 @@ Object::~Object()
 
 }
 
+bool Object::isData() const
+{
+  return false;
+}
+bool Object::isFunction() const
+{
+  return false;
+}
+
 QList< Source* > Object::sources() const
 {
   return m_sources;

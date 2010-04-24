@@ -18,6 +18,8 @@ class Data : public Object {
     Data(const QString &name, Format format, const QString &datatype);
     virtual ~Data();
     
+    virtual bool isData() const;
+    
     QString name() const;
     Format format() const;
     QString datatype() const;

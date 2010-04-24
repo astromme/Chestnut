@@ -18,11 +18,14 @@ class Object : public QGraphicsObject {
     QList<Source*> sources() const;
     QList<Sink*> sinks() const;
     
-    virtual void mousePressEvent ( QGraphicsSceneMouseEvent* event );
-    virtual void mouseMoveEvent ( QGraphicsSceneMouseEvent* event );
-    virtual void mouseReleaseEvent ( QGraphicsSceneMouseEvent* event );
+    virtual bool isData() const;
+    virtual bool isFunction() const;
     
-    virtual QVariant itemChange ( GraphicsItemChange change, const QVariant& value );
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+    
+    virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value);
     
     bool isVisited() const;
     void setVisited(bool visited) const;

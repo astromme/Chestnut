@@ -17,6 +17,8 @@ class Function : public Object {
     Function(const QString& name, QGraphicsObject* parent = 0);
     virtual ~Function();
     
+    virtual bool isFunction() const;
+    
     //virtual QStringList flatten() const = 0;
     QString name() const;
     

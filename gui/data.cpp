@@ -14,6 +14,11 @@ Data::~Data()
 
 }
 
+bool Data::isData() const
+{
+  return true;
+}
+
 QString Data::name() const
 {
   return m_name;
