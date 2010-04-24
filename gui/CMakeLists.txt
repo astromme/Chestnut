@@ -45,6 +45,8 @@ set(chestnut_headers
     sink.h
     source.h
     object.h
+    datablock.h
+    value.h
     mainwindow.h
     )
 
