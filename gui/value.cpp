@@ -45,29 +45,29 @@ ProgramStrings Value::flatten() const
   }
   setVisited(true);
 
-  ProgramStrings ps;
+  ProgramStrings prog;
   foreach(Sink *sink, sinks()){
     if (sink->isConnected()) {
       Data* sinkData = sink->sourceData();
       //ps += sinkData->flatten();
-      ps = ps + sinkData->flatten();
+      prog = prog + sinkData->flatten();
     }
   }
  
   if (!isInitialized()){
     QString valueInChestnut = "scalar";
     QString declaration = datatype() + " " + name() + " " + valueInChestnut + ";";
-    ps.first.append(declaration);
+    prog.first.append(declaration);
   }
   
   foreach(Source *source, sources()){
     QList<Data*> sourceData = source->connectedData();
     foreach (Data* sData, sourceData){
-      ps = ps + sData->flatten();
+      prog = prog + sData->flatten();
     }
   }
   
-  return ps;
+  return prog;
 }
 
 QRectF Value::boundingRect() const
