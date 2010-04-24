@@ -42,9 +42,11 @@ ProgramStrings Value::flatten() const
   ps.first.append(declaration);
   
   foreach(Sink *sink, sinks()){
-    Data* sinkData = sink->sourceData();
-    //ps += sinkData->flatten();
-    ps = ps + sinkData->flatten();
+    if (sink->isConnected()) {
+      Data* sinkData = sink->sourceData();
+      //ps += sinkData->flatten();
+      ps = ps + sinkData->flatten();
+    }
   }
   
   return ps;
