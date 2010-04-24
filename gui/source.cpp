@@ -62,6 +62,25 @@ void Source::removeAllConnections()
   m_connections.clear();
 }
 
+QList< Data* > Source::connectedData() const
+{
+  QList< Data* > connected;
+  foreach (Sink* sink, connectedSinks()){
+    connected.append((Data*)sink->parentObject());
+  }
+  return connected;
+}
+
+QList< Function* > Source::connectedFunctions() const
+{
+  QList< Function* > connected;
+  foreach (Sink* sink, connectedSinks()){
+    connected.append((Function*)sink->parentObject());
+  }
+  return connected;
+}
+
+
 QPointF Source::connectedCenter() const
 {
   QPointF center = QPointF(Size::inputWidth/2, Size::inputHeight/2);

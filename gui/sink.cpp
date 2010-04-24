@@ -36,6 +36,17 @@ Object* Sink::parentObject() const
   return m_parent;
 }
 
+Data* Sink::sourceData() const
+{
+  return (Data*)connectedSource()->parentObject();
+}
+
+Function* Sink::sourceFunction() const
+{
+  return (Function*)connectedSource()->parentObject();
+}
+
+
 Source* Sink::connectedSource() const
 {
   if (m_connection) {
