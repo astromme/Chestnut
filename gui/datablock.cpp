@@ -6,7 +6,7 @@
 using namespace Chestnut;
 
 DataBlock::DataBlock(const QString& name, int rows, int columns)
-  : Data(name, Data::DataBlock)
+  : Data(name, Data::DataBlock, "float")
 {
   m_rows = rows;
   m_columns = columns;

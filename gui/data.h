@@ -18,7 +18,7 @@ class Data : public Object {
     Data(const QString &name, Type type, const QString &dataType);
     virtual ~Data();
     
-    QString name();
+    QString name() const;
     Type category() const;
     QString datatype() const;
     
