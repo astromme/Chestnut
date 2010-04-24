@@ -25,6 +25,7 @@ set(chestnut_datatypes
 
 set(chestnut_sources
     chestnut.cpp
+    mainwindow.cpp
     object.cpp
     function.cpp
     operation.cpp
@@ -44,6 +45,7 @@ set(chestnut_headers
     sink.h
     source.h
     object.h
+    mainwindow.h
     )
 
 set(chestnut_ui
