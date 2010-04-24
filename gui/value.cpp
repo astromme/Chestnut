@@ -3,6 +3,7 @@
 #include "sizes.h"
 #include "drawingutils.h"
 #include "source.h"
+#include "sink.h"
 
 #include <QPainter>
 #include <QApplication>
@@ -39,7 +40,14 @@ ProgramStrings Value::flatten() const
   qDebug() << "flatten called on value: " << declaration;
   ProgramStrings ps;
   ps.first.append(declaration);
-  return ProgramStrings();
+  
+  foreach(Sink *sink, sinks()){
+    Data* sinkData = sink->sourceData();
+    //ps += sinkData->flatten();
+    ps = ps + sinkData->flatten();
+  }
+  
+  return ps;
 }
 
 QRectF Value::boundingRect() const
