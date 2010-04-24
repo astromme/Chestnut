@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   outmap->sources()[0]->connectToSink(s1->sinks()[0]);
   s1->sources()[0]->connectToSink(outsort->sinks()[0]);
   
-  outsort->sources()[0]->connectToSink(p1->sinks()[0]);
+  //outsort->sources()[0]->connectToSink(p1->sinks()[0]);
     
   
   //outmap->sources()[0]->connectToSink(r1->sinks()[0]);
