@@ -1,8 +1,8 @@
 #include "data.h"
 
 
-Data::Data( const QString& name, Data::Type type, const QString &dataType)
-  : Object(0, 0)
+Data::Data(const QString& name, Data::Type type, const QString &dataType)
+  : Object(0)
 {
   m_type = type;
   m_datatype = dataType;
@@ -28,8 +28,6 @@ QString Data::datatype() const
   return m_datatype;
 }
 
-
->>>>>>> Stashed changes
 QString Data::tempData(Type t) {
   static int counter = 0;
   counter++;
