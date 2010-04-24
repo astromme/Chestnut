@@ -631,6 +631,19 @@ void ParseUtils::makePrintData2D(string object){
  * Generates code for a map across an object
  */
 void ParseUtils::makeMap(string source, string destination, string op, string modify){
+  
+  /* if destination and modify are the same variable, we want to switch the order 
+   * i.e. 
+   *     mod = map(+,mod,data);
+   * becomes
+   *     mod = map(+,data,mod);
+   */
+  if (destination == modify){
+    string tmpModify = modify;
+    modify = source;
+    source = tmpModify;
+  }
+  
   // define names of vars in prog
   obj_names src_objnames = get_obj_names(source);
   string src_dev = src_objnames.dev;
@@ -655,22 +668,6 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
   if (destination != source){
     cuda_outstr += copyDevData(source, destination);
 
-    /*
-    if (dest_type != src_type){
-      // throw exception because dest_type needs to be same as src_type for
-      // copy to succeed
-      char error_msg[100+destination.length()+source.length()];
-      sprintf(error_msg, "in makeMap: destination (%s) and source (%s) are different types", 
-          destination.c_str(), source.c_str());
-      throw runtime_error(error_msg);
-    }
-
-    cuda_outstr += prep_str(dest_dev + " = " + src_dev + "; // copy destination to source");
-
-    // also need to make sure rows/cols are set
-    cuda_outstr += prep_str(dest_rows + " = " + src_rows + ";");
-    cuda_outstr += prep_str(dest_cols + " = " + src_cols + ";");
-    cuda_outstr += "\n";*/
   }
 
   // if 'modify' is not in the symtab, then we need to create a device_vector
