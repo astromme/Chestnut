@@ -16,6 +16,8 @@ Value::Value( const QString& name, const QString& datatype)
   : Data(name, Data::Value, datatype)
 {
   m_name = name;
+  m_intValue = 0;
+  m_floatValue = 0;
   
   Sink *inputValue = new Sink(Data::Value, this);
   m_sinks.append(inputValue);
@@ -90,4 +92,14 @@ void Value::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
   xpos -= 0.5*QApplication::fontMetrics().width(m_name);
   ypos -= 5;
   painter->drawText(xpos, ypos, m_name);
+  
+  if (isInitialized()) {
+    QString valueText;
+    if (datatype() == "float") {
+      valueText = QString("%L1").arg(m_floatValue, 0, 'f', 2);
+    } else if (datatype() == "int") {
+      valueText = QString::number(m_intValue);
+    }
+    painter->drawText(boundingRect(), Qt::AlignCenter, valueText);
+  }
 }
