@@ -63,7 +63,7 @@ bool Object::visited()
 {
   return m_visited;
 }
-Object::setVisited ( bool visited )
+void Object::setVisited ( bool visited )
 {
   m_visited = visited;
 }
