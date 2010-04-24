@@ -9,6 +9,8 @@ class Value : public Data {
   public:
     Value(const QString &name);
     virtual ~Value();
+
+    virtual ProgramStrings flatten() const;
     
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);

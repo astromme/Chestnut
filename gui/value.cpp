@@ -26,6 +26,15 @@ Value::~Value()
 
 }
 
+ProgramStrings Value::flatten() const
+{
+  QString declaration = name();
+  ProgramStrings ps;
+  ps.first.append("");
+  return ProgramStrings();
+}
+
+
 QRectF Value::boundingRect() const
 {
   QPointF margin(1, 1);

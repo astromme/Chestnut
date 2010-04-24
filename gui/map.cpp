@@ -34,9 +34,30 @@ ProgramStrings Map::flatten() const
   //TODO Finish/talk to ryan
   //TODO Make flatten return ProgramStrings
   //qDebug() << m_sources[0]
+  
+  // set visited flag
+  
+  foreach(Sink *sink, sinks()){
+    //Data* sinkData = sink->sourceData();
+  }
+  
+  // do map stuff
+  
+  foreach(Source *source, sources()){
+  }
+  
+/* 
   foreach(Sink *connectedSink, m_sources[0]->connectedSinks()) {
     qDebug() << "connected sink";
     Object *connectedObject = connectedSink->parentObject();
+   
+    // if either of the sinks are coming from a DataBlock source, we need to create a temporary variable in between the two functions
+    if (m_sinks[1]->connectedSource()->dataType() == Data::DataBlock){
+      qDebug() << "Connected Source at location 1 is a DataBlock";
+    }
+    if (m_sinks[0]->connectedSource()->dataType() == Data::DataBlock){
+      qDebug() << "Connected Source at location 0 is a DataBlock";
+    }
     
     QString functionLine = QString("%1 = map(%2, %3, %4);")
       .arg(connectedObject->name())
@@ -46,11 +67,11 @@ ProgramStrings Map::flatten() const
       
     ProgramStrings ps;
     ps.second.append(functionLine);
-    ProgramStrings connected = connectedObject->flatten();
-    return ProgramStrings(ps.first + ps.first, ps.second + connected.second);
-    //return ps + connectedObject->flatten();
+   
+    return ps + connectedObject->flatten();
   }
-  Data::tempData(Data::DataBlock);
+  QString tmpData = Data::tempData(Data::DataBlock);
+*/
   return ProgramStrings();
   //map(+,2,data);
 }
