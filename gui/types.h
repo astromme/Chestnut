@@ -15,10 +15,12 @@ namespace ChestnutItemType {
   const int Map = QGraphicsItem::UserType + 21;
   const int Sort = QGraphicsItem::UserType + 22;
   const int Reduce = QGraphicsItem::UserType + 23;
+  const int Print = QGraphicsItem::UserType + 24;
+  const int Write = QGraphicsItem::UserType + 25;
   
   // Sinks/Sources
-  const int Source = QGraphicsItem::UserType + 30;
-  const int Sink = QGraphicsItem::UserType + 31;
+  const int Source = QGraphicsItem::UserType + 40;
+  const int Sink = QGraphicsItem::UserType + 41;
 }
 
 #endif //CHESTNUT_TYPES_H
