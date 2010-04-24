@@ -22,6 +22,11 @@ Function::Function(const QString& name, QGraphicsObject* parent)
 
 Function::~Function() {}
 
+bool Function::isFunction() const
+{
+  return true;
+}
+
 QString Function::name() const{
   return m_name;
 }
