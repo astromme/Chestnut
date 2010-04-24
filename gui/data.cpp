@@ -1,4 +1,5 @@
 #include "data.h"
+#include "sink.h"
 
 
 Data::Data(const QString& name, Data::Format format, const QString &datatype)
@@ -27,12 +28,16 @@ bool Data::isData() const
 
 bool Data::isInitialized() const
 {
-  // if sources to data have no connections, 
+  // if sinks to data have no connections, 
   // then nothing is feeding into them
-  QList<Source*> dataSources = sources();
-  return true;
+  if (sinks().size() == 0) {
+    return true; // no sinks so it is required to be init
+  }
+  if (sinks()[0]->isConnected()) {
+    return true;
+  }
+  return false;
 }
-
 
 QString Data::name() const
 {
