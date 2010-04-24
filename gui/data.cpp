@@ -14,6 +14,12 @@ Data::~Data()
 
 }
 
+int Data::type() const
+{
+  return Type;
+}
+
+
 bool Data::isData() const
 {
   return true;

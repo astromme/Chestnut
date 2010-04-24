@@ -11,6 +11,9 @@ class DataBlock : public Data {
     DataBlock(const QString &name, const QString &datatype, int rows, int columns);
     virtual ~DataBlock();
     
+    enum { Type = ChestnutItemType::DataBlock };
+    int type() const;
+    
     int rows() const;
     int columns() const;
     

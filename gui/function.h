@@ -17,6 +17,9 @@ class Function : public Object {
     Function(const QString& name, QGraphicsObject* parent = 0);
     virtual ~Function();
     
+    enum { Type = ChestnutItemType::Function };
+    int type() const;
+    
     virtual bool isFunction() const;
     
     //virtual QStringList flatten() const = 0;

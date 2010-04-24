@@ -8,6 +8,9 @@ class Map : public Function {
   public:
     Map(QGraphicsObject* parent = 0);
     
+    enum { Type = ChestnutItemType::Map };
+    int type() const;
+    
     virtual ProgramStrings flatten() const;
   private:
 };

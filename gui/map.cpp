@@ -29,6 +29,11 @@ Map::Map(QGraphicsObject* parent)
   setOperation(op);
 }
 
+int Map::type() const
+{
+  return Type;
+}
+
 ProgramStrings Map::flatten() const
 {
   //TODO Finish/talk to ryan
