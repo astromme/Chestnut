@@ -17,6 +17,7 @@ Function::Function(const QString& name, QGraphicsObject* parent)
 {
   m_hasOperation = false;
   m_operation = 0;
+  m_name = name;
 }
 
 Function::~Function() {}
