@@ -9,10 +9,10 @@
 Map::Map(QGraphicsObject* parent)
   : Function("map", parent)
 {
-  Data::Types in1;
+  Data::Formats in1;
   in1 << Data::DataBlock;
  
-  Data::Types in2;
+  Data::Formats in2;
   in2 << Data::DataBlock;
   in2 << Data::Value;
   

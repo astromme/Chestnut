@@ -13,18 +13,18 @@
 
 using namespace Chestnut;
 
-Source::Source(Data::Type type, Object* parent)
+Source::Source(Data::Format format, Object* parent)
   : QGraphicsObject(parent)
 {
-  m_dataType = type;
+  m_format = format;
   m_activeConnection = 0;
   m_parent = parent;
   connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
   connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
-Data::Type Source::dataType() const
+Data::Format Source::format() const
 {
-  return m_dataType;
+  return m_format;
 }
 
 Connection* Source::connectToSink(Sink* sink)
@@ -82,7 +82,7 @@ void Source::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QW
 {
   QPointF center(Size::inputWidth/2, Size::inputHeight/2);
   painter->setBrush(Qt::gray);
-  switch (m_dataType) {
+  switch ( m_format) {
     case Data::Value:
       painter->drawPath(triangle(center, Size::inputWidth, Size::inputHeight));
       break;
@@ -92,7 +92,7 @@ void Source::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QW
       break;
       
     default:
-      qDebug() << "Unhandled datatype" << m_dataType;
+      qDebug() << "Unhandled datatype" << m_format;
       break;
   }
 }
@@ -116,7 +116,7 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   Sink *s = 0;
   foreach(QGraphicsItem *item, scene()->items(mapToScene(event->pos()))) {
     Sink* sink = qgraphicsitem_cast<Sink*>(item);
-    if (sink && sink->allowedTypes().contains(dataType())) {
+    if (sink && sink->allowedFormats().contains(format())) {
       m_activeConnection->setSink(sink);
       return;
     }

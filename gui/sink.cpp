@@ -11,19 +11,19 @@
 
 using namespace Chestnut;
 
-Sink::Sink(Data::Types allowedTypes, Object* parent)
+Sink::Sink(Data::Formats allowedFormats, Object* parent)
   : QGraphicsObject(parent)
 {
-  m_allowedTypes = allowedTypes;
+  m_allowedFormats = allowedFormats;
   m_connection = 0;
   m_internalMargin = 2;
   m_parent = parent;
   connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
   connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
-Data::Types Sink::allowedTypes() const
+Data::Formats Sink::allowedFormats() const
 {
-  return m_allowedTypes;
+  return m_allowedFormats;
 }
 
 int Sink::type() const
@@ -50,11 +50,11 @@ void Sink::setConnection(Connection* connection)
     return;
   }
   
-  Data::Type type = connection->source()->dataType();
-  Q_ASSERT(allowedTypes().contains(type));
+  Data::Format format = connection->source()->format();
+  Q_ASSERT( allowedFormats().contains(format));
   
   m_connection = connection;
-  m_connectionType = type;
+  m_connectionFormat = format;
 }
 
 Connection* Sink::connection() const
@@ -68,7 +68,7 @@ QPointF Sink::connectedCenter()
     return QPointF();
   }
   
-  int location = m_allowedTypes.indexOf(m_connectionType);
+  int location = m_allowedFormats.indexOf( m_connectionFormat);
   QPointF center(Size::inputHeight/2, Size::inputHeight/2);
   center += QPointF(location*(m_internalMargin + Size::inputHeight), 0);
   return center;
@@ -76,10 +76,10 @@ QPointF Sink::connectedCenter()
 
 QRectF Sink::rect() const {
   qreal totalWidth = 0;
-  foreach(Data::Type type, m_allowedTypes) {
+  foreach(Data::Format format, m_allowedFormats) {
     totalWidth += Size::inputHeight;
   }
-  totalWidth += m_internalMargin*m_allowedTypes.length();
+  totalWidth += m_internalMargin*m_allowedFormats.length();
 
   QPointF topLeft = QPointF(0, 0);
   QPointF bottomRight = QPointF(totalWidth, Size::inputHeight);
@@ -97,9 +97,9 @@ void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
   
   QPointF topLeft = QPointF(0, 0);
   
-  foreach(Data::Type type, m_allowedTypes) {
+  foreach(Data::Format format, m_allowedFormats) {
     QPointF center = topLeft + QPointF(Size::inputHeight/2, Size::inputHeight/2);
-    switch (type) {
+    switch (format) {
       case Data::Value:
         painter->drawPath(triangle(center, Size::inputHeight, Size::inputHeight));
         break;
@@ -109,7 +109,7 @@ void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
         break;
         
       default:
-        qDebug() << "Unhandled datatype" << type;
+        qDebug() << "Unhandled datatype" << format;
         break;
     }
   topLeft = QPointF(topLeft.x() + Size::inputHeight + m_internalMargin, topLeft.y());
