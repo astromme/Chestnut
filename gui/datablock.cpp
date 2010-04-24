@@ -5,6 +5,8 @@
 #include <QPainter>
 
 #include <QDebug>
+#include "source.h"
+#include "sink.h"
 
 using namespace Chestnut;
 
@@ -14,6 +16,17 @@ DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, in
   m_rows = rows;
   m_columns = columns;
   m_dimension = 2;
+  
+  Formats inFormats;
+  inFormats << Data::DataBlock;
+  
+  Sink *in = new Sink(inFormats, this);
+  in->setPos(rect().left()+rect().width()/2, rect().top());
+  m_sinks.append(in);
+  
+  Source *out = new Source(Data::DataBlock, this);
+  out->setPos(rect().left()+rect().width()/2, rect().bottom());
+  m_sources.append(out);
 }
 
 DataBlock::~DataBlock()
