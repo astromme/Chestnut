@@ -18,9 +18,11 @@ class Data : public Object {
     Data(const QString &name);
     virtual ~Data();
     
+    Type dataType() const;
+    
     /** returns a unique name for a temporary variable of type t */
     static QString tempData(Type t);
-    virtual ProgramStrings flatten() const {return ProgramStrings	();} //TODO Fix
+    virtual ProgramStrings flatten() const {return ProgramStrings();} //TODO Fix
 };
 
 

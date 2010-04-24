@@ -5,15 +5,22 @@
 
 #include "data.h"
 
+// assumed to be 2d
 class DataBlock : public Data {
   public:
-    DataBlock(const QString &name);
+    DataBlock(const QString &name, int rows, int columns);
     virtual ~DataBlock();
     
+    int rows() const;
+    int columns() const;
+    
+    QRectF rect() const;
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
   private:
     int m_dimension;
+    int m_rows;
+    int m_columns;
 };
 
 #endif //CHESTNUT_DATABLOCK_H

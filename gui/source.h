@@ -8,6 +8,7 @@
 class Connection;
 class Object;
 class Sink;
+class Function;
 
 class Source : public QGraphicsObject {
   Q_OBJECT
@@ -18,6 +19,9 @@ class Source : public QGraphicsObject {
     Connection* connectToSink(Sink *sink);
     
     Object* parentObject() const;
+    
+    QList<Data*> connectedData() const;
+    QList<Function*> connectedFunctions() const;
     
     QList<Sink*> connectedSinks() const;
     void addConnection(Connection *connection);
