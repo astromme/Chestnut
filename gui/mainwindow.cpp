@@ -83,7 +83,19 @@ void MainWindow::writeFile()
       ProgramStrings prog = object->flatten();
       qDebug() << prog;
       writeToFile("DynamicChestnut.in", prog);
+      unvisitAll();
       return;
     }
   }
 }
+
+void MainWindow::unvisitAll()
+{
+  foreach(QGraphicsItem *item, m_scene->items()) {
+    Object *ob = qgraphicsitem_cast<Object*>(item);
+    if (ob) {
+      ob->setVisited(false);
+    }
+  }
+}
+
