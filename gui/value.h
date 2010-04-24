@@ -21,6 +21,8 @@ class Value : public Data {
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
   private:
     QString m_name;
+    int m_intValue;
+    float m_floatValue;
 };
 
 #endif //CHESTNUT_VALUE_H
