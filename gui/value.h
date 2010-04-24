@@ -1,3 +1,4 @@
+
 #ifndef CHESTNUT_VALUE_H
 #define CHESTNUT_VALUE_H
 
@@ -6,6 +7,7 @@
 #include "data.h"
 
 class Value : public Data {
+  Q_OBJECT
   public:
     Value(const QString &name, const QString &datatype="int");
     virtual ~Value();

@@ -11,6 +11,7 @@ namespace Ui {
 
 // assumed to be 2d
 class DataBlock : public Data {
+  Q_OBJECT
   public:
     DataBlock(const QString &name, const QString &datatype, int rows, int columns);
     virtual ~DataBlock();
@@ -28,6 +29,11 @@ class DataBlock : public Data {
     QRectF rect() const;
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
+    
+  private slots:
+    void configAccepted();
+    void configRejected();
+    
   private:
     int m_dimension;
     int m_rows;
