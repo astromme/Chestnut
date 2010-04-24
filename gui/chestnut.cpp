@@ -2,6 +2,7 @@
 #include <QApplication>
 #include <QWidget>
 #include <QDebug>
+#include <QFile>
 
 #include "ui_mainwindow.h"
 
@@ -11,6 +12,8 @@
 #include "sink.h"
 #include "map.h"
 #include "datablock.h"
+
+void writeToFile(QString fname, ProgramStrings prog);
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
@@ -40,7 +43,8 @@ int main(int argc, char* argv[]) {
   m1->sources()[0]->connectToSink(outmap->sinks()[0]);
 //   m1->sources()[0]->connectToSink(m3->sinks()[0]);
   
-  qDebug() << m1->flatten();
+  ProgramStrings prog = m1->flatten();
+  writeToFile("DynamicChestnut.in", prog);
 /*
   qDebug() << m2->flatten();
   qDebug() << m3->flatten();
@@ -64,3 +68,26 @@ int main(int argc, char* argv[]) {
  
   app.exec();
 }
+
+void writeToFile(QString fname, ProgramStrings prog)
+{
+  Declarations declarations = prog.first;
+  Executions executions = prog.second;
+  
+  QFile file(fname);
+  if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+      return;
+
+  QTextStream out(&file);
+  
+  foreach (QString dec, declarations){
+    out << dec << "\n";
+  }
+  
+  out << "\n";
+  
+  foreach (QString exec, executions){
+    out << exec << "\n";
+  }
+}
+
