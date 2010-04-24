@@ -18,8 +18,8 @@ Value::Value( const QString& name, const QString& datatype)
   m_name = name;
   
   Sink *inputValue = new Sink(Data::Value, this);
-  inputValue->setPos(Size::valueWidth/2, 0);
   m_sinks.append(inputValue);
+  inputValue->setPos(Size::valueWidth/2 - Size::inputWidth/2, 0);
   
   Source *outputValue = new Source(Data::Value, this);
   m_sources.append(outputValue);

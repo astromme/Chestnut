@@ -26,7 +26,7 @@ Sink::Sink(Data::Format allowedFormat, Object* parent)
 {
   Data::Formats allowedFormats;
   allowedFormats << allowedFormat;
-  Sink::Sink(allowedFormats, parent);
+  Sink(allowedFormats, parent);
 }
 
 
