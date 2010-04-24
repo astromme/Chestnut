@@ -14,6 +14,7 @@ using namespace Chestnut;
 Connection::Connection(Source* source, Sink* sink)
   : QGraphicsItem(source)
 {
+  setFlag(ItemIsSelectable);
   m_source = source;
   m_sink = sink;
   source->addConnection(this);
@@ -23,10 +24,11 @@ Connection::Connection(Source* source, Sink* sink)
 Connection::Connection(Source* source) 
   : QGraphicsItem(source)
 {
+  setFlag(ItemIsSelectable);
   m_source = source;
   source->addConnection(this);
   m_sink = 0;
-  m_partialEndpoint = source->connectedCenter();  
+  m_partialEndpoint = source->connectedCenter();
 }
 
 Connection::~Connection()

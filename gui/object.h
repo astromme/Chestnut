@@ -19,10 +19,18 @@ class Object : public QGraphicsObject {
     QList<Source*> sources() const;
     QList<Sink*> sinks() const;
     
+    virtual void mousePressEvent ( QGraphicsSceneMouseEvent* event );
+    virtual void mouseMoveEvent ( QGraphicsSceneMouseEvent* event );
+    virtual void mouseReleaseEvent ( QGraphicsSceneMouseEvent* event );
+    
+    virtual QVariant itemChange ( GraphicsItemChange change, const QVariant& value );
+    
   protected:
     QList<Source*> m_sources;
     QList<Sink*> m_sinks;
     QString m_name;
+private:
+    bool m_moved;
 };
 
 #endif //CHESTNUT_OBJECT_H
