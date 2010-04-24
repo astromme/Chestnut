@@ -17,6 +17,7 @@ set(chestnut_functions
     reduce.cpp
     sort.cpp
     print.cpp
+    write.cpp
     )
 
 set(chestnut_datatypes

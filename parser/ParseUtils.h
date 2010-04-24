@@ -44,7 +44,7 @@ class ParseUtils {
 
     void makeMap(string source, string destination, string op, string modify);
     void makeReduce(string source, string destination, string op);
-    void makeSort(string source, string destination);
+    void makeSort(string source, string destination, string comparator);
 
     void makeReadDatafile(string fname, string object, string type);
     void makeWriteDatafile(string fname, string object);
