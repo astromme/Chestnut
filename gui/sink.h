@@ -7,6 +7,7 @@
 
 class Object;
 class Connection;
+class Function;
 
 class Sink : public QGraphicsObject {
   Q_OBJECT
@@ -18,6 +19,9 @@ class Sink : public QGraphicsObject {
     Data::Types allowedTypes() const;
     
     Object* parentObject() const;
+    
+    Data* sourceData() const;
+    Function* sourceFunction() const;
     
     Source* connectedSource() const;
     void setConnection(Connection *connection);
