@@ -44,17 +44,32 @@ int DataBlock::columns() const
 
 ProgramStrings DataBlock::flatten() const
 {
-  QString datablockInChestnut = "vector";	
-  QString declaration = datatype() + " " + name() + " " + datablockInChestnut;
-  qDebug() << "flatten called on datablock: " << declaration;
+ 
+  if (isVisited()){
+    return ProgramStrings();
+  }
+  setVisited(true);
+  
   ProgramStrings ps;
-  ps.first.append(declaration);
-
   foreach(Sink *sink, sinks()){
     if (sink->isConnected()) {
       Data* sinkData = sink->sourceData();
       //ps += sinkData->flatten();
       ps = ps + sinkData->flatten();
+    }
+  }
+
+  QString datablockInChestnut = "vector";	
+  QString declaration = datatype() + " " + name() + " " + datablockInChestnut + ";";
+  /*QString declaration = datatype() + " " +
+    name() + " " +*/
+    
+  ps.first.append(declaration);
+  
+  foreach(Source *source, sources()){
+    QList<Data*> sourceData = source->connectedData();
+    foreach (Data* sData, sourceData){
+      ps = ps + sData->flatten();
     }
   }
   
