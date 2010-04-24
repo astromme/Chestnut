@@ -3,6 +3,7 @@
 #include <QGraphicsScene>
 #include <QToolBar>
 #include <QDebug>
+#include <QTextEdit>
 
 #include "value.h"
 #include "function.h"
@@ -81,8 +82,19 @@ void MainWindow::writeFile()
       object->isFunction();
       qDebug() << "yay";
       ProgramStrings prog = object->flatten();
-      qDebug() << prog;
+      
+      // Show resulting program in a window
+      QTextEdit *resultingProgram = new QTextEdit();
+      resultingProgram->append(prog.first.join("\n"));
+      resultingProgram->append("\n");
+      resultingProgram->append(prog.second.join("\n"));
+      resultingProgram->resize(400, 200);
+      resultingProgram->show();
+      
+      // Write resulting program to a file
       writeToFile("DynamicChestnut.in", prog);
+      
+      // Reset nodes so we can run this again
       unvisitAll();
       return;
     }
