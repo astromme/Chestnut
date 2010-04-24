@@ -1,12 +1,13 @@
 #include "datablock.h"
 
+#include "ui_datablock.h"
 #include "sizes.h"
 #include "data.h"
-#include <QPainter>
-
-#include <QDebug>
 #include "source.h"
 #include "sink.h"
+
+#include <QPainter>
+#include <QDebug>
 #include <QApplication>
 
 using namespace Chestnut;
@@ -17,6 +18,7 @@ DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, in
   m_rows = rows;
   m_columns = columns;
   m_dimension = 2;
+  m_ui = new Ui::DataBlockProperties;
   
 
   Sink *in = new Sink(Data::DataBlock, this);
@@ -83,6 +85,13 @@ ProgramStrings DataBlock::flatten() const
   }
   
   return ps;
+}
+
+void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  QDialog *dialog = new QDialog();
+  m_ui->setupUi(dialog);
+  dialog->show();
 }
 
 QRectF DataBlock::rect() const
