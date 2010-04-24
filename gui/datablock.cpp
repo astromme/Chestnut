@@ -91,8 +91,24 @@ void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   QDialog *dialog = new QDialog();
   m_ui->setupUi(dialog);
+  connect(dialog, SIGNAL(accepted()), SLOT(configAccepted()));
+  connect(dialog, SIGNAL(rejected()), SLOT(configRejected()));
   dialog->show();
 }
+
+void DataBlock::configAccepted()
+{
+  m_rows = m_ui->rows->value();
+  m_columns = m_ui->columns->value();
+  update();
+}
+
+void DataBlock::configRejected()
+{
+  m_ui->rows->setValue(m_rows);
+  m_ui->columns->setValue(m_columns);
+}
+
 
 QRectF DataBlock::rect() const
 {
