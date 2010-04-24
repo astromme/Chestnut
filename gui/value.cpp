@@ -55,7 +55,9 @@ ProgramStrings Value::flatten() const
   }
   
   QString valueInChestnut = "scalar";
-  QString declaration = datatype() + " " + name() + " " + valueInChestnut + ";";
+  //QString declaration = datatype() + " " + name() + " " + valueInChestnut + ";";
+  QString declaration = datatype() + " " +
+    name() + " ";
   ps.first.append(declaration);
   
   foreach(Source *source, sources()){
