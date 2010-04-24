@@ -7,7 +7,7 @@
 #include <QDebug>
 
 Write::Write(QGraphicsObject* parent)
-  : Function("print", parent)
+  : Function("write", parent)
 {
   
   Data::Formats in;
