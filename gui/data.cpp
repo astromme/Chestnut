@@ -34,10 +34,22 @@ bool Data::isInitialized() const
     return true; // no sinks so it is required to be init
   }
   if (sinks()[0]->isConnected()) {
-    return true;
+    return false;
   }
-  return false;
+  return true;
 }
+
+void Data::setExpression(QString expr)
+{
+  m_expression = expr;
+}
+
+
+QString Data::expression() const
+{
+  return m_expression;
+}
+
 
 QString Data::name() const
 {
