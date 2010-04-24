@@ -52,7 +52,7 @@ QVariant Object::itemChange ( QGraphicsItem::GraphicsItemChange change, const QV
   return QGraphicsItem::itemChange(change, value);
 }
 
-bool Object::visited() const
+bool Object::isVisited() const
 {
   return m_visited;
 }
