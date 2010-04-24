@@ -93,6 +93,15 @@ void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   QDialog *dialog = new QDialog();
   m_ui->setupUi(dialog);
+  m_ui->name->setText(name());
+  if (datatype() == "int") {
+    m_ui->integers->setChecked(true);
+  } else {
+    m_ui->realnumbers->setChecked(true);
+  }
+  m_ui->rows->setValue(m_rows);
+  m_ui->columns->setValue(m_columns);
+  //TODO for loop vs read from file
   connect(dialog, SIGNAL(accepted()), SLOT(configAccepted()));
   connect(dialog, SIGNAL(rejected()), SLOT(configRejected()));
   dialog->show();
@@ -100,15 +109,20 @@ void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 
 void DataBlock::configAccepted()
 {
+  setName(m_ui->name->text());
+  if (m_ui->integers->isChecked()) {
+    setDatatype("int");
+  } else {
+    setDatatype("float");
+  }
   m_rows = m_ui->rows->value();
   m_columns = m_ui->columns->value();
+  //TODO for loop vs read from file
   update();
 }
 
 void DataBlock::configRejected()
 {
-  m_ui->rows->setValue(m_rows);
-  m_ui->columns->setValue(m_columns);
 }
 
 
