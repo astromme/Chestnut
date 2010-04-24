@@ -2,6 +2,7 @@
 
 #include <QGraphicsScene>
 #include <QToolBar>
+#include <QDebug>
 
 #include "value.h"
 #include "function.h"
@@ -18,6 +19,8 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   m_ui->setupUi(this);
   QToolBar *toolbar = addToolBar("Project Actions");
   toolbar->addAction(m_ui->actionBuild);
+  
+  connect(m_ui->actionBuild, SIGNAL(triggered(bool)), this, SLOT(writeFile()));
   
   // Create initial default objects
     
@@ -38,8 +41,6 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   m1->sources()[0]->connectToSink(outmap->sinks()[0]);
 //   m1->sources()[0]->connectToSink(m3->sinks()[0]);
   
-  ProgramStrings prog = m1->flatten();
-  writeToFile("DynamicChestnut.in", prog);
 /*
   qDebug() << m2->flatten();
   qDebug() << m3->flatten();
@@ -63,11 +64,26 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
 }
 MainWindow::~MainWindow()
 {
-
+  
 }
 
 
 void MainWindow::writeFile()
 {
-  
+  //TODO: Make less hacky
+  qDebug() << "Write File";
+  foreach(QGraphicsItem *item, m_scene->items()) {
+    if (item->type() != ChestnutItemType::Map) {
+      continue;
+    }
+    Object *object = (Object*)item;
+    if (object) {
+      object->isFunction();
+      qDebug() << "yay";
+      ProgramStrings prog = object->flatten();
+      qDebug() << prog;
+      writeToFile("DynamicChestnut.in", prog);
+      return;
+    }
+  }
 }

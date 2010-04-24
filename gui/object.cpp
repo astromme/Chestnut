@@ -37,6 +37,7 @@ QList< Sink* > Object::sinks() const
 
 void Object::mousePressEvent ( QGraphicsSceneMouseEvent* event )
 {
+  qDebug() << this;
   event->accept();
   m_moved = false;
 }
