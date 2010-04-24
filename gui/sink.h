@@ -15,7 +15,8 @@ class Sink : public QGraphicsObject {
     enum { Type = UserType + 5 };
     int type() const;
     
-    Sink( Data::Formats allowedFormats, Object* parent);
+    Sink(Data::Formats allowedFormats, Object *parent);
+    Sink(Data::Format allowedFormat, Object *parent); /**< Convenience function with 1 allowed format */
     Data::Formats allowedFormats() const;
     
     Object* parentObject() const;
