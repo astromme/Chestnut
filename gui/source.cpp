@@ -147,12 +147,16 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   foreach(QGraphicsItem *item, scene()->items(mapToScene(event->pos()))) {
     Sink* sink = qgraphicsitem_cast<Sink*>(item);
     if (sink && !sink->isConnected() && sink->allowedFormats().contains(format())) {
-      if (sink->parentObject()->isData()) {
+      if (parentObject()->isData()) {
         m_activeConnection->setSink(sink);
-      } else if (sink->parentObject()->isFunction()) {
-        // Create 'implicit' data TODO
-        //if (format())
-        //Data *temp = new 
+      } else if (parentObject()->isFunction()) {
+        if (sink->parentObject()->isData()) {
+          m_activeConnection->setSink(sink);
+        } else {
+          // Create 'implicit' data TODO
+          //if (format())
+          //Data *temp = new 
+        }
       }
       return;
     }
