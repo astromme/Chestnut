@@ -67,6 +67,9 @@
          <property name="checked">
           <bool>true</bool>
          </property>
+         <attribute name="buttonGroup">
+          <string>initializationGroup</string>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -91,6 +94,9 @@
          <property name="checked">
           <bool>false</bool>
          </property>
+         <attribute name="buttonGroup">
+          <string>initializationGroup</string>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -137,6 +143,9 @@
        <property name="checked">
         <bool>true</bool>
        </property>
+       <attribute name="buttonGroup">
+        <string>typeGroup</string>
+       </attribute>
       </widget>
      </item>
      <item row="3" column="1">
@@ -144,6 +153,9 @@
        <property name="text">
         <string>Real Numbers</string>
        </property>
+       <attribute name="buttonGroup">
+        <string>typeGroup</string>
+       </attribute>
       </widget>
      </item>
     </layout>
@@ -250,4 +262,8 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="initializationGroup"/>
+  <buttongroup name="typeGroup"/>
+ </buttongroups>
 </ui>
