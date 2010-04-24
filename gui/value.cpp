@@ -53,12 +53,12 @@ ProgramStrings Value::flatten() const
       ps = ps + sinkData->flatten();
     }
   }
-  
-  QString valueInChestnut = "scalar";
-  //QString declaration = datatype() + " " + name() + " " + valueInChestnut + ";";
-  QString declaration = datatype() + " " +
-    name() + " ";
-  ps.first.append(declaration);
+ 
+  if (!isInitialized()){
+    QString valueInChestnut = "scalar";
+    QString declaration = datatype() + " " + name() + " " + valueInChestnut + ";";
+    ps.first.append(declaration);
+  }
   
   foreach(Source *source, sources()){
     QList<Data*> sourceData = source->connectedData();
