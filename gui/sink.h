@@ -15,8 +15,8 @@ class Sink : public QGraphicsObject {
     enum { Type = UserType + 5 };
     int type() const;
     
-    Sink(Data::Types allowedTypes, Object *parent);
-    Data::Types allowedTypes() const;
+    Sink( Data::Formats allowedFormats, Object* parent);
+    Data::Formats allowedFormats() const;
     
     Object* parentObject() const;
     
@@ -47,10 +47,10 @@ class Sink : public QGraphicsObject {
     void moved();
 
   private:
-    Data::Types m_allowedTypes;
+    Data::Formats m_allowedFormats;
     Connection *m_connection;
     qreal m_internalMargin;
-    Data::Type m_connectionType;
+    Data::Format m_connectionFormat;
     Object* m_parent;
 };
 

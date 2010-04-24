@@ -1,11 +1,11 @@
 #include "data.h"
 
 
-Data::Data(const QString& name, Data::Type type, const QString &dataType)
+Data::Data(const QString& name, Data::Format format, const QString &datatype)
   : Object(0)
 {
-  m_type = type;
-  m_datatype = dataType;
+  m_format = format;
+  m_datatype = datatype;
 }
 
 Data::~Data()
@@ -17,10 +17,10 @@ QString Data::name() const
 {
   return m_name;
 }
-
-Data::Type Data::category() const
+Types
+Data::Format Data::format() const
 {
-  return m_type;
+  return m_format;
 }
 
 QString Data::datatype() const
@@ -28,10 +28,10 @@ QString Data::datatype() const
   return m_datatype;
 }
 
-QString Data::tempData(Type t) {
+QString Data::tempData(Format f) {
   static int counter = 0;
   counter++;
-  switch (t) {
+  switch (f) {
     case Data::Value:
       return QString("tempScalar%1").arg(counter);
     case Data::DataBlock:

@@ -13,8 +13,8 @@ class Function;
 class Source : public QGraphicsObject {
   Q_OBJECT
   public:
-    Source(Data::Type type, Object *parent);
-    Data::Type dataType() const;
+    Source(Data::Format type, Object *parent);
+    Data::Format format() const;
     
     Connection* connectToSink(Sink *sink);
     
@@ -51,7 +51,7 @@ private slots:
   void moved();
 
   private:
-    Data::Type m_dataType;
+    Data::Format m_format;
     QList<Connection*> m_connections;
     Connection* m_activeConnection;
     Object* m_parent;

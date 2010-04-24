@@ -111,7 +111,7 @@ QPainterPath Connection::path() const
 QPainterPath Connection::endShape() const
 {
   QPainterPath p;
-  switch (source()->dataType()) {
+  switch (source()->format()) {
     case Data::DataBlock:
       p.addEllipse(endpoint(), Size::inputRadius, Size::inputRadius);
       return p;

@@ -8,26 +8,26 @@
 
 class Data : public Object {
   public:
-    enum Type {
+    enum Format {
       Value = 0x0,
       DataBlock = 0x1
     };
     
-    typedef QList<Type> Types;
+    typedef QList<Format> Formats;
     
-    Data(const QString &name, Type type, const QString &dataType);
+    Data(const QString &name, Format format, const QString &datatype);
     virtual ~Data();
     
     QString name() const;
-    Type category() const;
+    Format format() const;
     QString datatype() const;
     
-    /** returns a unique name for a temporary variable of type t */
-    static QString tempData(Type t);
+    /** returns a unique name for a temporary variable of category t */
+    static QString tempData( Format t);
     virtual ProgramStrings flatten() const {return ProgramStrings();} //TODO Fix
     
   private:
-    Type m_type;
+    Format m_format;
     QString m_datatype;
     QString m_name;
 };
