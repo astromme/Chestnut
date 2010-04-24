@@ -47,8 +47,8 @@ class Source : public QGraphicsObject {
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
 
-private slots:
-  void moved();
+  private slots:
+    void moved();
 
   private:
     Data::Format m_format;

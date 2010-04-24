@@ -6,6 +6,7 @@
 
 #include <QPainter>
 #include <QApplication>
+#include <QDebug>
 
 using namespace Chestnut;
 
@@ -28,12 +29,13 @@ Value::~Value()
 
 ProgramStrings Value::flatten() const
 {
-  QString declaration = name();
+  QString valueInChestnut = "scalar";
+  QString declaration = datatype() + " " + name() + " " + valueInChestnut;
+  qDebug() << "flatten called on value: " << declaration;
   ProgramStrings ps;
-  ps.first.append("");
+  ps.first.append(declaration);
   return ProgramStrings();
 }
-
 
 QRectF Value::boundingRect() const
 {
