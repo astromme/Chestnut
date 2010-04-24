@@ -22,7 +22,7 @@ DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, in
   
 
   Sink *in = new Sink(Data::DataBlock, this);
-  in->setPos(rect().left()+rect().width()/2, rect().top());
+  in->setPos(rect().left()+rect().width()/2, rect().top()-Size::inputHeight);
   m_sinks.append(in);
   
   Source *out = new Source(Data::DataBlock, this);
