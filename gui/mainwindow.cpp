@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 
 #include <QGraphicsScene>
+#include <QToolBar>
 
 #include "value.h"
 #include "function.h"
@@ -15,6 +16,9 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
 {
   m_scene = new QGraphicsScene(this);
   m_ui->setupUi(this);
+  QToolBar *toolbar = addToolBar("Project Actions");
+  toolbar->addAction(m_ui->actionBuild);
+  
   // Create initial default objects
     
   Value *v = new Value("var");
