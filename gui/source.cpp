@@ -118,6 +118,11 @@ void Source::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QW
 
 void Source::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  if (parentObject()->isFunction() && m_connections.size() > 0) {
+    event->ignore();
+    return; // don't allow connections from functions to more than one data object
+  }
+  
   // allow us to get mouseMove/mouseRelease events
   event->accept();
   Connection *c = new Connection(this);
