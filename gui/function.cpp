@@ -105,11 +105,13 @@ void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
   qreal xpos = 0 - 0.5*QApplication::fontMetrics().width(m_name);
   qreal ypos = 0 - Size::operatorRadius - Size::operatorMargin;
   painter->drawText(xpos, ypos, m_name);
-  painter->save();
-    QPen pen(Qt::gray, 1, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
-    painter->setPen(pen);
-    painter->drawEllipse(operationPos(), Size::operatorRadius, Size::operatorRadius);
-  painter->restore();
+  if (hasOperation()) {
+    painter->save();
+      QPen pen(Qt::gray, 1, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
+      painter->setPen(pen);
+      painter->drawEllipse(operationPos(), Size::operatorRadius, Size::operatorRadius);
+    painter->restore();
+  }
   // Draw Outputs
   painter->drawRoundedRect(outputsRect(), 5, 5);
 }
