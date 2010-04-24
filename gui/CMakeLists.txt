@@ -50,6 +50,8 @@ set(chestnut_headers
 
 set(chestnut_ui
     mainwindow.ui
+    datablock.ui
+    value.ui
     )
 
 qt4_wrap_cpp(chestnut_mocs ${chestnut_headers})
