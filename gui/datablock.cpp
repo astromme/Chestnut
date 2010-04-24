@@ -2,6 +2,7 @@
 
 #include "sizes.h"
 #include "data.h"
+#include <QPainter>
 
 using namespace Chestnut;
 
@@ -45,5 +46,5 @@ QRectF DataBlock::boundingRect() const
 
 void DataBlock::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  
+  painter->drawRect(rect());
 }

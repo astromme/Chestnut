@@ -10,6 +10,7 @@
 #include "source.h"
 #include "sink.h"
 #include "map.h"
+#include "datablock.h"
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
@@ -26,6 +27,10 @@ int main(int argc, char* argv[]) {
   Map *m1 = new Map();
   Map *m2 = new Map();
   Map *m3 = new Map();
+  
+  DataBlock *var = new DataBlock("var1", "float", 10, 10);
+  s.addItem(var);
+  var->moveBy(-50, 50);
   
   m2->sources()[0]->connectToSink(m1->sinks()[0]);
   v->sources()[0]->connectToSink(m1->sinks()[1]);

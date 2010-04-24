@@ -23,7 +23,7 @@ class Data : public Object {
     QString datatype() const;
     
     /** returns a unique name for a temporary variable of category t */
-    static QString tempData( Format t);
+    static QString tempData(Data::Format f);
     virtual ProgramStrings flatten() const {return ProgramStrings();} //TODO Fix
     
   private:

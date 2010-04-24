@@ -28,7 +28,7 @@ QString Data::datatype() const
   return m_datatype;
 }
 
-QString Data::tempData(Format f) {
+QString Data::tempData(Data::Format f) {
   static int counter = 0;
   counter++;
   switch (f) {

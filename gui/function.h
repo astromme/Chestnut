@@ -1,7 +1,6 @@
 #ifndef CHESTNUT_FUNCTION_H
 #define CHESTNUT_FUNCTION_H
 
-#include "type.h"
 #include "object.h"
 
 #include <QPair>
