@@ -4,6 +4,7 @@
 #include <QtGui/QMainWindow>
 #include "ui_mainwindow.h"
 
+class QStandardItemModel;
 class QGraphicsScene;
 
 class MainWindow : public QMainWindow
@@ -19,6 +20,7 @@ class MainWindow : public QMainWindow
     
   private:
     QGraphicsScene *m_scene;
+    QStandardItemModel *m_model;
     Ui::MainWindow *m_ui;
 };
 
