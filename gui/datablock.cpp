@@ -61,20 +61,22 @@ ProgramStrings DataBlock::flatten() const
   foreach(Sink *sink, sinks()){
     if (sink->isConnected()) {
       Data* sinkData = sink->sourceData();
-      //ps += sinkData->flatten();
       ps = ps + sinkData->flatten();
     }
   }
-
-  QString datablockInChestnut = "vector";	
-  //QString declaration = datatype() + " " + name() + " " + datablockInChestnut + ";";
-  QString declaration = datatype() + " " +
-    name() + " " +
-    QString::number(m_rows) + " " +
-    QString::number(m_columns) + " " +
-    "foreach ( value = 1 )" + ";";
-    
-    
+ 
+  QString datablockInChestnut = "vector";
+  QString declaration;
+  if (isInitialized()){
+    declaration = datatype() + " " +
+      name() + " " +
+      QString::number(m_rows) + " " +
+      QString::number(m_columns) + " " +
+      expression() + ";";
+  } else {
+    declaration = datatype() + " " + name() + " " + datablockInChestnut + ";";
+  }
+  
   ps.first.append(declaration);
   
   foreach(Source *source, sources()){

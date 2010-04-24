@@ -24,6 +24,9 @@ class Data : public Object {
     virtual bool isData() const;
     virtual bool isInitialized() const;
     
+    void setExpression(QString expr);
+    
+    QString expression() const;
     QString name() const;
     Format format() const;
     QString datatype() const;
@@ -36,6 +39,7 @@ class Data : public Object {
     Format m_format;
     QString m_datatype;
     QString m_name;
+    QString m_expression;
 };
 
 

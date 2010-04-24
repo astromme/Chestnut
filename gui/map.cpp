@@ -24,7 +24,7 @@ Map::Map(QGraphicsObject* parent)
   Source *output1 = new Source(Data::DataBlock, this);
   addSource(output1);
   
-  Operation *op = new StandardOperation(StandardOperation::Multiply, this);
+  Operation *op = new StandardOperation(StandardOperation::Add, this); // TODO allow op to be set
   setHasOperation(true);
   setOperation(op);
 }
@@ -36,10 +36,6 @@ int Map::type() const
 
 ProgramStrings Map::flatten() const
 {
-  //TODO Finish/talk to ryan
-  //TODO Make flatten return ProgramStrings
-  //qDebug() << m_sources[0]
-
   if (isVisited()){
     return ProgramStrings();
   }
@@ -54,12 +50,20 @@ ProgramStrings Map::flatten() const
     ps = ps + sinkData->flatten();
   }
 
-  QString functioncall = QString("%1 = map(%2, %3, %4);")
-    //.arg(m_sources[0]->connectedData)
-    .arg(m_sources[0]->connectedData()[0]->name())
-    .arg(operation()->name())
-    .arg(m_sinks[1]->sourceData()->name())
-    .arg(m_sinks[0]->sourceData()->name());
+  QString functioncall;
+  if (m_sinks[1]->sourceData()->format() == Data::DataBlock){
+    functioncall = QString("%1 = map(%2, %3, %4);")
+      .arg(m_sources[0]->connectedData()[0]->name())
+      .arg(operation()->name())
+      .arg(m_sinks[1]->sourceData()->name())
+      .arg(m_sinks[0]->sourceData()->name());
+  } else {
+    functioncall = QString("%1 = map(%2, %3, %4);")
+      .arg(m_sources[0]->connectedData()[0]->name())
+      .arg(operation()->name())
+      .arg(m_sinks[1]->sourceData()->expression())
+      .arg(m_sinks[0]->sourceData()->name());
+  }
     
   ps.second.append(functioncall);
   
