@@ -64,6 +64,9 @@
          <property name="text">
           <string>For Loop</string>
          </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -72,7 +75,7 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>value = maxRows;</string>
+          <string>value = maxRows</string>
          </property>
         </widget>
        </item>
