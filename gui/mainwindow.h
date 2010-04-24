@@ -15,6 +15,7 @@ class MainWindow : public QMainWindow
     
   private slots:
     void writeFile();
+    void unvisitAll();
     
   private:
     QGraphicsScene *m_scene;
