@@ -7,6 +7,7 @@
 #include <QDebug>
 #include "source.h"
 #include "sink.h"
+#include <QApplication>
 
 using namespace Chestnut;
 
@@ -67,4 +68,8 @@ QRectF DataBlock::boundingRect() const
 void DataBlock::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->drawRect(rect());
+  painter->drawText(rect(), Qt::AlignBottom | Qt::AlignHCenter, name());
+  painter->drawText(rect(), Qt::AlignTop | Qt::AlignHCenter, QString("%1 rows").arg(rows()));
+  QRectF smaller = rect().adjusted(0, QApplication::fontMetrics().height(), 0, 0);
+  painter->drawText(smaller, Qt::AlignTop | Qt::AlignHCenter, QString("%1 cols").arg(columns()));
 }

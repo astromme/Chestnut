@@ -6,6 +6,7 @@ Data::Data(const QString& name, Data::Format format, const QString &datatype)
 {
   m_format = format;
   m_datatype = datatype;
+  m_name = name;
 }
 
 Data::~Data()
