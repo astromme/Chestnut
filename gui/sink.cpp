@@ -24,7 +24,8 @@ Sink::Sink(Data::Formats allowedFormats, Object* parent)
 Sink::Sink(Data::Format allowedFormat, Object* parent)
   : QGraphicsObject(parent)
 {
-  Data::Format allowedFormats(allowedFormat);
+  Data::Formats allowedFormats;
+  allowedFormats << allowedFormat;
   Sink::Sink(allowedFormats, parent);
 }
 
