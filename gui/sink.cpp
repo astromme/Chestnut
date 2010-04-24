@@ -21,6 +21,14 @@ Sink::Sink(Data::Formats allowedFormats, Object* parent)
   connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
   connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
+Sink::Sink(Data::Format allowedFormat, Object* parent)
+  : QGraphicsObject(parent)
+{
+  Data::Format allowedFormats(allowedFormat);
+  Sink::Sink(allowedFormats, parent);
+}
+
+
 Data::Formats Sink::allowedFormats() const
 {
   return m_allowedFormats;

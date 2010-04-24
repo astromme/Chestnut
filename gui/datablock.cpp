@@ -18,10 +18,8 @@ DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, in
   m_columns = columns;
   m_dimension = 2;
   
-  Formats inFormats;
-  inFormats << Data::DataBlock;
-  
-  Sink *in = new Sink(inFormats, this);
+
+  Sink *in = new Sink(Data::DataBlock, this);
   in->setPos(rect().left()+rect().width()/2, rect().top());
   m_sinks.append(in);
   
