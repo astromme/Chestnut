@@ -15,16 +15,20 @@ class Data : public Object {
     
     typedef QList<Type> Types;
     
-    Data(const QString &name);
+    Data(const QString &name, Type type, const QString &dataType);
     virtual ~Data();
     
-    QString name() const;
-    Type dataType() const;
+    QString name();
+    Type category() const;
+    QString datatype() const;
     
     /** returns a unique name for a temporary variable of type t */
     static QString tempData(Type t);
     virtual ProgramStrings flatten() const {return ProgramStrings();} //TODO Fix
+    
   private:
+    Type m_type;
+    QString m_datatype;
     QString m_name;
 };
 
