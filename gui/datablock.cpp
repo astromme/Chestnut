@@ -55,11 +55,11 @@ ProgramStrings DataBlock::flatten() const
   }
   setVisited(true);
   
-  ProgramStrings ps;
+  ProgramStrings prog;
   foreach(Sink *sink, sinks()){
     if (sink->isConnected()) {
       Data* sinkData = sink->sourceData();
-      ps = ps + sinkData->flatten();
+      prog = prog + sinkData->flatten();
     }
   }
  
@@ -75,16 +75,16 @@ ProgramStrings DataBlock::flatten() const
     declaration = datatype() + " " + name() + " " + datablockInChestnut + ";";
   }
   
-  ps.first.append(declaration);
+  prog.first.append(declaration);
   
   foreach(Source *source, sources()){
     QList<Data*> sourceData = source->connectedData();
     foreach (Data* sData, sourceData){
-      ps = ps + sData->flatten();
+      prog = prog + sData->flatten();
     }
   }
   
-  return ps;
+  return prog;
 }
 
 QRectF DataBlock::rect() const
