@@ -41,6 +41,7 @@ class Function : public Object {
   protected:
     bool m_hasOperation;
     Operation *m_operation;
+    QString m_name;
     
 };
 

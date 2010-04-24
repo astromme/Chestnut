@@ -26,6 +26,12 @@ int DataBlock::columns() const
   return m_columns;
 }
 
+ProgramStrings DataBlock::flatten() const
+{
+  return ProgramStrings();
+}
+
+
 QRectF DataBlock::rect() const
 {
   return QRectF(QPointF(0, 0), QSizeF(Size::dataBlockWidth, Size::dataBlockHeight));

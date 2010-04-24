@@ -14,6 +14,8 @@ class DataBlock : public Data {
     int rows() const;
     int columns() const;
     
+    virtual ProgramStrings flatten() const;
+    
     QRectF rect() const;
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);

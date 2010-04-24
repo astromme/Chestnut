@@ -37,6 +37,7 @@ set(chestnut_sources
     sink.cpp
     connection.cpp
     drawingutils.cpp
+    datautils.cpp
     ${chestnut_functions}
     ${chestnut_operators}
     ${chestnut_datatypes}

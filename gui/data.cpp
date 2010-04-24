@@ -1,13 +1,18 @@
 #include "data.h"
 
 Data::Data(const QString& name)
-  : Object(name, 0)
+  : Object(0)
 {
 }
 
 Data::~Data()
 {
 
+}
+
+QString Data::name() const
+{
+  return m_name;
 }
 
 QString Data::tempData(Type t) {

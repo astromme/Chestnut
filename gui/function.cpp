@@ -13,13 +13,17 @@
 using namespace Chestnut;
 
 Function::Function(const QString& name, QGraphicsObject* parent)
-  : Object(name, parent)
+  : Object(parent)
 {
   m_hasOperation = false;
   m_operation = 0;
 }
 
 Function::~Function() {}
+
+QString Function::name() const{
+  return m_name;
+}
 
 /// Operation Goodness
 void Function::setHasOperation(bool hasOperation) {

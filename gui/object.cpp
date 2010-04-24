@@ -5,10 +5,9 @@
 #include <QDebug>
 #include <QGraphicsSceneMouseEvent>
 
-Object::Object(const QString &name, QGraphicsObject* parent)
+Object::Object(QGraphicsObject* parent)
   : QGraphicsObject(parent)
 {
-  m_name = name;
   m_moved = false;
   m_visited = false;
   setFlag(ItemIsMovable);
@@ -16,11 +15,6 @@ Object::Object(const QString &name, QGraphicsObject* parent)
 Object::~Object()
 {
 
-}
-
-QString Object::name() const
-{
-  return m_name;
 }
 
 QList< Source* > Object::sources() const
@@ -31,7 +25,6 @@ QList< Sink* > Object::sinks() const
 {
   return m_sinks;
 }
-
 
 void Object::mousePressEvent ( QGraphicsSceneMouseEvent* event )
 {
