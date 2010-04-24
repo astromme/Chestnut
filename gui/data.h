@@ -19,6 +19,7 @@ class Data : public Object {
     virtual ~Data();
     
     virtual bool isData() const;
+    virtual bool isInitialized() const;
     
     QString name() const;
     Format format() const;

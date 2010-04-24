@@ -19,6 +19,15 @@ bool Data::isData() const
   return true;
 }
 
+bool Data::isInitialized() const
+{
+  // if sources to data have no connections, 
+  // then nothing is feeding into them
+  QList<Source*> dataSources = sources();
+  return true;
+}
+
+
 QString Data::name() const
 {
   return m_name;

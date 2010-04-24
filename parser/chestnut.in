@@ -2,16 +2,16 @@
 float data 2 2 foreach ( value = rand/RAND_MAX );
     //int data 5000 5000 foreach ( value = 1+2 );
     //int twos 5000 5000 foreach ( value = 2 );
-int datasort vector;
-int dataRes scalar;
+float datasort vector;
+float dataRes scalar;
 
 data = map(+, 1, data);
 //datamap = map(+, twos, data);
 //data = map(+, 1, data);
 
-//print2D data;
-//data = sort(data);
-//print2D data;
+print2D data;
+datasort = sort(data);
+print2D datasort;
 
 //dataRes = reduce(+,data); // TODO: check to make sure dataRes is a scalar
     //datafor = map(+,datafor2,datafor);
