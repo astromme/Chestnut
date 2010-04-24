@@ -51,8 +51,14 @@ ProgramStrings DataBlock::flatten() const
   qDebug() << "flatten called on datablock: " << declaration;
   ProgramStrings ps;
   ps.first.append(declaration);
+
+  foreach(Sink *sink, sinks()){
+    Data* sinkData = sink->sourceData();
+    //ps += sinkData->flatten();
+    ps = ps + sinkData->flatten();
+  }
   
-  return ProgramStrings();
+  return ps;
 }
 
 QRectF DataBlock::rect() const
