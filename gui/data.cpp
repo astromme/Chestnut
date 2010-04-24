@@ -17,7 +17,7 @@ QString Data::name() const
 {
   return m_name;
 }
-Types
+
 Data::Format Data::format() const
 {
   return m_format;
