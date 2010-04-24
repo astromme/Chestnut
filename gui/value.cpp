@@ -7,6 +7,7 @@
 #include <QPainter>
 #include <QApplication>
 #include <QDebug>
+#include "sink.h"
 
 using namespace Chestnut;
 
@@ -14,6 +15,9 @@ Value::Value( const QString& name, const QString& datatype)
   : Data(name, Data::Value, datatype)
 {
   m_name = name;
+  
+  Sink *inputValue = new Sink(Data::Value, this);
+  m_sinks.append(inputValue);
   
   Source *outputValue = new Source(Data::Value, this);
   m_sources.append(outputValue);
