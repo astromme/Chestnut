@@ -9,8 +9,8 @@
 
 using namespace Chestnut;
 
-Value::Value(const QString& name)
-  : Data(name, Data::Value, "float")
+Value::Value( const QString& name, const QString& datatype)
+  : Data(name, Data::Value, datatype)
 {
   m_name = name;
   
