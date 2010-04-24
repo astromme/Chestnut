@@ -27,6 +27,7 @@ set(chestnut_datatypes
 set(chestnut_sources
     chestnut.cpp
     mainwindow.cpp
+    palettedelegate.cpp
     object.cpp
     function.cpp
     operation.cpp

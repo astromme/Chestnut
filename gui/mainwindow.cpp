@@ -16,6 +16,7 @@
 #include "sort.h"
 #include "print.h"
 #include "datablock.h"
+#include "palettedelegate.h"
 
 MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   : QMainWindow (parent, flags),
@@ -44,6 +45,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   m_model->appendRow(operators);
    
   m_ui->palette->setModel(m_model);
+  m_ui->palette->setItemDelegate(new PaletteDelegate);
   m_ui->palette->expandAll();
   
   connect(m_ui->actionBuild, SIGNAL(triggered(bool)), this, SLOT(writeFile()));
