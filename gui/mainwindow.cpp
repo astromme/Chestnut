@@ -4,6 +4,8 @@
 #include <QToolBar>
 #include <QDebug>
 #include <QTextEdit>
+#include <QStandardItemModel>
+#include <QStandardItem>
 
 #include "value.h"
 #include "function.h"
@@ -15,15 +17,37 @@
 #include "print.h"
 #include "write.h"
 #include "datablock.h"
+#include "palettedelegate.h"
 
 MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   : QMainWindow (parent, flags),
   m_ui(new Ui::MainWindow)
 {
   m_scene = new QGraphicsScene(this);
+  m_model = new QStandardItemModel(this);
   m_ui->setupUi(this);
+  
   QToolBar *toolbar = addToolBar("Project Actions");
   toolbar->addAction(m_ui->actionBuild);
+  
+  QStandardItem *variables = new QStandardItem("Variables");
+    variables->appendRow(new QStandardItem("Data Block"));
+    variables->appendRow(new QStandardItem("Value"));
+    
+  QStandardItem *functions = new QStandardItem("Functions");
+    functions->appendRow(new QStandardItem("Map"));
+    functions->appendRow(new QStandardItem("Reduce"));
+    //TODO more
+    
+  QStandardItem *operators = new QStandardItem("Operators");
+  
+  m_model->appendRow(variables);
+  m_model->appendRow(functions);
+  m_model->appendRow(operators);
+   
+  m_ui->palette->setModel(m_model);
+  m_ui->palette->setItemDelegate(new PaletteDelegate);
+  m_ui->palette->expandAll();
   
   connect(m_ui->actionBuild, SIGNAL(triggered(bool)), this, SLOT(writeFile()));
   
