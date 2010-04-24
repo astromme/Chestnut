@@ -747,7 +747,7 @@ void ParseUtils::makeReduce(string source, string destination, string op){
  * ------------------
  * Generates code for sorting data
  */
-void ParseUtils::makeSort(string source, string destination){
+void ParseUtils::makeSort(string source, string destination, string comparator){
   obj_names src_objnames = get_obj_names(source);
   string src_dev = src_objnames.dev;
   string src_type = symtab.getType(source);
@@ -755,6 +755,8 @@ void ParseUtils::makeSort(string source, string destination){
   obj_names dest_objnames = get_obj_names(destination);
   string dest_dev = dest_objnames.dev;
   string dest_type = symtab.getType(destination);
+  
+  comparator = getThrustOp(comparator, src_type);
   
   string cuda_include = add_include("<thrust/sort.h>");
   cudafile->pushInclude(cuda_include);
@@ -768,7 +770,8 @@ void ParseUtils::makeSort(string source, string destination){
 
   cuda_outstr += prep_str("thrust::sort(" +
       dest_dev + ".begin(), " +
-      dest_dev + ".end()); // sort data");
+      dest_dev + ".end(), " +
+      comparator + "); // sort data");
 
   cuda_outstr += prep_str("/* End Sort Function */");
   cuda_outstr += "\n";
@@ -838,12 +841,22 @@ string ParseUtils::copyDevData(string source, string destination){
  *    type: type that operation will be acting on
  */
 string ParseUtils::getThrustOp(string op, string type){
-  string thrustop;
-  if (op == "+") thrustop = "plus";
-  else if (op == "-") thrustop = "minus";
-  else if (op == "*") thrustop = "multiplies";
-  else if (op == "/") thrustop = "divides";
-  else if (op == "%") thrustop = "modulus";
+  string thrustop = "thrust::";
+  if (op == "+") thrustop += "plus";
+  else if (op == "-") thrustop += "minus";
+  else if (op == "*") thrustop += "multiplies";
+  else if (op == "/") thrustop += "divides";
+  else if (op == "%") thrustop += "modulus";
+  else if (op == "<") thrustop += "less";
+  else if (op == ">") thrustop += "greater";
+  else if (op == "<=") thrustop += "less_equal";
+  else if (op == ">=") thrustop += "greater_equal";
+  else {
+    char error_msg[100+op.length()];
+    sprintf(error_msg, "in getThrustOp: unrecognized operator '%s'",
+	    op.c_str());
+    throw runtime_error(error_msg);
+  }
   thrustop += "<" + type + ">()";
   return thrustop;
 }
