@@ -135,7 +135,7 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   Sink *s = 0;
   foreach(QGraphicsItem *item, scene()->items(mapToScene(event->pos()))) {
     Sink* sink = qgraphicsitem_cast<Sink*>(item);
-    if (sink && sink->allowedFormats().contains(format())) {
+    if (sink && !sink->isConnected() && sink->allowedFormats().contains(format())) {
       m_activeConnection->setSink(sink);
       return;
     }
