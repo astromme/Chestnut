@@ -10,6 +10,7 @@ Object::Object(const QString &name, QGraphicsObject* parent)
 {
   m_name = name;
   m_moved = false;
+  m_visited = false;
   setFlag(ItemIsMovable);
 }
 Object::~Object()
@@ -56,4 +57,13 @@ QVariant Object::itemChange ( QGraphicsItem::GraphicsItemChange change, const QV
     update();
   }
   return QGraphicsItem::itemChange(change, value);
+}
+
+bool Object::visited()
+{
+  return m_visited;
+}
+Object::setVisited ( bool visited )
+{
+  m_visited = visited;
 }
