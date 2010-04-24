@@ -34,8 +34,12 @@ ProgramStrings Map::flatten() const
   //TODO Finish/talk to ryan
   //TODO Make flatten return ProgramStrings
   //qDebug() << m_sources[0]
+
+  if (isVisited()){
+    return ProgramStrings();
+  }
   
-  // set visited flag
+  setVisited(true);
  
   ProgramStrings ps;
   
@@ -44,13 +48,24 @@ ProgramStrings Map::flatten() const
     //ps += sinkData->flatten();
     ps = ps + sinkData->flatten();
   }
-  
-  // do map stuff
+
+  QString functioncall = QString("%1 = map(%2, %3, %4);")
+    //.arg(m_sources[0]->connectedData)
+    .arg(m_sources[0]->connectedData()[0]->name())
+    .arg(operation()->name())
+    .arg(m_sinks[1]->sourceData()->name())
+    .arg(m_sinks[0]->sourceData()->name());
+    
+  ps.second.append(functioncall);
   
   foreach(Source *source, sources()){
+    QList<Data*> sourceData = source->connectedData();
+    foreach (Data* sData, sourceData){
+      ps = ps + sData->flatten();
+    }
   }
   
-  qDebug() << "ProgStrings:" << ps;
+  // qDebug() << "ProgStrings:" << ps; // TODO: remove
 
   return ps;
   

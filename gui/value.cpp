@@ -35,17 +35,28 @@ Value::~Value()
 
 ProgramStrings Value::flatten() const
 {
-  QString valueInChestnut = "scalar";
-  QString declaration = datatype() + " " + name() + " " + valueInChestnut;
-  qDebug() << "flatten called on value: " << declaration;
+  if (isVisited()){
+    return ProgramStrings();
+  }
+  setVisited(true);
+
   ProgramStrings ps;
-  ps.first.append(declaration);
-  
   foreach(Sink *sink, sinks()){
     if (sink->isConnected()) {
       Data* sinkData = sink->sourceData();
       //ps += sinkData->flatten();
       ps = ps + sinkData->flatten();
+    }
+  }
+  
+  QString valueInChestnut = "scalar";
+  QString declaration = datatype() + " " + name() + " " + valueInChestnut + ";";
+  ps.first.append(declaration);
+  
+  foreach(Source *source, sources()){
+    QList<Data*> sourceData = source->connectedData();
+    foreach (Data* sData, sourceData){
+      ps = ps + sData->flatten();
     }
   }
   
