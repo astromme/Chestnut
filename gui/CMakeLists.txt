@@ -16,6 +16,7 @@ set(chestnut_functions
     map.cpp
     reduce.cpp
     sort.cpp
+    print.cpp
     )
 
 set(chestnut_datatypes

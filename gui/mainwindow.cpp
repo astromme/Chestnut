@@ -12,6 +12,7 @@
 #include "map.h"
 #include "reduce.h"
 #include "sort.h"
+#include "print.h"
 #include "datablock.h"
 
 MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
@@ -39,6 +40,8 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   //Reduce *r1 = new Reduce();
   Sort *s1 = new Sort();
   
+  Print *p1 = new Print();
+  
   DataBlock *inmap = new DataBlock("inmap1", "float", 10, 10);
   inmap->setExpression("foreach ( value = rand/RAND_MAX )");
   DataBlock *outmap = new DataBlock("outmap", "float", 10, 10);
@@ -51,6 +54,8 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   
   outmap->sources()[0]->connectToSink(s1->sinks()[0]);
   s1->sources()[0]->connectToSink(outsort->sinks()[0]);
+  
+  //outsort->sources()[0]->connectToSink(p1->sinks()[0]);
     
   
   //outmap->sources()[0]->connectToSink(r1->sinks()[0]);
@@ -68,6 +73,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   //m_scene->addItem(v2);
   m_scene->addItem(m1);
   m_scene->addItem(s1);
+  m_scene->addItem(p1);
   //m_scene->addItem(r1);
 //   m_scene->addItem(m2);
 //   m_scene->addItem(m3);
@@ -81,6 +87,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   m1->moveBy(0, 0);
   //r1->moveBy(150, 217);
   s1->moveBy(150,217);
+  p1->moveBy(0,300);
   
   inmap->moveBy(-110, -150);
   outmap->moveBy(-50, 100);
