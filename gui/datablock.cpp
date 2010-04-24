@@ -33,6 +33,11 @@ DataBlock::~DataBlock()
 
 }
 
+int DataBlock::type() const
+{
+  return Type;
+}
+
 int DataBlock::rows() const
 {
   return m_rows;

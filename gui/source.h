@@ -16,6 +16,9 @@ class Source : public QGraphicsObject {
     Source(Data::Format type, Object *parent);
     Data::Format format() const;
     
+    enum { Type = ChestnutItemType::Source };
+    int type() const;
+    
     Connection* connectToSink(Sink *sink);
     
     Object* parentObject() const;

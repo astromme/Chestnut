@@ -22,6 +22,12 @@ Source::Source(Data::Format format, Object* parent)
   connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
   connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
+
+int Source::type() const
+{
+  return Type;
+}
+
 Data::Format Source::format() const
 {
   return m_format;

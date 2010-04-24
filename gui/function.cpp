@@ -27,6 +27,11 @@ bool Function::isFunction() const
   return true;
 }
 
+int Function::type() const
+{
+  return Type;
+}
+
 QString Function::name() const{
   return m_name;
 }

@@ -3,6 +3,7 @@
 
 #include <QGraphicsObject>
 #include "datautils.h"
+#include "types.h"
 
 class Source;
 class Sink;

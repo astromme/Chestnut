@@ -9,6 +9,9 @@ class Value : public Data {
   public:
     Value(const QString &name, const QString &datatype="int");
     virtual ~Value();
+    
+    enum { Type = ChestnutItemType::Value };
+    int type() const;
 
     virtual ProgramStrings flatten() const;
     

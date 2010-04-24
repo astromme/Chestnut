@@ -4,6 +4,7 @@
 #include <QGraphicsObject>
 
 #include "data.h"
+#include "types.h"
 
 class Object;
 class Connection;
@@ -12,7 +13,7 @@ class Function;
 class Sink : public QGraphicsObject {
   Q_OBJECT
   public:
-    enum { Type = UserType + 5 };
+    enum { Type = ChestnutItemType::Sink };
     int type() const;
     
     Sink(Data::Formats allowedFormats, Object *parent);

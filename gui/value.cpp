@@ -33,6 +33,11 @@ Value::~Value()
 
 }
 
+int Value::type() const
+{
+  return Type;
+}
+
 ProgramStrings Value::flatten() const
 {
   if (isVisited()){
