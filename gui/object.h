@@ -25,12 +25,16 @@ class Object : public QGraphicsObject {
     
     virtual QVariant itemChange ( GraphicsItemChange change, const QVariant& value );
     
+    bool visited();
+    setVisited(bool visited);
+    
   protected:
     QList<Source*> m_sources;
     QList<Sink*> m_sinks;
     QString m_name;
 private:
     bool m_moved;
+    bool m_visited;
 };
 
 #endif //CHESTNUT_OBJECT_H
