@@ -24,7 +24,7 @@ class Object : public QGraphicsObject {
     
     virtual QVariant itemChange ( GraphicsItemChange change, const QVariant& value );
     
-    bool visited() const;
+    bool isVisited() const;
     void setVisited(bool visited) const;
     
   protected:
