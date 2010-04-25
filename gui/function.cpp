@@ -94,10 +94,17 @@ void Function::addSource(Source *source) {
 /// Painting Goodness
 QRectF Function::boundingRect() const
 {
-  return inputsRect().united(internalRect()).united(outputsRect());
+  qreal sMargin = isSelected() ? 1 : 0;
+  return inputsRect().united(internalRect()).united(outputsRect()).adjusted(-sMargin, -sMargin, sMargin, sMargin);
 }
 void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  if (isSelected()) {
+    painter->save();
+    painter->setPen(QPen(Qt::DashLine));
+    painter->drawRoundedRect(boundingRect(), 5, 5);
+    painter->restore();
+  }
   // Draw Inputs
   painter->drawRoundedRect(inputsRect(), 5, 5);
   // Draw Internal Rect
