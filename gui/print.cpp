@@ -41,7 +41,7 @@ ProgramStrings Print::flatten() const
     prog = prog + sinkData->flatten();
   }
 
-  QString functioncall = QString("print2D %1;")
+  QString functioncall = QString("print %1;")
     .arg(m_sinks[0]->sourceData()->name());
   
   prog.second.append(functioncall);
