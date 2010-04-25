@@ -19,6 +19,7 @@ Source::Source(Data::Format format, Object* parent)
   m_format = format;
   m_activeConnection = 0;
   m_parent = parent;
+  setFlag(ItemIsSelectable, false);
   connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
   connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }

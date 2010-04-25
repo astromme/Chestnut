@@ -18,6 +18,7 @@ Sink::Sink(Data::Formats allowedFormats, Object* parent)
   m_connection = 0;
   m_internalMargin = 2;
   m_parent = parent;
+  setFlag(ItemIsSelectable, false);
   connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
   connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
@@ -32,6 +33,7 @@ Sink::Sink(Data::Format allowedFormat, Object* parent)
   m_connection = 0;
   m_internalMargin = 2;
   m_parent = parent;
+  setFlag(ItemIsSelectable, false);
   connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
   connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
