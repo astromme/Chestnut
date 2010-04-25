@@ -32,6 +32,8 @@ class Connection : public QGraphicsItem {
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
     
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
+    
   private:
     Source *m_source;
     Sink *m_sink;

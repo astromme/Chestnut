@@ -20,7 +20,9 @@ Function::Function(const QString& name, QGraphicsObject* parent)
   m_name = name;
 }
 
-Function::~Function() {}
+Function::~Function()
+{
+}
 
 bool Function::isFunction() const
 {

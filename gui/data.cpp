@@ -1,6 +1,7 @@
 #include "data.h"
 #include "sink.h"
 
+#include <QRegExpValidator>
 
 Data::Data(const QString& name, Data::Format format, const QString &datatype)
   : Object(0)
@@ -8,6 +9,7 @@ Data::Data(const QString& name, Data::Format format, const QString &datatype)
   m_format = format;
   m_datatype = datatype;
   m_name = name;
+  m_nameValidator = new QRegExpValidator(QRegExp("[a-zA-Z][a-zA-Z0-9_]*"), this);
 }
 
 Data::~Data()

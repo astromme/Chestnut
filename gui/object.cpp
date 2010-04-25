@@ -18,10 +18,10 @@ Object::Object(QGraphicsObject* parent)
 }
 Object::~Object()
 {
+  qDebug() << "Removing object" << sinks().length() << sources().length();
   foreach(Sink *sink, sinks()) {
     qDebug() << "Sink" << sink << "connected" << sink->isConnected();
     if (sink->isConnected()) {
-      scene()->removeItem(sink->connection());
       delete sink->connection();
     }
   }
@@ -50,7 +50,7 @@ QList< Sink* > Object::sinks() const
 
 void Object::mousePressEvent ( QGraphicsSceneMouseEvent* event )
 {
-  qDebug() << this;
+  qDebug() << "Mouse pressed on" << this;
   event->accept();
   m_moved = false;
 }
@@ -72,6 +72,11 @@ void Object::mouseReleaseEvent ( QGraphicsSceneMouseEvent* event )
 QVariant Object::itemChange ( QGraphicsItem::GraphicsItemChange change, const QVariant& value )
 {
   if (change == ItemSelectedHasChanged) {
+    if (isSelected()) {
+      qDebug() << "Selected:" << this;
+    } else {
+      qDebug() << "Deselected:" << this;
+    }
     update();
   }
   return QGraphicsItem::itemChange(change, value);

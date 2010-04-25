@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QDebug>
 #include <QApplication>
+#include <QFileDialog>
 
 using namespace Chestnut;
 
@@ -19,7 +20,6 @@ DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, in
   m_columns = columns;
   m_dimension = 2;
   m_ui = new Ui::DataBlockProperties;
-  
 
   Sink *in = new Sink(Data::DataBlock, this);
   in->setPos(rect().left()+rect().width()/2, rect().top()-Size::inputHeight);
@@ -93,7 +93,10 @@ void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   QDialog *dialog = new QDialog();
   m_ui->setupUi(dialog);
+  
+  m_ui->name->setValidator(m_nameValidator);
   m_ui->name->setText(name());
+  
   if (datatype() == "int") {
     m_ui->integers->setChecked(true);
   } else {
@@ -101,10 +104,17 @@ void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
   }
   m_ui->rows->setValue(m_rows);
   m_ui->columns->setValue(m_columns);
+  
   //TODO for loop vs read from file
+  connect(m_ui->fileSelect, SIGNAL(clicked(bool)), SLOT(selectFile()));
   connect(dialog, SIGNAL(accepted()), SLOT(configAccepted()));
   connect(dialog, SIGNAL(rejected()), SLOT(configRejected()));
   dialog->show();
+  
+  //FIXME: copied from file code below. Do this after show because we want widths
+  int width = m_ui->selectedFile->width();  
+  QString smallText = QApplication::fontMetrics().elidedText(m_inputFile, Qt::ElideLeft, width);
+  m_ui->selectedFile->setText(smallText);
 }
 
 void DataBlock::configAccepted()
@@ -123,6 +133,16 @@ void DataBlock::configAccepted()
 
 void DataBlock::configRejected()
 {
+}
+
+void DataBlock::selectFile()
+{
+  m_inputFile = QFileDialog::getOpenFileName(m_ui->fileSelect,
+    tr("Select a Data File"), "~/", tr("Data Files (*.chestnutdata *.data)"));
+    
+  int width = m_ui->selectedFile->width();  
+  QString smallText = QApplication::fontMetrics().elidedText(m_inputFile, Qt::ElideLeft, width);
+  m_ui->selectedFile->setText(smallText);
 }
 
 

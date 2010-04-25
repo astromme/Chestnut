@@ -7,6 +7,7 @@
 class Map : public Function {
   public:
     Map(QGraphicsObject* parent = 0);
+    virtual ~Map();
     
     enum { Type = ChestnutItemType::Map };
     int type() const;

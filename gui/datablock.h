@@ -33,11 +33,13 @@ class DataBlock : public Data {
   private slots:
     void configAccepted();
     void configRejected();
+    void selectFile();
     
   private:
     int m_dimension;
     int m_rows;
     int m_columns;
+    QString m_inputFile;
     Ui::DataBlockProperties* m_ui;
 };
 
