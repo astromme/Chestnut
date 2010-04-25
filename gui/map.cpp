@@ -24,9 +24,8 @@ Map::Map(QGraphicsObject* parent)
   Source *output1 = new Source(Data::DataBlock, this);
   addSource(output1);
   
-  Operation *op = new StandardOperation(StandardOperation::Add, this); // TODO allow op to be set
   setHasOperation(true);
-  setOperation(op);
+  setAcceptDrops(true);
 }
 
 Map::~Map()

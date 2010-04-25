@@ -26,15 +26,25 @@ void Scene::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
   qDebug() << "DragNDrop Enter";
   qDebug() << event->mimeData()->formats();
   if (event->mimeData()->hasFormat("application/x-chestnutpaletteitem")) {
-    qDebug() << "accepting";
     event->setProposedAction(Qt::CopyAction);
     event->accept();
+    return;
+  } else {
+    event->ignore();
+    QGraphicsScene::dragEnterEvent(event);
   }
 }
 
 void Scene::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  event->accept();
+  if (event->mimeData()->hasFormat("application/x-chestnutpaletteitem")) {
+    event->setProposedAction(Qt::CopyAction);
+    event->accept();
+    return;
+  } else {
+    event->ignore();
+    QGraphicsScene::dragMoveEvent(event);
+  }
 }
 
 void Scene::dropEvent(QGraphicsSceneDragDropEvent* event)
@@ -65,24 +75,19 @@ void Scene::dropEvent(QGraphicsSceneDragDropEvent* event)
     else if (droppedItem == "Sort") { newItem = new Sort(); }
     else if (droppedItem == "Print") { newItem = new Print(); }
     else if (droppedItem == "Write") { newItem = new Write(); }
-    
-    //Operators
-    else if (droppedItem == "Add") { newItem = new StandardOperation(StandardOperation::Add); }
-    else if (droppedItem == "Subtract") { newItem = new StandardOperation(StandardOperation::Subtract); }
-    else if (droppedItem == "Multiply") { newItem = new StandardOperation(StandardOperation::Multiply); }
-    else if (droppedItem == "Divide") { newItem = new StandardOperation(StandardOperation::Divide); }
   
     else {
       qDebug() << "Unknown Item: " << droppedItem;
-      return;
+      return QGraphicsScene::dropEvent(event);
     }
     
     addItem(newItem);
     newItem->setPos(event->scenePos());
     qDebug() << event->scenePos();
     return;
+  } else {
+    QGraphicsScene::dropEvent(event);
   }
-  QGraphicsScene::dropEvent(event);
 }
 
 

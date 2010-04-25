@@ -37,6 +37,10 @@ class Function : public Object {
     void setHasOperation(bool hasOperation);
     void addSource(Source *source); /**< Adds and sets the position of the given source */
     void addSink(Sink *sink); /**< Adds and sets the position of the given sink */
+    
+    virtual void dragEnterEvent(QGraphicsSceneDragDropEvent* event);
+    virtual void dragMoveEvent(QGraphicsSceneDragDropEvent* event);
+    virtual void dropEvent(QGraphicsSceneDragDropEvent* event);
         
     QRectF inputsRect() const;
     QRectF internalRect() const;
