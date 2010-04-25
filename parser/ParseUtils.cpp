@@ -98,6 +98,7 @@ void ParseUtils::initializeIncludes(){
   cuda_includes += prep_str("// Thrust includes");
   cuda_includes += add_include("<thrust/host_vector.h>");
   cuda_includes += add_include("<thrust/device_vector.h>");
+  cuda_includes += add_include("<thrust/iterator/constant_iterator.h>");
   cudafile->pushInclude(cuda_includes);
 
   // cpp includes  TODO remove
@@ -745,39 +746,51 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
   string thrustop = getThrustOp(op, dest_type);
 
   string cuda_outstr;
+ 
+  // give function its own scope so that 
+  // temp vars are deallocated
+  //cuda_outstr += prep_str("{"); indent++; // TODO remove
+  
   cuda_outstr += prep_str("/* Begin Map Function */");
 
   // if destination is not source -- if we're not modifying data in place but
-  // instead want to leave the original unchanged -- we need to copy source
-  // into destination and then operate on that
+  // instead want to leave the original unchanged -- we need to allocate space onto 
+  // destination and then operate on that
   if (destination != source){
-    cuda_outstr += copyDevData(source, destination);
-
+    if (dest_type != src_type){
+      // throw exception because dest_type needs to be same as src_type for
+      // copy to succeed
+      char error_msg[100+destination.length()+source.length()];
+      sprintf(error_msg, "in makeMap: destination (%s) and source (%s) are different types", 
+          destination.c_str(), source.c_str());
+      throw runtime_error(error_msg);
+    }
+    
+    // set destination size
+    cuda_outstr += prep_str(dest_dev + " = device_vector<" + src_type + ">(" + 
+      src_dev + ".size());");
+    
+    // need to make sure rows/cols are set
+    cuda_outstr += prep_str(dest_rows + " = " + src_rows + ";");
+    cuda_outstr += prep_str(dest_cols + " = " + src_cols + ";");
+    cuda_outstr += "\n";
   }
 
-  // if 'modify' is not in the symtab, then we need to create a device_vector
-  // full of the given value
-  string mapmodify = get_obj_names(modify).dev;
+  // if 'modify' is not in the symtab, then we need to 
+  // create a constant iterator that returns the given value
+  string mapmodify = get_obj_names(modify).dev + ".begin()";
   if (!symtab.isInSymtab(modify)){
-    mapmodify = numberedId("mapmodify");
-    cuda_outstr += prep_str("// Fill mapmodify with " + modify + "'s");
-
-    cuda_outstr += prep_str("device_vector<" + dest_type + "> " + 
-        mapmodify + "(" + dest_dev + ".size());");
-
-    cuda_outstr += prep_str("fill(" + mapmodify + ".begin(), " + 
-        mapmodify + ".end(), " + modify + ");");
-
-    cuda_outstr += "\n";
+    mapmodify = "thrust::make_constant_iterator(" + modify + ")";
   }
 
   // call actual map function (using thrust::transform)
   cuda_outstr += prep_str("thrust::transform(" +
       src_dev + ".begin(), " + src_dev + ".end(), " + // source is
-      mapmodify + ".begin(), " + // combined with mapmodify and
+      mapmodify + "," + // combined with mapmodify and
       dest_dev + ".begin(), " + // written to destination.
       thrustop + ");"); // source and mapmodify are compsed with thrustop
-  cuda_outstr += prep_str("/* End Map Function */");
+  cuda_outstr += prep_str("/* End Map Function */"); // indent--; // TODO remove
+  // cuda_outstr += prep_str("}");  // close scope TODO remove
   cuda_outstr += "\n";
 
   cudafile->pushMain(cuda_outstr);
@@ -869,7 +882,7 @@ void ParseUtils::makeSort(string source, string destination, string comparator){
  * ---------------------
  * Returns code that copies data from one thrust::device_vector to another. We
  * might want to do this in the case of a map() where the user does not want
- * to matify the source vector. Code would look like
+ * to modify the source vector. Code would look like
  *    data_mapped = map(+, 1, data_source)
  *
  * Inputs:
