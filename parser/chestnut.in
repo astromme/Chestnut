@@ -1,5 +1,12 @@
 float data 10 10 foreach ( value = rand/RAND_MAX );
 float mapped vector;
+timer t1;
+
+t1 start;
 
 mapped = map(+, 1, data);
 print mapped;
+
+t1 stop;
+
+print t1;
