@@ -7,6 +7,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 
+#include "scene.h"
 #include "value.h"
 #include "function.h"
 #include "source.h"
@@ -18,13 +19,14 @@
 #include "write.h"
 #include "datablock.h"
 #include "palettedelegate.h"
+#include "palettemodel.h"
 
 MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   : QMainWindow (parent, flags),
   m_ui(new Ui::MainWindow)
 {
-  m_scene = new QGraphicsScene(this);
-  m_model = new QStandardItemModel(this);
+  m_scene = new Scene(this);
+  m_model = new PaletteModel(this);
   m_ui->setupUi(this);
   
   QToolBar *toolbar = addToolBar("Project Actions");
@@ -111,6 +113,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   outsort->moveBy(-270,180);
   
   m_ui->workflowEditor->setScene(m_scene);
+  m_ui->workflowEditor->setAcceptDrops(true);
   m_ui->workflowEditor->setRenderHint(QPainter::Antialiasing);
   m_ui->workflowEditor->setDragMode(QGraphicsView::RubberBandDrag);
 }
