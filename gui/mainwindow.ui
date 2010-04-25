@@ -36,7 +36,7 @@
           <x>0</x>
           <y>0</y>
           <width>122</width>
-          <height>319</height>
+          <height>286</height>
          </rect>
         </property>
         <attribute name="label">
@@ -85,7 +85,7 @@
           <x>0</x>
           <y>0</y>
           <width>122</width>
-          <height>319</height>
+          <height>286</height>
          </rect>
         </property>
         <attribute name="label">
@@ -116,12 +116,33 @@
    <addaction name="menuProject"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>Project Actions</string>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextBesideIcon</enum>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionBuild"/>
+  </widget>
   <action name="actionBuild">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/system-run.png</normaloff>:/icons/system-run.png</iconset>
+   </property>
    <property name="text">
     <string>Build</string>
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
