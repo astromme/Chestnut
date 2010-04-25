@@ -1,12 +1,63 @@
-float data 10 10 foreach ( value = rand/RAND_MAX );
+float data 9000 9000 foreach ( value = 0 );
 float mapped vector;
 timer t1;
 
 t1 start;
 
-mapped = map(+, 1, data);
-print mapped;
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
+data = map(+, 1, data);
 
 t1 stop;
+
+//print mapped;
+//print data;
 
 print t1;
