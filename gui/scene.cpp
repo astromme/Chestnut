@@ -97,10 +97,10 @@ void Scene::keyPressEvent(QKeyEvent* event)
 void Scene::keyReleaseEvent(QKeyEvent* event)
 {
   if ((event->key() == Qt::Key_Delete) || (event->key() == Qt::Key_Backspace)) {
+    qDebug() << "#selected items:" << selectedItems().length();
     foreach(QGraphicsItem *item, selectedItems()) {
       qDebug() << "Removing" << item;
-      removeItem(item);
-      //delete item; //TODO: Memory Leak
+      delete item;
     }
     return;
   }

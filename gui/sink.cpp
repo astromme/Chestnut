@@ -36,6 +36,10 @@ Sink::Sink(Data::Format allowedFormat, Object* parent)
   connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
 
+Sink::~Sink()
+{
+}
+
 
 Data::Formats Sink::allowedFormats() const
 {

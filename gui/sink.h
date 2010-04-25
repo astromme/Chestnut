@@ -18,6 +18,7 @@ class Sink : public QGraphicsObject {
     
     Sink(Data::Formats allowedFormats, Object *parent);
     Sink(Data::Format allowedFormat, Object *parent); /**< Convenience function with 1 allowed format */
+    ~Sink();
     Data::Formats allowedFormats() const;
     
     Object* parentObject() const;
