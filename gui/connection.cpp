@@ -7,6 +7,7 @@
 
 #include <QPainter>
 #include <QDebug>
+#include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 
 using namespace Chestnut;
@@ -60,6 +61,9 @@ bool Connection::isPartial() const
 void Connection::setSink(Sink* sink)
 {
   prepareGeometryChange();
+  if (m_sink) {
+    m_sink->setConnection(0);
+  }
   m_sink = sink;
   if (sink) {
     sink->setConnection(this);
@@ -144,10 +148,39 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
 
 void Connection::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (endShape().intersects(QRectF(event->pos()-QPointF(1, 1), QPointF(2, 2)))) {
+  if (endShape().boundingRect().adjusted(-2, -2, 2, 2).contains(event->pos())) {
+    // Disconnect from sink
     event->accept();
-    //TODO disconnect and allow moving
+    setSink(0);
+    setEndpoint(event->scenePos());
     return;
   }
   event->ignore();
+}
+void Connection::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  setEndpoint(mapToScene(event->pos()));
+}
+void Connection::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  //TODO: Use a function to prevent code duplication here and in source.cpp
+  // Check for sink under mouse pointer. If it exists, connect it
+  foreach(QGraphicsItem *item, scene()->items(mapToScene(event->pos()))) {
+    Sink* sink = qgraphicsitem_cast<Sink*>(item);
+    if (sink && !sink->isConnected() && sink->allowedFormats().contains(source()->format())) {
+      if (source()->parentObject()->isData()) {
+        setSink(sink);
+      } else if (source()->parentObject()->isFunction()) {
+        if (sink->parentObject()->isData()) {
+          setSink(sink);
+        } else {
+          // Create 'implicit' data TODO
+          //if (format())
+          //Data *temp = new 
+        }
+      }
+      return;
+    }
+  }
+  delete this;
 }
