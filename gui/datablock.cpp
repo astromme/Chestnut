@@ -19,7 +19,6 @@ DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, in
   m_columns = columns;
   m_dimension = 2;
   m_ui = new Ui::DataBlockProperties;
-  
 
   Sink *in = new Sink(Data::DataBlock, this);
   in->setPos(rect().left()+rect().width()/2, rect().top()-Size::inputHeight);
@@ -93,7 +92,10 @@ void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   QDialog *dialog = new QDialog();
   m_ui->setupUi(dialog);
+  
+  m_ui->name->setValidator(m_nameValidator);
   m_ui->name->setText(name());
+  
   if (datatype() == "int") {
     m_ui->integers->setChecked(true);
   } else {

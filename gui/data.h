@@ -6,6 +6,8 @@
 
 #include "object.h"
 
+class QValidator;
+
 class Data : public Object {
   public:
     enum Format {
@@ -36,6 +38,9 @@ class Data : public Object {
     /** returns a unique name for a temporary variable of category t */
     static QString tempData(Data::Format f);
     virtual ProgramStrings flatten() const {return ProgramStrings();} //TODO Fix
+    
+  protected:
+    QValidator *m_nameValidator;
     
   private:
     Format m_format;
