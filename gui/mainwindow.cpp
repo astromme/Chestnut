@@ -29,9 +29,6 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   m_model = new PaletteModel(this);
   m_ui->setupUi(this);
   
-  QToolBar *toolbar = addToolBar("Project Actions");
-  toolbar->addAction(m_ui->actionBuild);
-  
   QStandardItem *variables = new QStandardItem("Variables");
     variables->appendRow(new QStandardItem("Data Block"));
     variables->appendRow(new QStandardItem("Value"));

@@ -61,10 +61,15 @@ set(chestnut_ui
     value.ui
     )
 
+set(chestnut_resource_files
+    icons.qrc
+    )
+
 qt4_wrap_cpp(chestnut_mocs ${chestnut_headers})
 qt4_wrap_ui(chestnut_ui ${chestnut_ui})
+qt4_add_resources(chestnut_resources ${chestnut_resource_files})
 
-add_executable(chestnut ${chestnut_sources} ${chestnut_mocs} ${chestnut_ui})
+add_executable(chestnut ${chestnut_sources} ${chestnut_mocs} ${chestnut_ui} ${chestnut_resources})
 target_link_libraries(chestnut ${QT_LIBRARIES})
 
 

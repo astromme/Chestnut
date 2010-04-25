@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>system-run.png</file>
+  </qresource>
+</RCC>
