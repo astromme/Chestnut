@@ -21,6 +21,7 @@ namespace ChestnutItemType {
   // Sinks/Sources
   const int Source = QGraphicsItem::UserType + 40;
   const int Sink = QGraphicsItem::UserType + 41;
+  const int Connection = QGraphicsItem::UserType + 42;
 }
 
 #endif //CHESTNUT_TYPES_H

@@ -25,10 +25,7 @@ class Object : public QGraphicsObject {
     virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
-    
-    virtual void keyPressEvent(QKeyEvent* event);
-    virtual void keyReleaseEvent(QKeyEvent* event);
-    
+
     virtual QVariant itemChange(GraphicsItemChange change, const QVariant& value);
     
     bool isVisited() const;

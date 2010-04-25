@@ -3,7 +3,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
 #include <QMimeData>
-
+#include <QMouseEvent>
 
 #include "value.h"
 #include "datablock.h"
@@ -83,4 +83,26 @@ void Scene::dropEvent(QGraphicsSceneDragDropEvent* event)
     return;
   }
   QGraphicsScene::dropEvent(event);
+}
+
+
+void Scene::keyPressEvent(QKeyEvent* event)
+{
+  if ((event->key() == Qt::Key_Delete) || (event->key() == Qt::Key_Backspace)) {
+    event->accept();
+    return;
+  }
+  QGraphicsScene::keyPressEvent(event);
+}
+void Scene::keyReleaseEvent(QKeyEvent* event)
+{
+  if ((event->key() == Qt::Key_Delete) || (event->key() == Qt::Key_Backspace)) {
+    foreach(QGraphicsItem *item, selectedItems()) {
+      qDebug() << "Removing" << item;
+      removeItem(item);
+      //delete item; //TODO: Memory Leak
+    }
+    return;
+  }
+  QGraphicsScene::keyReleaseEvent(event);
 }

@@ -41,6 +41,11 @@ Connection::~Connection()
   }
 }
 
+int Connection::type() const
+{
+  return Type;
+}
+
 void Connection::updateConnection()
 {
   prepareGeometryChange();
