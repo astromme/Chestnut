@@ -2,8 +2,10 @@
 
 #include "sink.h"
 #include "source.h"
+#include "connection.h"
 #include <QDebug>
 #include <QGraphicsSceneMouseEvent>
+#include <QMouseEvent>
 
 Object::Object(QGraphicsObject* parent)
   : QGraphicsObject(parent)
@@ -11,10 +13,19 @@ Object::Object(QGraphicsObject* parent)
   m_moved = false;
   m_visited = false;
   setFlag(ItemIsMovable);
+  setFlag(ItemIsFocusable);
+  setFlag(ItemIsSelectable);
 }
 Object::~Object()
 {
-
+  foreach(Sink *sink, sinks()) {
+    if (sink->isConnected()) {      
+      delete sink->connection();
+    }
+  }
+  foreach(Source *source, sources()) {
+    source->removeAllConnections();
+  }
 }
 
 bool Object::isData() const
@@ -47,12 +58,33 @@ void Object::mouseMoveEvent ( QGraphicsSceneMouseEvent* event )
   moveBy(diff.x(), diff.y());
   m_moved = true;
 }
+
 void Object::mouseReleaseEvent ( QGraphicsSceneMouseEvent* event )
 {
   if (!m_moved) {
     setSelected(!isSelected());
+    prepareGeometryChange();
+    update();
   }
 }
+
+void Object::keyPressEvent(QKeyEvent* event)
+{
+  if ((event->key() == Qt::Key_Delete) || (event->key() == Qt::Key_Backspace)) {
+    event->accept();
+    return;
+  }
+  QGraphicsItem::keyPressEvent(event);
+}
+void Object::keyReleaseEvent(QKeyEvent* event)
+{
+  if ((event->key() == Qt::Key_Delete) || (event->key() == Qt::Key_Backspace)) {
+    deleteLater();
+    return;
+  }
+  QGraphicsItem::keyReleaseEvent(event);
+}
+
 
 QVariant Object::itemChange ( QGraphicsItem::GraphicsItemChange change, const QVariant& value )
 {

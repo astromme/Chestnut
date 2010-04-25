@@ -66,7 +66,6 @@ void Scene::dropEvent(QGraphicsSceneDragDropEvent* event)
     else if (droppedItem == "Print") { newItem = new Print(); }
     else if (droppedItem == "Write") { newItem = new Write(); }
     
-    
     //Operators
     else if (droppedItem == "Add") { newItem = new StandardOperation(StandardOperation::Add); }
     else if (droppedItem == "Subtract") { newItem = new StandardOperation(StandardOperation::Subtract); }

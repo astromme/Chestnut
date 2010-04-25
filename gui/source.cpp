@@ -65,7 +65,10 @@ void Source::removeConnection(Connection* connection)
 }
 void Source::removeAllConnections()
 {
-  m_connections.clear();
+  foreach(Connection *connection, m_connections) {
+    m_connections.removeAll(connection);
+    delete connection;
+  }
 }
 
 QList< Data* > Source::connectedData() const
