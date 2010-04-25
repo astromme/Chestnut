@@ -4,11 +4,11 @@
 #include "drawingutils.h"
 #include "source.h"
 #include "sink.h"
+#include "ui_value.h"
 
 #include <QPainter>
 #include <QApplication>
 #include <QDebug>
-#include "sink.h"
 
 using namespace Chestnut;
 
@@ -18,6 +18,7 @@ Value::Value( const QString& name, const QString& datatype)
   m_name = name;
   m_intValue = 0;
   m_floatValue = 0;
+  m_ui = new Ui::ValueProperties;
   
   Sink *inputValue = new Sink(Data::Value, this);
   m_sinks.append(inputValue);
@@ -71,6 +72,50 @@ ProgramStrings Value::flatten() const
   
   return prog;
 }
+
+void Value::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  QDialog *dialog = new QDialog();
+  m_ui->setupUi(dialog);
+  
+  m_ui->name->setValidator(m_nameValidator);
+  m_ui->name->setText(name());
+  
+  if (datatype() == "int") {
+    m_ui->integer->setChecked(true);
+    m_ui->intValue->setValue(m_intValue);
+    m_ui->intValue->setHidden(false);
+    m_ui->realnumberValue->setHidden(true);
+  } else {
+    m_ui->realnumber->setChecked(true);
+    m_ui->realnumberValue->setValue(m_floatValue);
+    m_ui->realnumberValue->setHidden(false);
+    m_ui->intValue->setHidden(true);
+  }
+
+  connect(dialog, SIGNAL(accepted()), SLOT(configAccepted()));
+  connect(dialog, SIGNAL(rejected()), SLOT(configRejected()));
+  dialog->show();
+}
+
+void Value::configAccepted()
+{
+  setName(m_ui->name->text());
+  if (m_ui->integer->isChecked()) {
+    setDatatype("int");
+    m_intValue = m_ui->intValue->value();
+  } else {
+    setDatatype("float");
+    m_floatValue = m_ui->realnumberValue->value();
+  }
+
+  update();
+}
+void Value::configRejected()
+{
+
+}
+
 
 QRectF Value::boundingRect() const
 {

@@ -53,7 +53,7 @@
      <item row="3" column="1">
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QDoubleSpinBox" name="doubleSpinBox">
+        <widget class="QDoubleSpinBox" name="realnumberValue">
          <property name="buttonSymbols">
           <enum>QAbstractSpinBox::NoButtons</enum>
          </property>
@@ -63,7 +63,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QSpinBox" name="spinBox">
+        <widget class="QSpinBox" name="intValue">
          <property name="buttonSymbols">
           <enum>QAbstractSpinBox::NoButtons</enum>
          </property>
@@ -155,8 +155,8 @@
   <connection>
    <sender>integer</sender>
    <signal>toggled(bool)</signal>
-   <receiver>doubleSpinBox</receiver>
-   <slot>setVisible(bool)</slot>
+   <receiver>realnumberValue</receiver>
+   <slot>setHidden(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>96</x>
@@ -171,8 +171,8 @@
   <connection>
    <sender>realnumber</sender>
    <signal>toggled(bool)</signal>
-   <receiver>spinBox</receiver>
-   <slot>setVisible(bool)</slot>
+   <receiver>intValue</receiver>
+   <slot>setHidden(bool)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>104</x>
