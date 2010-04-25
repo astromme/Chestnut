@@ -83,7 +83,12 @@ void Value::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWi
 {
   
   QPointF center = QPointF(Size::valueWidth/2, Size::valueHeight/2);
+  painter->save();
+  if (isSelected()) {
+    painter->setPen(QPen(Qt::DashLine));
+  }
   painter->drawPath(triangle(center, Size::valueWidth, Size::valueHeight));
+  painter->restore();
   
   // Layout and draw text
   qreal xpos = Size::valueWidth/2;

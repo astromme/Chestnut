@@ -138,7 +138,13 @@ QRectF DataBlock::boundingRect() const
 
 void DataBlock::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  painter->save();
+  if (isSelected()) {
+    painter->setPen(QPen(Qt::DashLine));
+  }
   painter->drawRect(rect());
+  painter->restore();
+  
   painter->drawText(rect(), Qt::AlignBottom | Qt::AlignHCenter, name());
   painter->drawText(rect(), Qt::AlignTop | Qt::AlignHCenter, QString("%1 rows").arg(rows()));
   QRectF smaller = rect().adjusted(0, QApplication::fontMetrics().height(), 0, 0);
