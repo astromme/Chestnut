@@ -28,5 +28,5 @@ cuda_add_executable(example-map map_example.cu)
 
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
-add_executable(fluid ${fluid_sources} ${fluid_mocs})
-target_link_libraries(fluid ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARY})
+#add_executable(fluid ${fluid_sources} ${fluid_mocs})
+#target_link_libraries(fluid ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARY})
