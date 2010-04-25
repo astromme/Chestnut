@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>254</height>
+    <height>250</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -158,6 +158,16 @@
        </attribute>
       </widget>
      </item>
+     <item row="8" column="1">
+      <widget class="QLabel" name="selectedFile">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -168,7 +178,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>10</height>
+       <height>6</height>
       </size>
      </property>
     </spacer>
@@ -209,7 +219,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>157</x>
-     <y>253</y>
+     <y>249</y>
     </hint>
    </hints>
   </connection>
@@ -225,7 +235,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>286</x>
-     <y>253</y>
+     <y>249</y>
     </hint>
    </hints>
   </connection>
@@ -253,11 +263,27 @@
    <hints>
     <hint type="sourcelabel">
      <x>186</x>
-     <y>194</y>
+     <y>185</y>
     </hint>
     <hint type="destinationlabel">
      <x>264</x>
      <y>190</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>readFromFile</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>selectedFile</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>148</x>
+     <y>183</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>159</x>
+     <y>205</y>
     </hint>
    </hints>
   </connection>

@@ -14,6 +14,7 @@ class Source : public QGraphicsObject {
   Q_OBJECT
   public:
     Source(Data::Format type, Object *parent);
+    ~Source();
     Data::Format format() const;
     
     enum { Type = ChestnutItemType::Source };

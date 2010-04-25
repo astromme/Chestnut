@@ -23,6 +23,10 @@ Source::Source(Data::Format format, Object* parent)
   connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
 
+Source::~Source()
+{
+}
+
 int Source::type() const
 {
   return Type;
@@ -67,7 +71,6 @@ void Source::removeAllConnections()
 {
   foreach(Connection *connection, m_connections) {
     m_connections.removeAll(connection);
-    scene()->removeItem(connection);
     delete connection;
   }
 }

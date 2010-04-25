@@ -29,6 +29,12 @@ Map::Map(QGraphicsObject* parent)
   setOperation(op);
 }
 
+Map::~Map()
+{
+}
+
+
+
 int Map::type() const
 {
   return Type;

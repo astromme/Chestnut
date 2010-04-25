@@ -7,6 +7,7 @@
 
 #include <QPainter>
 #include <QDebug>
+#include <QGraphicsSceneMouseEvent>
 
 using namespace Chestnut;
 
@@ -118,6 +119,7 @@ QPainterPath Connection::endShape() const
   QPainterPath p;
   switch (source()->format()) {
     case Data::DataBlock:
+      p.moveTo(endpoint());
       p.addEllipse(endpoint(), Size::inputRadius, Size::inputRadius);
       return p;
       break;
@@ -138,4 +140,14 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
   p.setWidth(1);
   painter->setPen(p);
   painter->drawPath(endShape());
+}
+
+void Connection::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  if (endShape().intersects(QRectF(event->pos()-QPointF(1, 1), QPointF(2, 2)))) {
+    event->accept();
+    //TODO disconnect and allow moving
+    return;
+  }
+  event->ignore();
 }
