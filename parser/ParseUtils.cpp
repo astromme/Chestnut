@@ -501,7 +501,7 @@ void ParseUtils::makeTimerStop(string timer)
   string stop = objnames.timerstop;
  
   string cuda_outstr;
-  cuda_outstr += prep_str("gettimeofday(&" + stop + ", 0); // start timer");
+  cuda_outstr += prep_str("gettimeofday(&" + stop + ", 0); // stop timer");
   cuda_outstr += "\n";
   cudafile->pushMain(cuda_outstr);
 }
@@ -747,10 +747,6 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
 
   string cuda_outstr;
  
-  // give function its own scope so that 
-  // temp vars are deallocated
-  //cuda_outstr += prep_str("{"); indent++; // TODO remove
-  
   cuda_outstr += prep_str("/* Begin Map Function */");
 
   // if destination is not source -- if we're not modifying data in place but
@@ -789,8 +785,7 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
       mapmodify + "," + // combined with mapmodify and
       dest_dev + ".begin(), " + // written to destination.
       thrustop + ");"); // source and mapmodify are compsed with thrustop
-  cuda_outstr += prep_str("/* End Map Function */"); // indent--; // TODO remove
-  // cuda_outstr += prep_str("}");  // close scope TODO remove
+  cuda_outstr += prep_str("/* End Map Function */"); 
   cuda_outstr += "\n";
 
   cudafile->pushMain(cuda_outstr);
