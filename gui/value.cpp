@@ -81,14 +81,15 @@ void Value::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
   m_ui->name->setValidator(m_nameValidator);
   m_ui->name->setText(name());
   
+  m_ui->intValue->setValue(m_intValue);
+  m_ui->realnumberValue->setValue(m_floatValue);
+  
   if (datatype() == "int") {
     m_ui->integer->setChecked(true);
-    m_ui->intValue->setValue(m_intValue);
     m_ui->intValue->setHidden(false);
     m_ui->realnumberValue->setHidden(true);
   } else {
     m_ui->realnumber->setChecked(true);
-    m_ui->realnumberValue->setValue(m_floatValue);
     m_ui->realnumberValue->setHidden(false);
     m_ui->intValue->setHidden(true);
   }
@@ -103,11 +104,11 @@ void Value::configAccepted()
   setName(m_ui->name->text());
   if (m_ui->integer->isChecked()) {
     setDatatype("int");
-    m_intValue = m_ui->intValue->value();
   } else {
     setDatatype("float");
-    m_floatValue = m_ui->realnumberValue->value();
   }
+  m_intValue = m_ui->intValue->value();
+  m_floatValue = m_ui->realnumberValue->value();
 
   update();
 }
