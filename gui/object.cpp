@@ -5,7 +5,7 @@
 #include "connection.h"
 #include <QDebug>
 #include <QGraphicsSceneMouseEvent>
-#include <QMouseEvent>
+#include <QGraphicsScene>
 
 Object::Object(QGraphicsObject* parent)
   : QGraphicsObject(parent)
@@ -19,7 +19,9 @@ Object::Object(QGraphicsObject* parent)
 Object::~Object()
 {
   foreach(Sink *sink, sinks()) {
-    if (sink->isConnected()) {      
+    qDebug() << "Sink" << sink << "connected" << sink->isConnected();
+    if (sink->isConnected()) {
+      scene()->removeItem(sink->connection());
       delete sink->connection();
     }
   }
@@ -63,28 +65,9 @@ void Object::mouseReleaseEvent ( QGraphicsSceneMouseEvent* event )
 {
   if (!m_moved) {
     setSelected(!isSelected());
-    prepareGeometryChange();
     update();
   }
 }
-
-void Object::keyPressEvent(QKeyEvent* event)
-{
-  if ((event->key() == Qt::Key_Delete) || (event->key() == Qt::Key_Backspace)) {
-    event->accept();
-    return;
-  }
-  QGraphicsItem::keyPressEvent(event);
-}
-void Object::keyReleaseEvent(QKeyEvent* event)
-{
-  if ((event->key() == Qt::Key_Delete) || (event->key() == Qt::Key_Backspace)) {
-    deleteLater();
-    return;
-  }
-  QGraphicsItem::keyReleaseEvent(event);
-}
-
 
 QVariant Object::itemChange ( QGraphicsItem::GraphicsItemChange change, const QVariant& value )
 {

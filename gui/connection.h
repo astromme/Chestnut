@@ -3,6 +3,8 @@
 
 #include <QGraphicsItem>
 
+#include "types.h"
+
 class Source;
 class Sink;
 
@@ -11,6 +13,9 @@ class Connection : public QGraphicsItem {
     Connection(Source *source, Sink *sink);
     Connection(Source *source);
     virtual ~Connection();
+    
+    enum { Type = ChestnutItemType::Connection };
+    int type() const;
     
     void updateConnection();
     

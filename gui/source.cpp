@@ -67,6 +67,7 @@ void Source::removeAllConnections()
 {
   foreach(Connection *connection, m_connections) {
     m_connections.removeAll(connection);
+    scene()->removeItem(connection);
     delete connection;
   }
 }
@@ -164,6 +165,7 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
       return;
     }
   }
+  scene()->removeItem(m_activeConnection);
   delete m_activeConnection;
   m_activeConnection = 0;
 }
