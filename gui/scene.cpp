@@ -56,8 +56,8 @@ void Scene::dropEvent(QGraphicsSceneDragDropEvent* event)
     QGraphicsItem *newItem = 0;
     
     // Data
-    if (droppedItem == "Value") { newItem = new Value("new value"); } 
-    else if (droppedItem == "Data Block") { newItem = new DataBlock("new datablock", "float", 10, 10); }
+    if (droppedItem == "Value") { newItem = new Value("value"); } 
+    else if (droppedItem == "Data Block") { newItem = new DataBlock("datablock", "float", 10, 10); }
     
     //Functions
     else if (droppedItem == "Map") { newItem = new Map(); }
