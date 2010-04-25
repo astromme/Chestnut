@@ -39,9 +39,15 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   QStandardItem *functions = new QStandardItem("Functions");
     functions->appendRow(new QStandardItem("Map"));
     functions->appendRow(new QStandardItem("Reduce"));
-    //TODO more
+    functions->appendRow(new QStandardItem("Sort"));
+    functions->appendRow(new QStandardItem("Print"));
+    functions->appendRow(new QStandardItem("Write"));
     
   QStandardItem *operators = new QStandardItem("Operators");
+    operators->appendRow(new QStandardItem("Add"));
+    operators->appendRow(new QStandardItem("Subtract"));
+    operators->appendRow(new QStandardItem("Multiply"));
+    operators->appendRow(new QStandardItem("Divide"));
   
   m_model->appendRow(variables);
   m_model->appendRow(functions);

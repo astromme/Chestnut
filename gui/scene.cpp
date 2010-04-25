@@ -68,7 +68,10 @@ void Scene::dropEvent(QGraphicsSceneDragDropEvent* event)
     
     
     //Operators
-    else if (droppedItem == "Plus") { newItem = new StandardOperation(StandardOperation::Add); }
+    else if (droppedItem == "Add") { newItem = new StandardOperation(StandardOperation::Add); }
+    else if (droppedItem == "Subtract") { newItem = new StandardOperation(StandardOperation::Subtract); }
+    else if (droppedItem == "Multiply") { newItem = new StandardOperation(StandardOperation::Multiply); }
+    else if (droppedItem == "Divide") { newItem = new StandardOperation(StandardOperation::Divide); }
   
     else {
       qDebug() << "Unknown Item: " << droppedItem;
