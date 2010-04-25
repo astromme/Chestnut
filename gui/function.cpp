@@ -50,6 +50,9 @@ bool Function::hasOperation() {
   return m_hasOperation;
 }
 void Function::setOperation(Operation* op) {
+  if (m_operation) {
+    delete m_operation;
+  }
   m_operation = op;
   m_operation->setPos(operationPos() - QPointF(Size::operatorRadius, Size::operatorRadius)); //TODO fix positioning
 }
