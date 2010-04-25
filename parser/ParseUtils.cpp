@@ -564,6 +564,8 @@ void ParseUtils::makePrintData(string object){
   obj_names objnames = get_obj_names(object);
   string host = objnames.host;
   string dev = objnames.dev;
+  string rows = objnames.rows;
+  string cols = objnames.cols;
   string type = symtab.getType(object);
   int category = symtab.getCategory(object);
 
@@ -571,9 +573,14 @@ void ParseUtils::makePrintData(string object){
   cuda_outstr += prep_str("// print out data");
   switch (category){
     case VARIABLE_VECTOR:
-      cuda_outstr += prep_str("thrust::copy(" + 
-          dev + ".begin(), " + dev + ".end(), " +
-          "std::ostream_iterator<" + type + ">(std::cout, \"\\n\"));");
+      cuda_outstr += prep_str("// copy data to cpu then print it");
+      cuda_outstr += prep_str(host + " = " + dev + ";");
+      cuda_outstr += prep_str("for (int r=0; r<" + rows + "; r++){"); indent++;
+      cuda_outstr += prep_str("for (int c=0; c<" + cols + "; c++){"); indent++;
+      cuda_outstr += prep_str("std::cout << " + host + "[r*" + cols + "+c] << \" \";"); indent--;
+      cuda_outstr += prep_str("}"); 
+      cuda_outstr += prep_str("std::cout << \"\\n\";"); indent--;
+      cuda_outstr += prep_str("}");
       break;
     case VARIABLE_SCALAR:
       cuda_outstr += prep_str("std::cout << " + host + " << std::endl;");
@@ -586,7 +593,7 @@ void ParseUtils::makePrintData(string object){
 }
 
 /********************************
- * Function: makePrintData2D
+ * Function: makePrintData1D
  * -------------------------
  * Generates code to print out an object in two dimensions
  * Unlike makePrintData, we need to copy data over to the CPU from the GPU,
@@ -602,24 +609,16 @@ void ParseUtils::makePrintData(string object){
  * Input:
  *    object: variable to be printed
  */
-void ParseUtils::makePrintData2D(string object){
+void ParseUtils::makePrintData1D(string object){
   // define names of vars in prog
   obj_names objnames = get_obj_names(object);
-  string host = objnames.host;
   string dev = objnames.dev;
-  string rows = objnames.rows;
-  string cols = objnames.cols;
   string type = symtab.getType(object);
-
+  
   string cuda_outstr;
-  cuda_outstr += prep_str("// copy data to cpu then print it");
-  cuda_outstr += prep_str(host + " = " + dev + ";");
-  cuda_outstr += prep_str("for (int r=0; r<" + rows + "; r++){"); indent++;
-  cuda_outstr += prep_str("for (int c=0; c<" + cols + "; c++){"); indent++;
-  cuda_outstr += prep_str("std::cout << " + host + "[r*" + cols + "+c] << \" \";"); indent--;
-  cuda_outstr += prep_str("}"); 
-  cuda_outstr += prep_str("std::cout << \"\\n\";"); indent--;
-  cuda_outstr += prep_str("}");
+  cuda_outstr += prep_str("thrust::copy(" + 
+    dev + ".begin(), " + dev + ".end(), " +
+    "std::ostream_iterator<" + type + ">(std::cout, \"\\n\"));");
   cuda_outstr += prep_str("std::cout << \"\\n\";");
 
   cudafile->pushMain(cuda_outstr);
