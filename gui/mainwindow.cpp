@@ -128,7 +128,6 @@ MainWindow::~MainWindow()
   
 }
 
-
 void MainWindow::writeFile()
 {
   //TODO: Make less hacky
