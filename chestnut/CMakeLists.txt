@@ -11,7 +11,8 @@ include_directories("/usr/local/cuda/include" ${CMAKE_CURRENT_SOURCE_DIR})
 set(chestnut_program_sources
     chestnut.cu
     chestnut.cpp
-    ParseLibs.h
+    ParseLibs.cpp
+    ParseLibs.inl
     )
 
 # set(fluid_headers

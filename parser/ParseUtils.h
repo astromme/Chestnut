@@ -19,6 +19,8 @@ typedef struct {
   string instream;
   string outstream;
   string garbage;
+  string timerstart;
+  string timerstop;
 } obj_names;
 
 class ParseUtils {
@@ -41,6 +43,10 @@ class ParseUtils {
     void makeForeach(string object, string type, string datarows, string datacols, string expr);
     void makeVector(string object, string type);
     void makeScalar(string object, string type);
+    
+    void makeTimer(string timer);
+    void makeTimerStart(string timer);
+    void makeTimerStop(string timer);
 
     void makeMap(string source, string destination, string op, string modify);
     void makeReduce(string source, string destination, string op);

@@ -9,6 +9,7 @@ using std::string;
 enum categories {
   VARIABLE_SCALAR = 20,
   VARIABLE_VECTOR,
+  VARIABLE_TIMER,
   FUNCTION
 };
 
