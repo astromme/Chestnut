@@ -9,6 +9,9 @@
 #include <qfontmetrics.h>
 #include <QPainter>
 #include <QDebug>
+#include <QGraphicsSceneMouseEvent>
+#include "standardoperation.h"
+#include <QMimeData>
 
 using namespace Chestnut;
 
@@ -41,6 +44,7 @@ QString Function::name() const{
 /// Operation Goodness
 void Function::setHasOperation(bool hasOperation) {
   m_hasOperation = hasOperation;
+  setAcceptDrops(hasOperation);
 }
 bool Function::hasOperation() {
   return m_hasOperation;
@@ -153,3 +157,58 @@ QRectF Function::outputsRect() const
   qreal height = QApplication::fontMetrics().height() + 2*margin;
   return QRectF(QPointF(topLeft), topLeft + QPointF(width, height));
 }
+
+void Function::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  qDebug() << "Function DragNDrop Enter";
+  qDebug() << event->mimeData()->formats();
+  if (event->mimeData()->hasFormat("application/x-chestnutpaletteitemoperator")) {
+    qDebug() << "accepting";
+    event->setProposedAction(Qt::CopyAction);
+    event->accept();
+    return;
+  }
+  event->setAccepted(false);
+}
+void Function::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  if (event->mimeData()->hasFormat("application/x-chestnutpaletteitemoperator")) {
+    event->setProposedAction(Qt::CopyAction);
+    event->accept();
+    return;
+  }
+  event->setAccepted(false);
+}
+void Function::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+   qDebug() << "Function DragNDrop Drop";
+  if (event->mimeData()->hasFormat("application/x-chestnutpaletteitemoperator")) {
+    QByteArray encodedData = event->mimeData()->data("application/x-chestnutpaletteitemoperator");
+    QDataStream stream(&encodedData, QIODevice::ReadOnly);
+    QStringList newItems;
+
+    while (!stream.atEnd()) {
+        QString text;
+        stream >> text;
+        newItems << text;
+    }
+    QString droppedItem = newItems.first();
+    
+    Operation *newItem = 0;
+        
+    //Operators
+    if (droppedItem == "Add") { newItem = new StandardOperation(StandardOperation::Add, this); }
+    else if (droppedItem == "Subtract") { newItem = new StandardOperation(StandardOperation::Subtract, this); }
+    else if (droppedItem == "Multiply") { newItem = new StandardOperation(StandardOperation::Multiply, this); }
+    else if (droppedItem == "Divide") { newItem = new StandardOperation(StandardOperation::Divide, this); }
+  
+    else {
+      qDebug() << "Unknown Item: " << droppedItem;
+      return;
+    }
+    
+    setOperation(newItem);
+    return;
+  }
+}
+

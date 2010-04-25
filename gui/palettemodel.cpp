@@ -13,6 +13,7 @@ QStringList PaletteModel::mimeTypes() const
 {
   QStringList types;
   types << "application/x-chestnutpaletteitem";
+  types << "application/x-chestnutpaletteitemoperator";
   return types;
 }
 
@@ -31,6 +32,10 @@ QMimeData* PaletteModel::mimeData(const QModelIndexList& indexes) const
     }
   }
 
-  mimeData->setData("application/x-chestnutpaletteitem", encodedData);
+  if (data(indexes.at(0).parent()).toString() == "Operators") {
+    mimeData->setData("application/x-chestnutpaletteitemoperator", encodedData);
+  } else {
+    mimeData->setData("application/x-chestnutpaletteitem", encodedData);
+  }
   return mimeData;
 }
