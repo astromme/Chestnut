@@ -1,4 +1,6 @@
 #include <iostream>
+#include <algorithm>
+#include <vector>
 #include <sys/time.h>
 
 using namespace std;
@@ -17,15 +19,15 @@ void printArr(DataType **arr);
 double totalTime(timeval* start, timeval* stop);
 
 
-const int N = 5000;
+const int N = 10000;
 const int rows = N;
 const int cols = N;
 
 int main(){
   
-  struct timeval start, stop;
+  //struct timeval start, stop;
   
-  gettimeofday(&start, 0);
+  //gettimeofday(&start, 0);
   
   DataType **arr = createArr();
   //DataType **twos = createArr();
@@ -33,20 +35,23 @@ int main(){
   fill(arr, 0);
   //fill(twos, 2);
 
-  //int iterations = 50;
-  //for (int i=0; i<iterations; i++){
+  /*int iterations = 100;
+  for (int i=0;i<iterations; i++){
     map(arr, 1);
-  //}
+  }*/
+  
   //convolve(arr, arr, twos);
 
   //DataType reduced = reduce(arr);
   
-  gettimeofday(&stop, 0);
+  //vector<DataType> v (arr, arr+(rows*cols));  
+  
+  //gettimeofday(&stop, 0);
   
   //cout << "reduced: " << reduced << endl;
  
   //printArr(arr);
-  cout << "time: " << totalTime(&start, &stop) << "\n";
+  //cout << "time: " << totalTime(&start, &stop) << "\n";
 
   //map(arr, 1);
   //printArr(arr);
