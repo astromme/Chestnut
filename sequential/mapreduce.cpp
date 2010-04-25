@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -13,26 +14,39 @@ DataType** createArr();
 void destroyArr(DataType **arr);
 void printArr(DataType **arr);
 
+double totalTime(timeval* start, timeval* stop);
+
+
 const int N = 5000;
 const int rows = N;
 const int cols = N;
 
 int main(){
   
-  DataType **arr = createArr();
-  DataType **twos = createArr();
-
-  fill(arr, 1+2);
-  fill(twos, 2);
-
-  map(arr, 1);
-  convolve(arr, arr, twos);
-  map(arr, 1);
-
-  //convolve(arr, arr, ones);
+  struct timeval start, stop;
   
-  DataType reduced = reduce(arr);
-  cout << "reduced: " << reduced << endl;
+  gettimeofday(&start, 0);
+  
+  DataType **arr = createArr();
+  //DataType **twos = createArr();
+
+  fill(arr, 0);
+  //fill(twos, 2);
+
+  //int iterations = 50;
+  //for (int i=0; i<iterations; i++){
+    map(arr, 1);
+  //}
+  //convolve(arr, arr, twos);
+
+  //DataType reduced = reduce(arr);
+  
+  gettimeofday(&stop, 0);
+  
+  //cout << "reduced: " << reduced << endl;
+ 
+  //printArr(arr);
+  cout << "time: " << totalTime(&start, &stop) << "\n";
 
   //map(arr, 1);
   //printArr(arr);
@@ -103,3 +117,10 @@ void printArr(DataType **arr){
     cout << endl;
   }
 }
+
+double totalTime(timeval* start, timeval* stop)
+{
+    return (stop->tv_sec + stop->tv_usec*0.000001)
+      - (start->tv_sec + start->tv_usec*0.000001);
+}
+
