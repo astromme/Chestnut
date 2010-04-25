@@ -50,7 +50,7 @@ class ParseUtils {
     void makeWriteDatafile(string fname, string object);
 
     void makePrintData(string object);
-    void makePrintData2D(string object);
+    void makePrintData1D(string object);
   
   private:
     //std::ofstream cudafile;
