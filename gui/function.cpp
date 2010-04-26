@@ -226,7 +226,11 @@ QRectF Function::inputsRect() const
     outputsWidth += margin*2;
   } //TODO: don't do calculation in outputsRect() as well
   
+  qreal xmargin = 5;
+  qreal midRectWidth = (2*hasOperation()+4)*xmargin + QApplication::fontMetrics().width(m_name) + 2*(Size::operatorRadius + Size::operatorMargin);
+  
   width = qMax(width, outputsWidth);
+  width = qMax(width, midRectWidth);
   
   return QRectF(topLeft, QSizeF(width, height));
 }
@@ -236,7 +240,7 @@ QRectF Function::internalRect() const
   qreal ymargin = 5;
   qreal width = qMax(inputsRect().width(), outputsRect().width());
   //width += 10;
-  width = qMax(width, 2*xmargin + QApplication::fontMetrics().width(m_name) + 2*(Size::operatorRadius + Size::operatorMargin));
+  width = qMax(width, (2*hasOperation()+4)*xmargin + QApplication::fontMetrics().width(m_name) + 2*(Size::operatorRadius + Size::operatorMargin));
   
   qreal height = inputsRect().height() + outputsRect().height() + 2*ymargin;
   height += qMax(2*ymargin + QApplication::fontMetrics().height(), 2*(Size::operatorRadius + Size::operatorMargin));
