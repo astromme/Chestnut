@@ -60,65 +60,6 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   
   connect(m_ui->actionBuild, SIGNAL(triggered(bool)), this, SLOT(writeFile()));
   
-  // Create initial default objects
-    
-  Value *v1 = new Value("var");
-  v1->setExpression("4");
-  
-  Value *v2 = new Value("reduced", "float");
-  
-  Map *m1 = new Map();
-  Sort *s1 = new Sort();
-  Write *w1 = new Write();
-  //Print *p1 = new Print();
-  //Reduce *r1 = new Reduce();
-  
-  w1->setFilename("chestnutOutput");
-  
-  DataBlock *inmap = new DataBlock("inmap1", "float", 10, 10);
-  inmap->setExpression("foreach ( value = rand/RAND_MAX )");
-  DataBlock *outmap = new DataBlock("outmap", "float", 10, 10);
-  DataBlock *outsort = new DataBlock("sorted", "float", 10, 10);
-  
-  inmap->sources()[0]->connectToSink(m1->sinks()[0]);
-  v1->sources()[0]->connectToSink(m1->sinks()[1]);
-  m1->sources()[0]->connectToSink(outmap->sinks()[0]);
-  
-  outmap->sources()[0]->connectToSink(s1->sinks()[0]);
-  s1->sources()[0]->connectToSink(outsort->sinks()[0]);
-  
-  outsort->sources()[0]->connectToSink(w1->sinks()[0]);
-  
-  //outmap->sources()[0]->connectToSink(r1->sinks()[0]);
-  //r1->sources()[0]->connectToSink(v2->sinks()[0]);
-  
-  
-  m_scene->addItem(v1);
-  //m_scene->addItem(v2);
-
-  m_scene->addItem(m1);
-  m_scene->addItem(s1);
-  m_scene->addItem(w1);
-  //m_scene->addItem(p1);
-  //m_scene->addItem(r1);
-
-  m_scene->addItem(inmap);
-  m_scene->addItem(outmap);
-  m_scene->addItem(outsort);
-  
-  v1->moveBy(0, -150);
-  //v2->moveBy(270, 180);
-  
-  m1->moveBy(0, 0);
-  s1->moveBy(150,217);
-  w1->moveBy(0,300);
-  //r1->moveBy(150, 217);
-  //p1->moveBy(0,300);
-  
-  inmap->moveBy(-110, -150);
-  outmap->moveBy(-50, 100);
-  outsort->moveBy(-270,180);
-  
   m_ui->workflowEditor->setScene(m_scene);
   m_ui->workflowEditor->setAcceptDrops(true);
   m_ui->workflowEditor->setRenderHint(QPainter::Antialiasing);
