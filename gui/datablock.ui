@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>250</height>
+    <height>259</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -238,6 +238,38 @@
     <hint type="destinationlabel">
      <x>286</x>
      <y>249</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>forLoop</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>forLoopCode</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>137</x>
+     <y>148</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>240</x>
+     <y>159</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>readFromFile</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>fileSelect</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>194</x>
+     <y>195</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>323</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>
