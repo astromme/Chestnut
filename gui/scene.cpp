@@ -23,8 +23,8 @@ Scene::Scene(QObject* parent)
 
 void Scene::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  qDebug() << "DragNDrop Enter";
-  qDebug() << event->mimeData()->formats();
+  //qDebug() << "DragNDrop Enter";
+  //qDebug() << event->mimeData()->formats();
   if (event->mimeData()->hasFormat("application/x-chestnutpaletteitem")) {
     event->setProposedAction(Qt::CopyAction);
     event->accept();
@@ -49,7 +49,7 @@ void Scene::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
 
 void Scene::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  qDebug() << "DragNDrop Drop";
+  //qDebug() << "DragNDrop Drop";
   if (event->mimeData()->hasFormat("application/x-chestnutpaletteitem")) {
     QByteArray encodedData = event->mimeData()->data("application/x-chestnutpaletteitem");
     QDataStream stream(&encodedData, QIODevice::ReadOnly);

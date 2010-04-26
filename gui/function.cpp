@@ -270,10 +270,10 @@ QRectF Function::outputsRect() const
 
 void Function::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  qDebug() << "Function DragNDrop Enter";
-  qDebug() << event->mimeData()->formats();
+  //qDebug() << "Function DragNDrop Enter";
+  //qDebug() << event->mimeData()->formats();
   if (event->mimeData()->hasFormat("application/x-chestnutpaletteitemoperator")) {
-    qDebug() << "accepting";
+    //qDebug() << "accepting";
     event->setProposedAction(Qt::CopyAction);
     event->accept();
     return;
@@ -291,7 +291,7 @@ void Function::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
 }
 void Function::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-   qDebug() << "Function DragNDrop Drop";
+   //qDebug() << "Function DragNDrop Drop";
   if (event->mimeData()->hasFormat("application/x-chestnutpaletteitemoperator")) {
     QByteArray encodedData = event->mimeData()->data("application/x-chestnutpaletteitemoperator");
     QDataStream stream(&encodedData, QIODevice::ReadOnly);
