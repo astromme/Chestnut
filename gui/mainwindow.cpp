@@ -7,7 +7,7 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 
-#include "ui_program.h"
+#include "ui_output.h"
 #include "ui_mainwindow.h"
 
 #include "scene.h"
