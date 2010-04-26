@@ -76,7 +76,12 @@ void MainWindow::writeFile()
 {
   //TODO: Make less hacky
   foreach(QGraphicsItem *item, m_scene->items()) {
-    if (item->type() != ChestnutItemType::Map) {
+    // HACK HACK HACK FIXME better way of looking at item types?
+    if ((item->type() != ChestnutItemType::Map) &&
+        (item->type() != ChestnutItemType::Sort) &&
+        (item->type() != ChestnutItemType::Reduce) &&
+        (item->type() != ChestnutItemType::Print) &&
+        (item->type() != ChestnutItemType::Write)) {
       continue;
     }
     Object *object = (Object*)item;
