@@ -59,6 +59,7 @@ set(chestnut_ui
     mainwindow.ui
     datablock.ui
     value.ui
+    output.ui
     )
 
 set(chestnut_resource_files

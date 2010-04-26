@@ -15,160 +15,162 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QFormLayout" name="formLayout">
-     <item row="4" column="0">
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Rows</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QSpinBox" name="rows">
-       <property name="maximum">
-        <number>100000</number>
-       </property>
-       <property name="value">
-        <number>20</number>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Columns</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QSpinBox" name="columns">
-       <property name="maximum">
-        <number>100000</number>
-       </property>
-       <property name="value">
-        <number>50</number>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Initialization Type</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QRadioButton" name="forLoop">
-         <property name="text">
-          <string>For Loop</string>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-         <attribute name="buttonGroup">
-          <string>initializationGroup</string>
-         </attribute>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="forLoopCode">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="text">
-          <string>value = maxRows</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="7" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <item>
-        <widget class="QRadioButton" name="readFromFile">
-         <property name="text">
-          <string>Read in from File</string>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-         <attribute name="buttonGroup">
-          <string>initializationGroup</string>
-         </attribute>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="fileSelect">
-         <property name="text">
-          <string>Select File</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Name</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="name">
-       <property name="toolTip">
-        <string>The variable name. Must be unique</string>
-       </property>
-       <property name="whatsThis">
-        <string>The variable name. Must be unique</string>
-       </property>
-       <property name="inputMask">
-        <string extracomment="The variable's name. Must be unique"/>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Type</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QRadioButton" name="integers">
-       <property name="text">
-        <string>Integers</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string>typeGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QRadioButton" name="realnumbers">
-       <property name="text">
-        <string>Real Numbers</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string>typeGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QLabel" name="selectedFile">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <widget class="QWidget" name="mainWidget" native="true">
+     <layout class="QFormLayout" name="formLayout">
+      <item row="4" column="0">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>Rows</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QSpinBox" name="rows">
+        <property name="maximum">
+         <number>100000</number>
+        </property>
+        <property name="value">
+         <number>20</number>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Columns</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QSpinBox" name="columns">
+        <property name="maximum">
+         <number>100000</number>
+        </property>
+        <property name="value">
+         <number>50</number>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>Initialization Type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QRadioButton" name="forLoop">
+          <property name="text">
+           <string>For Loop</string>
+          </property>
+          <property name="checked">
+           <bool>false</bool>
+          </property>
+          <attribute name="buttonGroup">
+           <string>initializationGroup</string>
+          </attribute>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="forLoopCode">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>value = maxRows</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="7" column="1">
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QRadioButton" name="readFromFile">
+          <property name="text">
+           <string>Read in from File</string>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <attribute name="buttonGroup">
+           <string>initializationGroup</string>
+          </attribute>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="fileSelect">
+          <property name="text">
+           <string>Select File</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="nameLabel">
+        <property name="text">
+         <string>Name</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="name">
+        <property name="toolTip">
+         <string>The variable name. Must be unique</string>
+        </property>
+        <property name="whatsThis">
+         <string>The variable name. Must be unique</string>
+        </property>
+        <property name="inputMask">
+         <string extracomment="The variable's name. Must be unique"/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Type</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QRadioButton" name="integers">
+        <property name="text">
+         <string>Integers</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+        <attribute name="buttonGroup">
+         <string>typeGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QRadioButton" name="realnumbers">
+        <property name="text">
+         <string>Real Numbers</string>
+        </property>
+        <attribute name="buttonGroup">
+         <string>typeGroup</string>
+        </attribute>
+       </widget>
+      </item>
+      <item row="8" column="1">
+       <widget class="QLabel" name="selectedFile">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
    <item>
     <spacer name="verticalSpacer">
@@ -178,7 +180,7 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>6</height>
+       <height>210</height>
       </size>
      </property>
     </spacer>
@@ -236,54 +238,6 @@
     <hint type="destinationlabel">
      <x>286</x>
      <y>249</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>forLoop</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>forLoopCode</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>156</x>
-     <y>159</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>216</x>
-     <y>157</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>readFromFile</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>fileSelect</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>186</x>
-     <y>185</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>264</x>
-     <y>190</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>readFromFile</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>selectedFile</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>148</x>
-     <y>183</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>159</x>
-     <y>205</y>
     </hint>
    </hints>
   </connection>

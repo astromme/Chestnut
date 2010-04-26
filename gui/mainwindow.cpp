@@ -7,6 +7,9 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 
+#include "ui_program.h"
+#include "ui_mainwindow.h"
+
 #include "scene.h"
 #include "value.h"
 #include "function.h"
@@ -23,7 +26,8 @@
 
 MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   : QMainWindow (parent, flags),
-  m_ui(new Ui::MainWindow)
+  m_ui(new Ui::MainWindow),
+  m_outputUi(new Ui::OutputProgram)
 {
   m_scene = new Scene(this);
   m_model = new PaletteModel(this);
@@ -122,7 +126,8 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
 }
 MainWindow::~MainWindow()
 {
-  
+  delete m_ui;
+  delete m_outputUi;
 }
 
 void MainWindow::writeFile()
@@ -137,13 +142,16 @@ void MainWindow::writeFile()
       ProgramStrings prog = object->flatten();
       
       // Show resulting program in a window
-      QTextEdit *resultingProgram = new QTextEdit();
-      resultingProgram->append(prog.first.join("\n"));
-      resultingProgram->append(QString()); // new line
+      QDialog *container = new QDialog();
+      m_outputUi->setupUi(container);
+      container->setWindowTitle("DynamicChestnut.in");
       
-      resultingProgram->append(prog.second.join("\n"));
-      resultingProgram->resize(400, 200);
-      resultingProgram->show();
+      m_outputUi->programCode->appendPlainText(prog.first.join("\n"));
+      m_outputUi->programCode->appendPlainText(QString()); // new line
+      m_outputUi->programCode->appendPlainText(prog.second.join("\n"));
+      
+      container->resize(450, 200);
+      container->show();
       
       // Write resulting program to a file
       writeToFile("DynamicChestnut.in", prog);
