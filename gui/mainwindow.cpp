@@ -144,7 +144,7 @@ void MainWindow::writeFile()
       // Show resulting program in a window
       QDialog *container = new QDialog();
       m_outputUi->setupUi(container);
-      container->setWindowTitle("DynamicChestnut.in");
+      container->setWindowTitle("DynamicChestnut.in [Output] - Chestnut");
       
       m_outputUi->programCode->appendPlainText(prog.first.join("\n"));
       m_outputUi->programCode->appendPlainText(QString()); // new line
