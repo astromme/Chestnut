@@ -84,6 +84,7 @@ void Sink::setConnection(Connection* connection)
 {
   if (!connection) {
     m_connection = connection;
+    parentObject()->update();
     return;
   }
   
