@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   m_ui->workflowEditor->setAcceptDrops(true);
   m_ui->workflowEditor->setRenderHint(QPainter::Antialiasing);
   m_ui->workflowEditor->setDragMode(QGraphicsView::RubberBandDrag);
+  m_ui->workflowEditor->setSceneRect(-500, -500, 500, 500);
 }
 MainWindow::~MainWindow()
 {
