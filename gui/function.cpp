@@ -91,14 +91,18 @@ void Function::setOperation(Operation* op) {
     delete m_operation;
   }
   m_operation = op;
-  m_operation->setPos(operationPos() - QPointF(Size::operatorRadius, Size::operatorRadius)); //TODO fix positioning
+  m_operation->setPos(operationPos());
 }
 Operation* Function::operation() const {
   return m_operation;
 }
 
 QPointF Function::operationPos() const {
-  return QPointF(0, 0);
+  QRectF rect = internalRect().adjusted(0, inputsRect().height(), 0, -outputsRect().height());
+  qreal xpos = rect.right() - Size::operatorMargin - Size::operatorRadius*2 - 6;
+  qreal ypos = rect.top() + rect.height()/2 - Size::operatorRadius;
+  
+  return QPointF(xpos, ypos);
 }
 
 void Function::addSink(Sink *sink) {
@@ -182,13 +186,19 @@ void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
   painter->drawText(outputsRect(), Qt::AlignLeft | Qt::AlignVCenter, Size::outputsText);
   
   // Draw Internals
-  painter->drawText(internalRect().adjusted(0, inputsRect().height(), 0, -outputsRect().height()),
-                    Qt::AlignCenter, m_name + "()");
+  if (hasOperation()) {
+    painter->drawText(internalRect().adjusted(10, inputsRect().height(), 0, -outputsRect().height()),
+                      Qt::AlignVCenter | Qt::AlignLeft, m_name + "()");
+  } else {
+    painter->drawText(internalRect().adjusted(0, inputsRect().height(), 0, -outputsRect().height()),
+                      Qt::AlignCenter, m_name + "()");
+  }
   if (hasOperation()) {
     painter->save();
       QPen pen(Qt::gray, 1, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
       painter->setPen(pen);
-      painter->drawEllipse(operationPos(), Size::operatorRadius, Size::operatorRadius);
+      painter->drawEllipse(operationPos()+QPointF(Size::operatorRadius, Size::operatorRadius),
+                           Size::operatorRadius, Size::operatorRadius);
     painter->restore();
   }
 }
