@@ -2,7 +2,11 @@
 #define CHESTNUT_MAINWINDOW_H
 
 #include <QtGui/QMainWindow>
-#include "ui_mainwindow.h"
+
+namespace Ui {
+  class MainWindow;
+  class OutputProgram;
+}
 
 class QStandardItemModel;
 class QGraphicsScene;
@@ -22,6 +26,7 @@ class MainWindow : public QMainWindow
     QGraphicsScene *m_scene;
     QStandardItemModel *m_model;
     Ui::MainWindow *m_ui;
+    Ui::OutputProgram *m_outputUi;
 };
 
 #endif // CHESTNUT_MAINWINDOW_H
