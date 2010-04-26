@@ -10,6 +10,10 @@
 Map::Map(QGraphicsObject* parent)
   : Function("map", parent)
 {
+  setHasInputs(true);
+  setHasOutputs(true);
+  setHasOperation(true);
+  
   Data::Formats in1;
   in1 << Data::DataBlock;
  
@@ -24,9 +28,6 @@ Map::Map(QGraphicsObject* parent)
 
   Source *output1 = new Source(Data::DataBlock, this);
   addSource(output1);
-  
-  setHasOperation(true);
-  setAcceptDrops(true);
 }
 
 Map::~Map()

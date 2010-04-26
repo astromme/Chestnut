@@ -9,6 +9,10 @@
 Reduce::Reduce(QGraphicsObject* parent)
   : Function("reduce", parent)
 {
+  setHasOperation(true);
+  setHasInputs(true);
+  setHasOutputs(true);
+    
   Sink *input1 = new Sink(Data::DataBlock, this);
   addSink(input1);
 
@@ -16,7 +20,6 @@ Reduce::Reduce(QGraphicsObject* parent)
   addSource(output1);
   
   Operation *op = new StandardOperation(StandardOperation::Add, this); // TODO allow op to be set
-  setHasOperation(true);
   setOperation(op);
 }
 

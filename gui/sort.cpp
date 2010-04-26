@@ -9,13 +9,15 @@
 Sort::Sort(QGraphicsObject* parent)
   : Function("sort", parent)
 {
+  setHasOperation(false);
+  setHasInputs(true);
+  setHasOutputs(true);
+  
   Sink *input1 = new Sink(Data::DataBlock, this);
   addSink(input1);
 
   Source *output1 = new Source(Data::DataBlock, this);
   addSource(output1);
-  
-  setHasOperation(false);
 }
 
 int Sort::type() const
