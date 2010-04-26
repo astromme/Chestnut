@@ -28,6 +28,8 @@ DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, in
   Source *out = new Source(Data::DataBlock, this);
   out->setPos(rect().left()+rect().width()/2, rect().bottom());
   m_sources.append(out);
+  
+  setExpression("foreach( value = rand/RAND_MAX )");
 }
 
 DataBlock::~DataBlock()
@@ -105,7 +107,9 @@ void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
   m_ui->rows->setValue(m_rows);
   m_ui->columns->setValue(m_columns);
   
-  //TODO for loop vs read from file
+  QString forEach = expression().remove("foreach( ");
+  m_ui->forLoopCode->setText(forEach.remove(forEach.length()-2, 2));
+
   connect(m_ui->fileSelect, SIGNAL(clicked(bool)), SLOT(selectFile()));
   connect(dialog, SIGNAL(accepted()), SLOT(configAccepted()));
   connect(dialog, SIGNAL(rejected()), SLOT(configRejected()));
@@ -127,7 +131,9 @@ void DataBlock::configAccepted()
   }
   m_rows = m_ui->rows->value();
   m_columns = m_ui->columns->value();
-  //TODO for loop vs read from file
+  
+  setExpression(QString("foreach( %1 )").arg(m_ui->forLoopCode->text()));
+  
   update();
 }
 
