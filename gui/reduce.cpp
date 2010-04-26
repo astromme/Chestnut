@@ -18,9 +18,6 @@ Reduce::Reduce(QGraphicsObject* parent)
 
   Source *output1 = new Source(Data::Value, this);
   addSource(output1);
-  
-  Operation *op = new StandardOperation(StandardOperation::Add, this); // TODO allow op to be set
-  setOperation(op);
 }
 
 int Reduce::type() const
