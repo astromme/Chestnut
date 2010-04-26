@@ -29,7 +29,7 @@ namespace Chestnut {
     static qreal valueHeight = 60;
 
     static qreal dataBlockWidth = 100;
-    static qreal dataBlockHeight = 60;
+    static qreal dataBlockHeight = 45;
   }
 }
 
