@@ -4,6 +4,7 @@
 #include "standardoperation.h"
 #include "data.h"
 
+#include <QMessageBox>
 #include <QDebug>
 
 Map::Map(QGraphicsObject* parent)
@@ -46,6 +47,17 @@ ProgramStrings Map::flatten() const
   }
   
   setVisited(true);
+  
+  if (!isFullyConnected()) {
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Missing Connections | Build Failed");
+    msgBox.setText("<b>The document has missing connections.</b>");
+    msgBox.setTextFormat(Qt::RichText);
+    msgBox.setInformativeText("One of your Map functions is not fully connected. Ensure that it is connected and has an operator before building.");
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.exec();
+    return ProgramStrings();
+  }
  
   ProgramStrings prog;
   

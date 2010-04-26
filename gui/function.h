@@ -22,6 +22,12 @@ class Function : public Object {
     
     virtual bool isFunction() const;
     
+    /** Checks to see if this function has the necessary sources/sinks/operator
+      * @returns true if everything is as it should be
+      * @returns false if there is a problem.
+      */
+    bool isFullyConnected() const;
+    
     //virtual QStringList flatten() const = 0;
     QString name() const;
     
