@@ -31,7 +31,10 @@ class Function : public Object {
     //virtual QStringList flatten() const = 0;
     QString name() const;
     
-    bool hasOperation();
+    bool hasInputs() const;
+    bool hasOutputs() const;
+    
+    bool hasOperation() const;
     Operation* operation() const;
     QPointF operationPos() const;
     void setOperation(Operation *op); /**< Adds and sets the position of the given operation */
@@ -41,6 +44,9 @@ class Function : public Object {
     
   protected:
     void setHasOperation(bool hasOperation);
+    void setHasInputs(bool hasInputs);
+    void setHasOutputs(bool hasOutputs);
+    
     void addSource(Source *source); /**< Adds and sets the position of the given source */
     void addSink(Sink *sink); /**< Adds and sets the position of the given sink */
     
@@ -53,9 +59,13 @@ class Function : public Object {
     QRectF outputsRect() const;
     
   protected:
+    QString m_name;
+    
+  private:
     bool m_hasOperation;
     Operation *m_operation;
-    QString m_name;
+    bool m_hasInputs;
+    bool m_hasOutputs;
     
 };
 

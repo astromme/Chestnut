@@ -19,6 +19,8 @@ Function::Function(const QString& name, QGraphicsObject* parent)
   : Object(parent)
 {
   m_hasOperation = false;
+  m_hasInputs = false;
+  m_hasOutputs = false;
   m_operation = 0;
   m_name = name;
 }
@@ -59,12 +61,29 @@ QString Function::name() const{
   return m_name;
 }
 
+bool Function::hasInputs() const
+{
+  return m_hasInputs;
+}
+void Function::setHasInputs(bool hasInputs)
+{
+  m_hasInputs = hasInputs;
+}
+bool Function::hasOutputs() const
+{
+  return m_hasOutputs;
+}
+void Function::setHasOutputs(bool hasOutputs)
+{
+  m_hasOutputs = hasOutputs;
+}
+
 /// Operation Goodness
 void Function::setHasOperation(bool hasOperation) {
   m_hasOperation = hasOperation;
   setAcceptDrops(hasOperation);
 }
-bool Function::hasOperation() {
+bool Function::hasOperation() const {
   return m_hasOperation;
 }
 void Function::setOperation(Operation* op) {
@@ -90,11 +109,13 @@ void Function::addSink(Sink *sink) {
 
   QPointF topLeft;
   if (m_sinks.isEmpty()) {
-    topLeft = inputsRect().topLeft() + QPointF(Size::inputsMarginX, Size::inputsMarginY);
+    topLeft = inputsRect().topLeft() + QPointF(0, inputsRect().height()/2);
+    topLeft += QPointF(Size::inputsTextWidth(), -Size::inputRadius);
+    topLeft += QPointF(Size::inputsMarginX, 0);
   } else {
     Sink *furthestRight = m_sinks.last();
     QPointF topRight = mapFromItem(furthestRight, furthestRight->rect().topRight());
-    topLeft = topRight  + QPointF(Size::outputsMarginX, 0);
+    topLeft = topRight  + QPointF(2*Size::inputsMarginX, 0);
   }
   sink->setPos(topLeft);
   m_sinks.append(sink);
@@ -108,11 +129,13 @@ void Function::addSource(Source *source) {
 
   QPointF topLeft;
   if (m_sources.isEmpty()) {
-    topLeft = outputsRect().topLeft() + QPointF(Size::outputsMarginX, Size::outputsMarginY);
+    topLeft = outputsRect().topLeft() + QPointF(0, outputsRect().height()/2);
+    topLeft += QPointF(Size::outputTextWidth(), -Size::outputRadius);
+    topLeft += QPointF(Size::outputsMarginX, 0);
   } else {
     Source *furthestRight = m_sources.last();
     QPointF topRight = mapFromItem(furthestRight, furthestRight->rect().topRight());
-    topLeft = topRight  + QPointF(Size::outputsMarginX, 0);
+    topLeft = topRight  + QPointF(2*Size::outputsMarginX, 0);
   }
   source->setPos(topLeft);
   m_sources.append(source);
@@ -129,15 +152,38 @@ void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
   if (isSelected()) {
     painter->setPen(QPen(Qt::DashLine));
   }
-  painter->drawRoundedRect(inputsRect(), 5, 5);
-  painter->drawRoundedRect(outputsRect(), 5, 5);
-  painter->drawRect(internalRect());
+  painter->drawRoundedRect(internalRect(), 5, 5);
   painter->restore();
+    
+  painter->save();
+  painter->setPen(Qt::gray);
+  painter->drawLine(inputsRect().bottomLeft(), inputsRect().bottomRight());
+  qreal sinkSeparator = Size::inputsTextWidth();
+  foreach(Sink *sink, sinks()) {
+    if (sink != sinks().last()) {
+      sinkSeparator += sink->rect().width() + 2*Size::inputsMarginX;
+      painter->drawLine(sinkSeparator, inputsRect().top()+4, sinkSeparator, inputsRect().bottom()-4);
+    }
+  }
+  
+  if (sources().size() > 0) {
+    painter->drawLine(outputsRect().topLeft(), outputsRect().topRight());
+    qreal sourceSeparator = Size::inputsTextWidth();
+    foreach(Source *source, sources()) {
+      if (source != sources().last()) {
+        sourceSeparator += source->rect().width() + 2*Size::inputsMarginX;
+        painter->drawLine(sourceSeparator, outputsRect().top()+4, sourceSeparator, outputsRect().bottom()-4);
+      }
+    }
+  }
+  
+  painter->restore();
+  painter->drawText(inputsRect(), Qt::AlignLeft | Qt::AlignVCenter, Size::inputsText);
+  painter->drawText(outputsRect(), Qt::AlignLeft | Qt::AlignVCenter, Size::outputsText);
   
   // Draw Internals
-  qreal xpos = 0 - 0.5*QApplication::fontMetrics().width(m_name);
-  qreal ypos = 0 - Size::operatorRadius - Size::operatorMargin;
-  painter->drawText(xpos, ypos, m_name);
+  painter->drawText(internalRect().adjusted(0, inputsRect().height(), 0, -outputsRect().height()),
+                    Qt::AlignCenter, m_name + "()");
   if (hasOperation()) {
     painter->save();
       QPen pen(Qt::gray, 1, Qt::DotLine, Qt::RoundCap, Qt::RoundJoin);
@@ -149,34 +195,67 @@ void Function::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
 
 QRectF Function::inputsRect() const
 {
+  if (!hasInputs()) {
+    return QRectF();
+  }
+  
   qreal margin = 2;
-  QRectF internal = internalRect();
-  QPointF bottomRight = internal.topRight();
-  qreal width = internal.width();
+  QPointF topLeft = QPointF(0, 0);
   qreal height = QApplication::fontMetrics().height() + 2*margin;
-  return QRectF(QPointF(bottomRight - QPointF(width, height)), bottomRight);
+  qreal width = Size::inputsTextWidth() + margin;
+  
+  foreach(Sink *sink, sinks()) {
+    width += sink->rect().width();
+    width += margin*2;
+  }
+  
+  qreal outputsWidth = Size::outputTextWidth() + margin;
+  
+  foreach(Source *source, sources()) {
+    outputsWidth += source->rect().width();
+    outputsWidth += margin*2;
+  } //TODO: don't do calculation in outputsRect() as well
+  
+  width = qMax(width, outputsWidth);
+  
+  return QRectF(topLeft, QSizeF(width, height));
 }
 QRectF Function::internalRect() const
 {
   qreal xmargin = 5;
   qreal ymargin = 5;
-  qreal width = 2*xmargin + QApplication::fontMetrics().width(m_name);
-  qreal height = 2*(Size::operatorRadius + Size::operatorMargin) + 2*ymargin + QApplication::fontMetrics().height();
+  qreal width = qMax(inputsRect().width(), outputsRect().width());
+  //width += 10;
+  width = qMax(width, 2*xmargin + QApplication::fontMetrics().width(m_name) + 2*(Size::operatorRadius + Size::operatorMargin));
   
-  qreal xpos = 0 - width/2;
-  qreal ypos = 0 - height/2;
+  qreal height = inputsRect().height() + outputsRect().height() + 2*ymargin;
+  height += qMax(2*ymargin + QApplication::fontMetrics().height(), 2*(Size::operatorRadius + Size::operatorMargin));
   
-  QRectF rect(QPointF(xpos, ypos), QSizeF(width, height));
-  return rect;
+  return QRectF(QPointF(0, 0), QSizeF(width, height));
 }
 QRectF Function::outputsRect() const
 {
+  if (!hasOutputs()) {
+    return QRectF();
+  }
+  
   qreal margin = 2;
-  QRectF internal = internalRect();
-  QPointF topLeft = internal.bottomLeft();
-  qreal width = internal.width();
+  
+  qreal ypos = inputsRect().height();
+  ypos += qMax((qreal)10 + QApplication::fontMetrics().height(), 2*(Size::operatorRadius + Size::operatorMargin));
+  QPointF topLeft = QPointF(0, ypos+10); // 10 == more margin
+  
   qreal height = QApplication::fontMetrics().height() + 2*margin;
-  return QRectF(QPointF(topLeft), topLeft + QPointF(width, height));
+  qreal width = Size::outputTextWidth() + margin;
+  
+  foreach(Source *source, sources()) {
+    width += source->rect().width();
+    width += margin*2;
+  }
+  
+  width = qMax(width, inputsRect().width());
+  
+  return QRectF(topLeft, QSizeF(width, height));
 }
 
 void Function::dragEnterEvent(QGraphicsSceneDragDropEvent* event)

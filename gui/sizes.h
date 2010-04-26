@@ -2,6 +2,7 @@
 #define CHESTNUT_SIZES_H
 
 #include "qglobal.h"
+#include <QString>
 
 namespace Chestnut {
   namespace Size {
@@ -10,12 +11,16 @@ namespace Chestnut {
     static qreal inputRadius = 4;
     static qreal inputHeight = 2*inputRadius;
     static qreal inputWidth = 2*inputRadius;
+    static QString inputsText = " Inputs ";
+    qreal inputsTextWidth();
 
     static qreal outputsMarginX = 2;
     static qreal outputsMarginY = 2;
     static qreal outputRadius = 4;
     static qreal outputHeight = 2*outputRadius;
     static qreal outputWidth = 2*outputRadius;
+    static QString outputsText = " Outputs ";
+    qreal outputTextWidth();
 
     static qreal operatorRadius = 10;
     static qreal operatorMargin = 3;

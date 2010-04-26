@@ -9,6 +9,9 @@
 Write::Write(QGraphicsObject* parent)
   : Function("write", parent)
 {
+  setHasOperation(false);
+  setHasInputs(true);
+  setHasOutputs(false);
   
   Data::Formats in;
   in << Data::DataBlock;
@@ -16,8 +19,6 @@ Write::Write(QGraphicsObject* parent)
  
   Sink *input = new Sink(in, this);
   addSink(input);
-  
-  setHasOperation(false);
 }
 
 int Write::type() const

@@ -9,6 +9,9 @@
 Print::Print(QGraphicsObject* parent)
   : Function("print", parent)
 {
+  setHasOperation(false);
+  setHasInputs(true);
+  setHasOutputs(false);
   
   Data::Formats in;
   in << Data::DataBlock;
@@ -16,8 +19,6 @@ Print::Print(QGraphicsObject* parent)
  
   Sink *input = new Sink(in, this);
   addSink(input);
-  
-  setHasOperation(false);
 }
 
 int Print::type() const

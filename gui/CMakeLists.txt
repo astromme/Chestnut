@@ -40,6 +40,7 @@ set(chestnut_sources
     connection.cpp
     drawingutils.cpp
     datautils.cpp
+    sizes.cpp
     ${chestnut_functions}
     ${chestnut_operators}
     ${chestnut_datatypes}
