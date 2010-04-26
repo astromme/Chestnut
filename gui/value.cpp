@@ -12,12 +12,13 @@
 
 using namespace Chestnut;
 
-Value::Value( const QString& name, const QString& datatype)
+Value::Value(const QString& name, const QString& datatype)
   : Data(name, Data::Value, datatype)
 {
   m_name = name;
   m_intValue = 0;
   m_floatValue = 0;
+  setExpression("0");
   m_ui = new Ui::ValueProperties;
   
   Sink *inputValue = new Sink(Data::Value, this);
@@ -71,6 +72,15 @@ ProgramStrings Value::flatten() const
   }
   
   return prog;
+}
+
+QString Value::expression() const
+{
+  if (datatype() == "int") {
+    return QString::number(m_intValue);
+  } else if (datatype() == "float") {
+    return QString::number(m_floatValue);
+  }
 }
 
 void Value::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)

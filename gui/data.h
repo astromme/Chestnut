@@ -28,7 +28,7 @@ class Data : public Object {
     
     void setExpression(QString expr);
     
-    QString expression() const;
+    virtual QString expression() const;
     QString name() const;
     void setName(const QString &name);
     Format format() const;

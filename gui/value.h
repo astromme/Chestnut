@@ -20,6 +20,7 @@ class Value : public Data {
     int type() const;
 
     virtual ProgramStrings flatten() const;
+    virtual QString expression() const;
     
     virtual void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event);
     
