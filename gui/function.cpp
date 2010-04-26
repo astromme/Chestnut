@@ -32,6 +32,24 @@ bool Function::isFunction() const
   return true;
 }
 
+bool Function::isFullyConnected() const
+{
+  if (m_hasOperation && (m_operation == 0)) {
+    return false;
+  }
+  foreach(Sink *sink, sinks()) {
+    if (!sink->isConnected()) {
+      return false;
+    }
+  }
+  foreach(Source *source, sources()) {
+    if (source->connectedSinks().size() == 0) {
+      return false;
+    } 
+  }
+  return true;
+}
+
 int Function::type() const
 {
   return Type;
