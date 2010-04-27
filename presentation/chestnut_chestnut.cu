@@ -1,0 +1,32 @@
+
+
+                        
+
+
+
+
+
+
+
+
+
+
+
+float data 10 10 foreach (value = 2);
+
+mapped = map(+, 1, data);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
