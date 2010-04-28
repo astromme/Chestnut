@@ -18,6 +18,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(parseutils_SOURCES 
     SymbolTable.cpp
     ParseUtils.cpp
+    ParseUtils_Functions.cpp
+    ParseUtils_InputOutput.cpp
+    ParseUtils_Timer.cpp
+    ParseUtils_Variables.cpp
+    ParseUtils_Foreach.cpp
+    ParseUtils_HelperFunctions.cpp
     FileUtils.cpp
 )
 
