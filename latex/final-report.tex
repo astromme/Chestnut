@@ -1,0 +1,107 @@
+\documentclass{article}
+\usepackage{fullpage}
+\usepackage{apacite}
+\usepackage{url}
+\usepackage[bottom]{footmisc} % make sure footnote is at bottom of page
+\newcommand{\comment}[1]{}
+
+\begin{document}
+\title{Chestnut: Simplifying General Purpose Graphics Processing}
+\author{Andrew Stromme \& Ryan Carlson}
+\date{May 10, 2010}
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+\section{Introduction}
+
+Say why GPGPU is cool but difficult. We have provided an easier way to deal with it. With us, you get the performance gains without the steep learning curve.
+
+\section{Related Works}
+
+Basically just plop our annotated bibliography in here.
+
+\section{General Purpose Graphics Processing}
+
+\subsection{Paradigm/Data Flow}
+
+Data $\rightarrow$ Function $\rightarrow$ Data etc
+
+\subsection{Tools}
+
+There are a number of tools available to interface with the GPU. Two we have chosen are CUDA and Thrust.
+
+\subsubsection{CUDA}
+
+Developed by Nvidia. Allows fine-tooth control over GPU. Very verbose and C-like
+
+\subsubsection{Thrust (RC)}
+
+Much more C++-y. Easier to grasp. More like programming for CPU but still need to know some stuff about GPU
+
+\section{Chestnut}
+
+\subsection{Overview/Pipeline}
+
+Move from Graphical Interface to Intermediate Code to Thrust code
+
+\subsection{Goals}
+
+Exposes Data-focused model. Modular and discoverable. Speedup over CPU (which we achieved)
+
+\subsection{Targets/Audience}
+
+Python Programmers. Non-CS people. Embarrassingly parallel problems.
+
+\section{Chestnut Frontend (AS)}
+
+\subsection{Themes (?)}
+
+Data-centric programming model. Drag-and-Drop interface. Forces GPU programming model.
+
+\subsection{Primitives}
+
+DataBlocks, Values, and Functions.
+
+\subsection{Translate GUI to Chestnut Code (RC)}
+
+Visit each node. Each node knows its contribution. Variable Declarations and Function calls.
+
+\section{Chestnut Backend (RC)}
+
+\subsection{Process}
+
+Lex tokenizes, Yacc accepts sequences of tokens. From Yacc we call helper functions which write Thrust code to disk. Compile that code using nvcc
+
+\subsection{Primitives}
+
+Support ints, floats. Functions: map, reduce, sort, print, read, write. Ask Tia if we should put specifications here or in an appendix or what.
+
+\subsection{Sample Code (?)}
+
+Do we want to show some samples? Use verbatim!
+
+\section{Experiments (RC)}
+
+Run both qualitative experiments -- compare code samples -- and quantitative experiments with runtimes. We show that, subjectively, our code is easier to read, if less powerful. BUT!\ runtimes are very similar.
+
+\subsection{Qualitative}
+
+Compare Chestnut to Thrust to CUDA
+
+\subsection{Quantitative}
+
+Runtimes.
+
+\section{Future Work}
+
+\begin{itemize}
+  \item Customizable Functions and DataTypes
+  \item More default Functions and DataTypes
+  \item Refine GUI
+  \item For-loops
+\end{itemize}
+
+\end{document}
+
