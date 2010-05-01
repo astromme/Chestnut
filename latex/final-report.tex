@@ -5,6 +5,19 @@
 \usepackage[bottom]{footmisc} % make sure footnote is at bottom of page
 \newcommand{\comment}[1]{}
 
+\usepackage{float}
+\newfloat{Algorithm}{h!}{}{}
+
+% program-related commands
+\usepackage{program}
+\renewcommand{\|}{\origbar} % use this instead of '|' because program package redefines '|'
+\renewcommand{\WHILE}{\mbox{{\bf while} }\tab}
+\renewcommand{\FOR}{\mbox{{\bf for} }\tab}
+\renewcommand{\IF}{\mbox{{\bf if} }\tab}
+\newcommand{\IN}{\mbox{ {\bf in} }}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
 \begin{document}
 \title{Chestnut: Simplifying General Purpose Graphics Processing}
 \author{Andrew Stromme \& Ryan Carlson}
@@ -40,6 +53,10 @@ Developed by Nvidia. Allows fine-tooth control over GPU. Very verbose and C-like
 
 Much more C++-y. Easier to grasp. More like programming for CPU but still need to know some stuff about GPU
 
+\subsubsection{Thrust Functions (RC)}
+
+We might want an overview of thrust functions here. Might also want that in Translating Chestnut to Thrust
+
 \section{Chestnut}
 
 \subsection{Overview/Pipeline}
@@ -70,17 +87,36 @@ Visit each node. Each node knows its contribution. Variable Declarations and Fun
 
 \section{Chestnut Backend (RC)}
 
+Once the GUI to Chestnut translation is finished, we have Chestnut code output. In this section we discuss the process that brings our Chestnut code to executable object code.
+
 \subsection{Process}
 
-Lex tokenizes, Yacc accepts sequences of tokens. From Yacc we call helper functions which write Thrust code to disk. Compile that code using nvcc
+%Lex tokenizes, Yacc accepts sequences of tokens. From Yacc we call helper functions which write Thrust code to disk. Compile that code using nvcc
+The translation from Chestnut to executable is a four step process. First, we use Flex\footnote{\url{http://flex.sourceforge.net/}. An open-source version of Lex.} to tokenize the Chestnut code. For each valid word in the language, a token is created. For example, if Flex reads the word \code{map} it outputs the \code{TOKMAP} token. While Flex can return just a token without any extra context, it also has the ability to recognize and then save the input in a string or integer and pass that information along as well. In this case, one might have the variable \code{var1} which gets mapped to the {\em identifier} token \code{ID} and additionally saves the string \code{"var1"} to pass along to the next stage. Every valid word or character in the file (including braces, parentheses, etc.) must be tokenized to be accepted and passed along. If a token is not found, Flex will exit with a syntax error. This provides a simple but effective first level of error checking for our code.
 
-\subsection{Primitives}
+As Flex tokenizes the file, it passes each token along to Bison\footnote{\url{http://gnu.org/software/bison/}. The GNU version of Yacc.} for processing. Bison generates an LALR(1) (one token Look-Ahead LR) or a GLR (generalized LR) parser. Using very simple regular expressions, Bison generates code that analyzes each token and matches it to predefined acceptable sequences of tokens. For example, suppose the input code for a reduction was \code{"result = reduce(data)"}. The resulting sequence of acceptable tokens to check for would be \code{"ID ASSIGN TOKREDUCE LPAREN ID RPAREN"}. Once a valid sequence of tokens is identified, we gather the appropriate information (variable names, operators, parameters) and pass them into a utility function (part of a utility class) that takes care of writing all the necessary Thrust code to disk. Once Thrust code has been written it can be compiled to object code using the CUDA compiler, \code{nvcc}.
 
-Support ints, floats. Functions: map, reduce, sort, print, read, write. Ask Tia if we should put specifications here or in an appendix or what.
+The utility class knows what files we eventually want to write to, keeps a symbol table, and has all the necessary functions to write appropriate Thrust code. We have broken each file into four general regions: headers (\code{\#includes}), function declarations, the \code{main} function, and function definitions. Each region is represented as an STL vector of strings. Thus, any header files we want to include in a given file or code we want to write to \code{main} get stored as entries in their respective vectors until the Chestnut code is finished being parsed. Once our parser reaches the end of the file, we execute a single write to disk.
+
+The symbol table is implemented as an STL vector of \code{symbol\_entry} structs. A \code{symbol\_entry} is a simple container for four fields. The first is the name of the function or variable. The second is that object's type, either \code{int} or \code{float} at present (see section \ref{sec:specifications} for a complete discussion of supported types). The third field is the category of the entry. It can be either a \code{FUNCTION} or two different variable types. If the variable is a single value, we assign the category \code{VARIABLE\_SCALAR}. If the variable is a vector (or DataBlock, in the frontend terminology) we assign it \code{VARIABLE\_VECTOR}. Finally, each entry has a scope. This field is not currently being used and is by default set to zero. 
+
+\subsection{Specifications}
+\label{sec:specifications}
+
+%Support ints, floats. Functions: map, reduce, sort, print, read, write. Ask Tia if we should put specifications here or in an appendix or what.
+We currently support two basic variable types and six default functions. Here we discuss them and specify each of their uses. This section will introduce the reader to basic Chestnut syntax and give the reader a sense of the level of abstraction used.
+
+At this early stage, the only data types we support are standard C++ \code{int} and \code{float}. Considering our target audience and what we anticipate them using Chestnut for, we believe that in an overwhelming number of cases these basic number types will be sufficient. Users will be acting primarily on large numerical datasets and our language absolutely supports that. We would like to implement more default types and allow users to define their own types, described in section \ref{sec:future}.
+
+TODO: Describe functions!
 
 \subsection{Sample Code (?)}
 
 Do we want to show some samples? Use verbatim!
+
+\subsection{Translating Chestnut Code to Thrust}
+
+Talk about the assumptions we need to make (when/where memory is allocated), some optimizations (\code{constant\_iterators}), the basic Thrust functions used.
 
 \section{Experiments (RC)}
 
@@ -95,6 +131,7 @@ Compare Chestnut to Thrust to CUDA
 Runtimes.
 
 \section{Future Work}
+\label{sec:future}
 
 \begin{itemize}
   \item Customizable Functions and DataTypes
