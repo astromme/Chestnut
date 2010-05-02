@@ -1,6 +1,8 @@
-\documentclass{article}
+%\documentclass{article}
+\documentclass[twocolumn]{article}
 \usepackage{fullpage}
 \usepackage{apacite}
+\usepackage{amsmath}
 \usepackage{url}
 \usepackage[bottom]{footmisc} % make sure footnote is at bottom of page
 \newcommand{\comment}[1]{}
@@ -108,20 +110,79 @@ The symbol table is implemented as an STL vector of \code{symbol\_entry} structs
 \label{sec:specifications}
 
 %Support ints, floats. Functions: map, reduce, sort, print, read, write. Ask Tia if we should put specifications here or in an appendix or what.
-We currently support two basic variable types and six default functions. Here we discuss them and specify each of their uses. This section will introduce the reader to basic Chestnut syntax and give the reader a sense of the level of abstraction used.
+We currently support two basic variable types, two variable categories, and seven default functions. Here we discuss them and specify each of their uses. This section will introduce the reader to basic Chestnut syntax and give the reader a sense of the level of abstraction used.
 
-At this early stage, the only data types we support are standard C++ \code{int} and \code{float}. Considering our target audience and what we anticipate them using Chestnut for, we believe that in an overwhelming number of cases these basic number types will be sufficient. Users will be acting primarily on large numerical datasets and our language absolutely supports that. In the future, we would like to implement more default types and allow users to define their own types, described in section \ref{sec:future}. {\bf talk about variable declarations?}
+At this early stage, the only data types we support are standard C++ \code{int} and \code{float}. Considering our target audience and what we anticipate them using Chestnut for, we believe that in an overwhelming number of cases these basic number types will be sufficient. Users will be acting primarily on large numerical datasets and our language absolutely supports that. In the future, we would like to implement more default types and allow users to define their own types, described in section \ref{sec:future}. 
 
-Chestnut currently has six functions that operate on data: \code{map}, \code{reduce}, and \code{sort} all manipulate the data in some way; \code{read}, \code{write}, and \code{print} comprise the Input/Output interface of our language. The general syntax for a function call in Chestnut is
+Before a function is called, variables used by that function must be defined. As discussed earlier, variables can be either vectors or scalars. If a vector is going to be assigned data before being used in a function, it must be initialized using a \code{foreach} loop or a \code{read} command, discussed in section \ref{sec:iofunctions}. Otherwise, if data is going to be used as the result of a function, we must still declare it, but need not specify anything except its type, name, and category. To declare a variable in this way, the general syntax is
 \begin{center}
-  \code{result = functionName($param_1,\;param_2, \;\ldots, \;param_k,$ inputData)}
+  \code{<type> variableName <category>;\footnote{Angle bracket notation to indicate there a defined set of choices for the given identifier.}}
 \end{center}
+
+Chestnut currently has seven functions that operate on data: \code{map}, \code{reduce}, and \code{sort} all manipulate the data in some way; \code{foreach}, \code{read}, \code{write}, and \code{print} comprise the Input/Output interface of our language. The general syntax for a function call in Chestnut is
+\begin{align*}
+  \code{result } &\code{= functionName(} \\ &\code{$param_1,\;\ldots, \;param_k,$ } \\ &\code{inputData);}
+\end{align*}
 The result of the operation is always stored in a variable (either a scalar or vector) to be used later. Every function also operates on some block of data. These two specifications enforces the data-centric model of programming. Note that it is easy to modify data in place by setting both the result and input to the same variable. Each $param_i$ is an extra parameter that specifies some option of the function. There can be zero or more such parameters. 
 
-Let's consider the \code{map} function, the most complex of the default functions. A \code{map} takes a block of data and applies the same modification to every element. For example, we could add 2 to every element in an array. Our \code{map} also works as a convolution operator, applying an operator to corresponding elements in two arrays. Formally, given two 2-dimensional arrays \code{A,B} convolved into a resulting array \code{C}, each with indices \code{i,j}, the resulting array would have the property \code{C[i][j]~=~A[i][j]~+~B[i][j]} for all \code{i,j}.
+\subsubsection{Manipulator Functions}
 
+Let's consider the \code{map} function, the most complex of the default functions. A \code{map} takes a block of data and applies the same modification to every element. For example, we could add 2 to every element in an array. Our \code{map} also works as a convolution operator, applying an operator to corresponding elements in two arrays. Formally, given two 2-dimensional arrays \code{A,B} convolved into a resulting array \code{C}, each with indices \code{i,j}, the resulting array would have the property \code{C[i][j]~=~A[i][j]~+~B[i][j]} for all \code{i,j}. The result of a \code{map} is a vector. The first parameter is the operator (e.g.\ \code{"+"}). The second parameter can either be a single value (e.g.\ \code{"2"}) or a data block. The last parameter is, as always, the input data that will be mapped over. So, if the end user wants to modify a data block \code{inputData} by adding 2 to every element the function call would be
+\begin{center}
+  \code{inputData = map(+, 2, inputData);}
+\end{center}
+If instead the user wants to convolve two blocks of data, \code{input1} and \code{input2}, using the multiplication operator and store the result in a third variable \code{output}, the call would be
+\begin{center}
+  \code{output = map(*, input1, input2);}
+\end{center}
+
+The \code{reduce} function accumulates every element of a data block using a specified operator and stores the value in a scalar. For example, a user could use the function to take the sum of every element in an array. The function takes only two parameters, an operator and an input vector. The output is a scalar. Using the example from before, to sum over a data block \code{input} and store the result in the scalar \code{reduced}, we have the syntax
+\begin{center}
+  \code{reduced = reduce(+, input);}
+\end{center}
+
+The \code{sort} function sorts a block of data according to the given comparator. The output is always a data block. The first parameter is the comparator to use (e.g.\ \code{"<"}) while the second is the data to be sorted. Suppose a user wanted to sort a block of data \code{input} in descending order and wanted to store the result in that same variable, the syntax is
+\begin{center}
+  \code{input = sort(>, input);}
+\end{center}
+
+We see that each of the manipulator functions Chestnut offers takes a vector as input, performs an operation on every element and returns some value to be stored in another variable. We note that these functions can be strung together into long sequences of maps, reduces, and sorts. Indeed, we anticipate much of the value of Chestnut to arise from the ability to sequence functions in a pipeline to efficiently compute results.
+
+\subsubsection{Input/Output Functions}
+\label{sec:iofunctions}
+
+To initialize a vector, Chestnut offers two options, one of which is the \code{foreach} construct. This is a simplified for-loop construction that traverses every element of the vector and allows the user to create a formula to dictate what value is stored in each cell. The general syntax for a \code{foreach} declaration is
+\begin{align*}
+  \code{<type>}& \code{ variableName numRows numCols } \\ &\code{foreach ($ForeachExpression$)}
+\end{align*}
+Every $ForeachExpression$ starts with \code{value =} and then some right-hand side expression. The \code{value} keyword is shorthand for the current index of the data block in the for loop. Thus if the progress of the loop had reached $currentRow$, $currentCol$, then \code{value} would correspond to \code{array[$currentRow$][$currentCol$]}.
+
+The right-hand side of the equation can be any arithmetic expression (e.g.\ 2+4) combined with a set of reserved words. Note that these words are not reserved outside of this context, so a user oblivious of these rules would not be in danger of name conflict errors. The user can reference the current row or column using the \code{row} and \code{col} keywords, respectively. To reference the total rows or total columns a vector has we use \code{maxrows} and \code{maxcols} keywords, respectively. Finally, users can use the keyword \code{rand} to generate a random number. Since this function invokes the C++ $rand()$ function, this will be an integer between 0 and the maximum random number. This offers the most ability for the user to customize his or her random number. 
+
+So, to fill a 10x10 vector of random real numbers between 0 and 1, the full statement would be
+\begin{align*}
+  \code{float } &\code{data 10 10 } \\ &\code{foreach (rand/RAND\_MAX)}
+\end{align*}
+
+Chestnut also allows its users to read data from disk and write data to disk. We use a very clear, simple syntax to read and write files. The first line contains the number rows in the data, then the number of columns. After this the data is listed in a space-separated format. Recall from above that data reads are called only when variables are declared, so the current syntax follows the declaration pattern. In the future we may want to allow data reads at any time. To read from a file \code{"infile"} and store it in a vector \code{data} of integers, we have the syntax
+\begin{center}
+  \code{int data read("infile");}
+\end{center}
+
+The output functions have a different syntax from other functions. To write a block of data, \code{outdata}, to a file, \code{outfile}, the code in Chestnut would be
+\begin{center}
+  \code{write(outdata, "outfile");}
+\end{center}
+
+Similarly, Chestnut provides a function to pint the contents of a data block to standard output. The function takes the rows and columns of the data into account when printing, printing a newline character before starting each new row. To print a data block \code{outdata}, one uses the syntax
+\begin{center}
+  \code{print outdata;}
+\end{center}
+
+The input and output functions Chestnut provides allows the user to view progress in between a series of computations and allows the user to take blocks of data from disk and write them out for storage. When dealing with enormous blocks of data, it seems that reading and writing to disk will be most useful. Still, for benchmarking and various other operations, the \code{foreach} construct will also be useful.
 
 \subsection{Sample Code (?)}
+\label{sec:sampleCode}
 
 Do we want to show some samples? Use verbatim!
 
