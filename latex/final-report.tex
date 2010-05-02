@@ -37,13 +37,15 @@ Basically just plop our annotated bibliography in here.
 
 \section{General Purpose Graphics Processing}
 
-\subsection{Paradigm/Data Flow}
-
-Data $\rightarrow$ Function $\rightarrow$ Data etc
-
 \subsection{Structure of Graphics Processing Unit}
 
-Talk about the structure of the GPU here and how it lends itself to the data-centric paradigm.
+A graphics processing unit is a dedicated piece of hardware separate from the CPU. It was originally designed for graphics processing where each pixel is run through a series of transformations and filters before it is shown on the screen. However, the massively parallel architecture of the GPU is now being used for more general purpose programming. 
+
+Modern GPUs are structured with dozens of individual processing units organized into blocks on the card. Each of these blocks has access to a small amount of fast block-shared memory (similar in speed to the cache on a CPU) and the vastly slower but much larger GPU main memory. Unlike CPUs, GPUs can not assign and run different threads of computation simultainiously on their many processing units. Instead, they run a single process (called a kernel) on every unit. These kernels are able to access both types of memory and perform their computations in parallel. The programmer is responsible for writing this kernel, as well as for designing the way in how threads will be assigned data. This can be a complex task that requires some low level knowledge on how the GPU is designed as well as knowledge of special extensions to a programming language (e.g. CUDA or OpenCL) that can tell the GPU what to do.
+
+\subsection{Paradigm/Data Flow}
+
+GPUs lend themselves to certain types of programming, and these are not always the same as what traditional parallel models offer. For chestnut we have focused on a single paradigm that allows for significant and semi-automatic parallelization. This model is data oriented and focuses on the interactions between functions and data. Large chunks of data are assumed, such as large 2d arrays where each element in the array is a scalar value. Functions are written to perform the same operation on each element of data with no ordering constraints. This means that the operation can be applied to each element in any order, and more importantly means that the operatioins can be applied in parallel. This model of programming maps quite nicely onto the core parts of GPU programming. A single program can be written as a kernel and each running instance of that kernel can operate on a small chunk of the overall data.
 
 \subsection{Tools}
 
@@ -63,17 +65,23 @@ We might want an overview of thrust functions here. Might also want that in Tran
 
 \section{Chestnut}
 
-\subsection{Overview/Pipeline}
+\subsection{Overview}
 
-Move from Graphical Interface to Intermediate Code to Thrust code
+Chestnut is a graphical environment for parallel programming. It is composed of a graphical frontend, an intermediate language and a compiler that translates the intermediate language into thrust C++ code. The main point of entry for users is imagined to be the Chestnut GUI, with the simple code underlying this to be a small but more complicated step towards actual thrust code. Chestnut is based on the data-oriented programming model that was explained earlier. This is enforced through the gui and through the limited syntax offered by the underlying program.
+
+\subsection{Target Audience}
+
+Chestnut is meant to be a relatively simple introduction to parallel GPU programming. We expect little to no experience with C++ and see two categories of users with this type of knowledge. The first group is computer science/programming students who have not had any exposure or introduction to GPU programming before. The second group is non computer science programmers who could benefit from parallelizing their computations. Examples of the latter might be other natural science researchers who have written number-crunching programs in scripting languages who have parallelizable algorithms.
+
+With both of these cases the learning curve can be too steep to encourage these programmers to learn about GPU programming. With the underlying chestnut code we are interested in having a similar syntax to python or javascript, where the code is similar to C but without some of the extra syntax such as namespaces, headers vs source files, includes and other complexities. We hope that a person with some knowledge of programming and with a problem could use Chestnut to write a basic solution to this problem.
+
+\subsection{Target Applications}
+
+At this point Chestnut is targeted towards embarrassingly parallel problems. We reason that there are a vast number of embarrasingly parallel problems out there that have not been written to take advantage of the GPUs because of the learning curve associated with GPU programming. Those are our target problems. Additionally, because the target audience is not advanced computer science programmers we are not convinced that the extra complexity that would be needed by offereing things like more fine-grained synchronization, lower level kernel specification and control over how blocks of threads are distributed is warrented.
 
 \subsection{Goals}
 
-Exposes Data-focused model. Modular and discoverable. Speedup over CPU (which we achieved)
-
-\subsection{Targets/Audience}
-
-Python Programmers. Non-CS people. Embarrassingly parallel problems.
+With both the target audience and the target applications in mind we have identified a few important goals for Chestnut. Primarily it should expose the data-focused model that can be translated to the GPU easily. This can be done by imposing limitations on the gui and on the core language syntax. Secondly we want Chestnut to be modular. This means separating the gui interface from the underlying lanugage, and providing a compiler for this underlying language that could be changed in the future to not depend on Thrust or CUDA should either become eclipsed by other GPU programming environments. Chestnut needs to be discoverable. The gui frontend and its visual and drag and drop interface is a direct result from this, where the user can see how things are supposed to be connected. Lastly we are still interested in achieving a speedup when compared to the CPU. Although Chestnut is not about the fastest possible runtime on the GPU compared to other GPU programs we still want it to be faster than running the same computations on the CPU because even with chestnut there is still a learning curve to working on the GPU.
 
 \section{Chestnut Frontend (AS)}
 
