@@ -2,6 +2,7 @@
 \documentclass[twocolumn]{article}
 \usepackage{fullpage}
 \usepackage{apacite}
+\usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{url}
 \usepackage{fixltx2e} % so that 'starred' figures aren't out of order with 'non-starred' figures
@@ -57,7 +58,7 @@ There are a number of tools available to interface with the GPU. Two we have cho
 
 \subsubsection{CUDA}
 
-Compute Unified Device Architecture (CUDA) is a system developed by NVidia for performing general purpose computations on the GPU. CUDA is a series of extensions to C along with a specialized compiler. This results in a very low level language where the programmer must know about the GPU to program for it. Because of the extensions to C and amount of fine-grained control that CUDA offers code written in it ends up being verbose and difficult to understand for someone who has not learned about how graphics cards work. This creates an enormous learning curve for aspiring GPU programmers. 
+Compute Unified Device Architecture (CUDA) is a system developed by NVidia for performing general purpose computations on the GPU. CUDA is a series of extensions to C along with a specialized compiler. This results in a very low level language where the programmer must know about the GPU to program for it. Because of the extensions to C and amount of fine-grained control that CUDA offers code written in it ends up being verbose and difficult to understand for someone who has not learned about how graphics cards work. This creates an enormous learning curve for aspiring GPU programmers.
 
 \subsubsection{Thrust (RC)}
 
@@ -89,13 +90,26 @@ With both the target audience and the target applications in mind we have identi
 
 \section{Chestnut Frontend (AS)}
 
-\subsection{Themes (?)}
-
-Data-centric programming model. Drag-and-Drop interface. Forces GPU programming model.
+The Chestnut frontend is designed with the data-centric programming model in mind. It is composed of a canvas upon which objects can be placed and connected together to represent the dataflow within a program.
 
 \subsection{Primitives}
 
-DataBlocks, Values, and Functions.
+The frontend has three main types of objects, of which two are data containers. The simplest data container is a \code{value}, composed of just a single scalar. \code{Values} are used primarily for the second input to a map function or the result calculated by a reduction function. \code{DataBlocks} are data containers that contain multidimensional data. Currently, only 2d arrays of arbitrary dimensions are implemented, but this could be expanded to three dimensions. Lastly there are \code{functions} which operate on the two data containers. \code{Functions} are well specified and strongly typed; for example, the map function requires two inputs: one DataBlock and either another DataBlock or a Value. The map function then outputs a DataBlock. Functions (such as map and reduce) can optionally accept an operation type which takes two scalars and combines them (for example + or *). With these three types of primitive objects and the connections between them we think many embarrassingly parallel problems can be expressed in Chestnut code.
+
+\subsection{Interface Concepts}
+
+\begin{figure}[h!]
+  \centering
+    \includegraphics[width=100pt]{simplegui}
+  \caption{A sample program in the chestnut GUI.}
+\end{figure}
+
+With Chestnut one of the main goals was to have a discoverable interface. We've taken a number of steps towards this end. Firstly, each class of objects has a consistent and unique shape. \code{Functions} are rounded rectangles, \code{DataBlocks} are sharp-cornered rectangles and \code{Values} are triangles. This gives a the user a visual reference to the type of the object he is looking at rather than having to parse and understand some text. Objects can have inputs and outputs, known as \code{sinks} and \code{sources}. A sink corresponds to an input. It can accept data from some source. A \code{source} is like a fountain of data, produced by some object and available to connect to an arbitrary number of sinks. Continuing with the theme of a discoverable interface, sources and sinks have shapes to represent how they can be connected; circles can only be connected to other circles, triangles to triangles and so on. Similarly, sinks are differentiated from sources by a darker interior color. A sink can not be connected to another sink, nor can a source be connected to another source. It is possible to have a sink accept multiple different types of sources. For example, the print function can take either a DataBlock or a Value. This is represented by having both a triangle and a circle next to each other. To help the user create acceptable connections between objects, the Chestnut frontend specifically prevents the user from doing thinks that are impossible, such as connecting a source and a sink of incompatible types or connecting two sources to one sink.
+
+The drag and drop paradigm is central to the Chestnut GUI. Objects are placed on the canvas by dragging them from the left toolbar, connections are made and destroyed by drags from the respective sinks and sources, and objects can be rearranged by dragging them around the canvas. We decided on this drag and drop interface because of the goal of a discoverable frontend. 
+
+The Chestnut frontend forces the data-centric GPU model that we illustrated earlier because of the limitations enforced with connections and the high level atomic functions such as sort, reduce, and map. Sort and reduce are both predefined functions with readily available parallel solutions, such as those present in Thrust. Map enforces our model because it operates on each chunk of the data and performs the same operation to each chunk.
+
 
 \subsection{Translate GUI to Chestnut Code (RC)}
 
