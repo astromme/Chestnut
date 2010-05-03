@@ -262,12 +262,38 @@ Runtimes.
 \section{Future Work}
 \label{sec:future}
 
-\begin{itemize}
-  \item Customizable Functions and DataTypes
-  \item More default Functions and DataTypes
-  \item Refine GUI
-  \item For-loops
-\end{itemize}
+\subsection{Custom Functions}
+
+A significant limitation with the current Chestnut implementation is that it doesn't support the creation of custom functions from within Chestnut code or from the GUI. This complicates the use of Chestnut for applications which have some inter-dependence of data. One example of such an application is Conway's Game of Life \footnote{\url{http://en.wikipedia.org/wiki/Conway's_Game_of_Life}} which requires knowledge of the 8 neighboring squares to calculate the game state for any given square (TODO: Figure out citing). Custom functions would need significant limits on how they could access memory to ensure that the data-centric GPU model is followed, but we think that they are possible. A custom function would have a limited syntax and would be able to assign the values to each bucket based on the value at that bucket and the values of other nearby or arbitrary buckets. A sample syntax for custom functions could look like the following
+
+\begin{Code Snippet}
+\begin{verbatim}
+(TODO: Talk to ryan about this!)
+function average(Input in, Output out) {
+    value = above + below + left + right;
+    value = value / 4;
+}
+\end{verbatim}
+\end{Code Snippet}
+
+where the specific keywords \code{above, below, left, right} correspond to the values in the array at those positions relative to the current bucket and the keyword \code{value} represents the value in the output array of the current bucket.
+
+\subsection{Custom DataTypes}
+
+Chestnut currently supports integers and real values (floats), but both of these are primitive datatypes. It would be nice to support more complex datatypes consisting of the primitive types. In the case of sorting this allows for finding a specific entry by sorting on some subfield.
+
+TODO: insert array that shows this?
+
+\subsection{More Predefined Functions/Data Types}
+
+Doubles, pairs, c style data structures?
+
+\subsection{Refine GUI}
+
+As features are added to the Chestnut language it is important to continue to find ways to have them cleanly map into the GUI. Custom functions should appear alongside predefined functions and should follow the same semantics for advertising their available inputs and outputs as sinks and sources. The GUI also currently lacks any way of saving or loading a workspace. It would also be important to streamline the build process. Currently it takes quite a few steps and it should be more of a one click process if the user is unfamiliar with the different parts that make up the Chestnut system.
+
+\subsection{For Loops}
+
 
 \end{document}
 
