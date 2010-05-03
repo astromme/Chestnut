@@ -38,7 +38,15 @@ Say why GPGPU is cool but difficult. We have provided an easier way to deal with
 
 \section{Related Works (RC)}
 
-Basically just plop our annotated bibliography in here.
+%Basically just plop our annotated bibliography in here.
+
+We can break up designing this project into two broad categories: pedagogy of programming languages and the paradigm presented by CUDA. In other words, we need to equip ourselves with the tools to design {\em a} language, and then we need to figure out what is necessary to design {\em the} language. Since our language aims to be a teaching language, we look towards {\em Scratch}, a graphical programming language developed at the Massachusetts Institute of Technology (MIT), for guidance. Scratch provides an appealing graphical environment aimed at introducing programming to 8-16 year olds. Familiar programming constructs like conditionals and loops are present, but are presented in an intuitive manner. The authors hold that the ``computational thinking'' that programming affords is a valuable tool that should be encouraged but is currently lacking in non-Computer Science curriculum. Most children's digital fluency is defined by ``reading'' but not ``writing.'' The article discusses some of the design decisions that went into the language. To make it appeal to their target audience, the authors wanted Scratch to be more tinkerable, meaningful, and social. Additionally, we can think of any programming language as having a ``low floor'' (easy to begin), ``high ceiling'' (ability to become more complex), and ``wide walls'' (support for a diverse range of projects). Scratch appropriately focuses on the low floor and wide walls, arguing that a higher ceiling is outside the scope of a learning language, and if students are interesting in ``raising the ceiling'' they can and should look to more established languages like C or Python \cite{resnick}.
+
+Another interesting paper draws parallels between teaching a second natural language and teaching a first programming language. The authors claim that these processes are not as different as one might expect. While much research has gone into how best to communicate the syntax and semantics contained in a natural language, teaching programming languages is sorely in need of such instruction. Central to that argument is a concentration on writing code over reading it. A large and important part of learning a natural language is an ability to read, digest, and internalize the information being presented. So, the authors write, we must teach our students to read the code as well as write it. We note that this comes as a contrast to the MIT Scratch approach, which focuses on creation. Clearly, both aspects of a language are important. We need a language that is both intuitive to write and readable for others to interpret \cite{robertson}.
+
+We now turn to work regarding CUDA. Most of an undergraduate's computer science training is involved with writing single-threaded, sequential code. Since single-core CPUs are reaching limits on a hardware level, a shift is underway towards multi-core machines. This paper describes how to harness a GPU for general purpose computing using CUDA and how one might implement this into a college curriculum. A high-level overview of the CUDA model is presented along with a sample algorithm that illustrates the usefulness of teaching this new paradigm. The most useful part of this paper was the overview of the process that goes into writing a CUDA program. Given a bird's-eye view of the CUDA model, we can begin to get an idea of how to shape our own language. For example, in CUDA the programmer must decide how many threads will be executed. We would like to hide this detail from the user since it is too low level. Given this kind of big-picture writeup, we can begin to see what may cause problems and what patterns may emerge \cite{tran}.
+
+Finally, we need to consider the paradigm of actually programming for a graphics processor. Converting existing programs from a singly threaded model to the CUDA model can take significant time and experience, partly because of the mechanical conversions needed such as computing array references instead of using loops. hiCUDA is an example of an OpenMP style C preprocessor language that allows the programmer to wrap his singly threaded loops to allow them to be automatically parallelized by CUDA. It was found that examples written with the prototype hiCUDA implementation did not perform significantly worse than the same examples written directly with CUDA. Additionally, the hiCUDA examples were more concise and better fit into existing loop-based computation models that are often present in single threaded programs. However, the language is still based around C using compiler directives and as such may not reflect or emphasize the models that one must internalize to understand GPGPU programming. Still, hiCUDA shows a similar abstraction-minded attitude and gives us an idea of what can be accomplished when building on top of CUDA \cite{han}.
 
 \section{General Purpose Graphics Processing}
 
@@ -52,21 +60,25 @@ Modern GPUs are structured with dozens of individual processing units organized 
 
 GPUs lend themselves to certain types of programming, and these are not always the same as what traditional parallel models offer. For chestnut we have focused on a single paradigm that allows for significant and semi-automatic parallelization. This model is data oriented and focuses on the interactions between functions and data. Large chunks of data are assumed, such as large 2d arrays where each element in the array is a scalar value. Functions are written to perform the same operation on each element of data with no ordering constraints. This means that the operation can be applied to each element in any order, and more importantly means that the operations can be applied in parallel. This model of programming maps quite nicely onto the core parts of GPU programming. A single program can be written as a kernel and each running instance of that kernel can operate on a small chunk of the overall data.
 
-\subsection{Tools}
+\subsection{CUDA}
 
-There are a number of tools available to interface with the GPU. Two we have chosen are CUDA and Thrust.
+Compute Unified Device Architecture (CUDA)\footnote{\url{http://www.nvidia.com/object/cuda_home_new.html}} is a system developed by NVidia for performing general purpose computations on the GPU. CUDA is a series of extensions to C along with a specialized compiler. This results in a very low level language where the programmer must know about the GPU to program for it. Because of the extensions to C and amount of fine-grained control that CUDA offers code written in it ends up being verbose and difficult to understand for someone who has not learned about how graphics cards work. This creates an enormous learning curve for aspiring GPU programmers.
 
-\subsubsection{CUDA}
+\subsection{Thrust (RC)}
 
-Compute Unified Device Architecture (CUDA) is a system developed by NVidia for performing general purpose computations on the GPU. CUDA is a series of extensions to C along with a specialized compiler. This results in a very low level language where the programmer must know about the GPU to program for it. Because of the extensions to C and amount of fine-grained control that CUDA offers code written in it ends up being verbose and difficult to understand for someone who has not learned about how graphics cards work. This creates an enormous learning curve for aspiring GPU programmers.
+%Much more C++-y. Easier to grasp. More like programming for CPU but still need to know some stuff about GPU
 
-\subsubsection{Thrust (RC)}
+Thrust\footnote{\url{http://thrust.googlecode.com}} is a C++ template library that provides convenient, optimized abstractions for many common CUDA operations. Where CUDA is very low-level, verbose, and C-like, Thrust operates on a higher level, is more succinct, and much more closely resembles C++ code. Thrust makes an introduction to GPU programming much more feasible compared to CUDA. However, Thrust code is still more verbose than we would like, is specific to C++ -- a python coder would be lost -- and requires knowledge of the GPU. A Thrust coder still needs to know that copying memory between CPU and GPU is very slow. Using this knowledge, there are some optimizations that one can use in Thrust to speed up the execution of code. We want to use many of the paradigms that Thrust expressions while simplifying the process such that a user will not need a deep understanding of the GPU framework.
 
-Much more C++-y. Easier to grasp. More like programming for CPU but still need to know some stuff about GPU
+\subsubsection{Vectors}
 
-\subsubsection{Thrust Functions (RC)}
+There are two types of vectors in Thrust. The first is the \code{thrust::host\_vector}\footnote{We use the \code{thrust::} notation when introducing a Thrust object to distinguish Thrust code from Chestnut code}, which is stored in the CPU memory. The other is the \code{thrust::device\_vector}, living on the GPU. In general, a user can only initialize a vector on the CPU and then must transfer it over to the GPU. These vectors are very similar to the STL C++ vectors, and as such are inherently one-dimensional. In Chestnut we view our data in two-dimensions, but we abstract this difference away so the user never concerns himself or herself with the conversion. 
 
-We might want an overview of thrust functions here. Might also want that in Translating Chestnut to Thrust
+If the user wants to fill a vector full of the same value, Thrust offers the \code{thrust::fill} function, which fills values directly into the device vector without the need to copy data over. Instead, \code{fill} calls a kernel on the GPU that sets each index in the vector to the specified value. This is significantly faster than copying from CPU to GPU. There also exists a special type of iterator called a \code{thrust::constant\_iterator} that takes only one unit of space. The user ``fills'' it with some constant, and a query at any index returns that value. For example, suppose a user created a \code{constant\_iterator} called \code{iter} with value 2. Making the query \code{iter[0]} would return 2, as would \code{iter[100]} or any other index. Since constant space is reserved for any ``size'' vector, using  the \code{constant\_iterator} is a great optimization that we have bestowed on Chestnut users so they don't have to learn the quirks of a language like Thrust. 
+
+\subsubsection{Functions}
+
+Thrust offers a large library of default functions. For this project we have chosen to focus on three in particular: \code{thrust::transform}, \code{thrust::reduce}, and \code{thrust::sort}. These three functions lay the foundation for manipulating data in Chestnut. We briefly introduce them here before delving into the translation from Chestnut code to Thrust code in section \ref{sec:chestnutToThrust}. The \code{transform} function convolves two vectors using a specified operator. \code{Reduce} consolidates a vector with a given operator. Finally, \code{sort} sorts the data with a given comparator. Each of these operators and comparators can be chosen from one of several provided by Thrust or they can be customized. At present, Chestnut uses just the default operators and comparators. For a discussion specifying how Chestnut implements these functions, see section \ref{sec:manipulators}.
 
 \section{Chestnut}
 
@@ -140,7 +152,7 @@ At this early stage, the only data types we support are standard C++ \code{int} 
 
 Before a function is called, variables used by that function must be defined. As discussed earlier, variables can be either vectors or scalars. If a vector is going to be assigned data before being used in a function, it must be initialized using a \code{foreach} loop or a \code{read} command, discussed in section \ref{sec:iofunctions}. Otherwise, if data is going to be used as the result of a function, we must still declare it, but need not specify anything except its type, name, and category. To declare a variable in this way, the general syntax is
 \begin{center}
-  \code{<type> variableName <category>;\footnote{Angle bracket notation to indicate there a defined set of choices for the given identifier.}}
+  \code{[type] variableName [category];\footnote{Bracket notation to indicate there a defined set of choices for the given identifier.}}
 \end{center}
 
 Chestnut currently has seven functions that operate on data: \code{map}, \code{reduce}, and \code{sort} all manipulate the data in some way; \code{foreach}, \code{read}, \code{write}, and \code{print} comprise the Input/Output interface of our language. The general syntax for a function call in Chestnut is
@@ -150,6 +162,7 @@ Chestnut currently has seven functions that operate on data: \code{map}, \code{r
 The result of the operation is always stored in a variable (either a scalar or vector) to be used later. Every function also operates on some block of data. These two specifications enforces the data-centric model of programming. Note that it is easy to modify data in place by setting both the result and input to the same variable. Each $param_i$ is an extra parameter that specifies some option of the function. There can be zero or more such parameters. 
 
 \subsubsection{Manipulator Functions}
+\label{sec:manipulators}
 
 Let's consider the \code{map} function, the most complex of the default functions. A \code{map} takes a block of data and applies the same modification to every element. For example, we could add 2 to every element in an array. Our \code{map} also works as a convolution operator, applying an operator to corresponding elements in two arrays. Formally, given two 2-dimensional arrays \code{A,B} convolved into a resulting array \code{C}, each with indices \code{i,j}, the resulting array would have the property \code{C[i][j]~=~A[i][j]~+~B[i][j]} for all \code{i,j}. The result of a \code{map} is a vector. The first parameter is the operator (e.g.\ \code{"+"}). The second parameter can either be a single value (e.g.\ \code{"2"}) or a data block. The last parameter is, as always, the input data that will be mapped over. So, if the end user wants to modify a data block \code{inputData} by adding 2 to every element the function call would be
 \begin{center}
@@ -177,7 +190,7 @@ We see that each of the manipulator functions Chestnut offers takes a vector as 
 
 To initialize a vector, Chestnut offers two options, one of which is the \code{foreach} construct. This is a simplified for-loop construction that traverses every element of the vector and allows the user to create a formula to dictate what value is stored in each cell. The general syntax for a \code{foreach} declaration is
 \begin{align*}
-  \code{<type>}& \code{ variableName numRows numCols } \\ &\code{foreach ($ForeachExpression$);}
+  \code{[type]}& \code{ variableName numRows numCols } \\ &\code{foreach ($ForeachExpression$);}
 \end{align*}
 Every $ForeachExpression$ starts with \code{value =} and then some right-hand side expression. The \code{value} keyword is shorthand for the current index of the data block in the for loop. Thus if the progress of the loop had reached $currentRow$, $currentCol$, then \code{value} would correspond to \code{array[$currentRow$][$currentCol$]}.
 
@@ -215,37 +228,64 @@ First, we initialize \code{input1} and \code{input2} with a random number and da
 
 Once the data are sorted, we want to convolve over the vectors using the \code{"*"} operator and store them in \code{mapped}, which we then write out to the file \code{"outputdata"}. Finally, we reduce over a sum and print out the result, which is stored in \code{reduced}. This sample program shows the ease with which a user can quickly populate and operate on sets of data. There is also a clear paradigm at work, moving data through functions and storing the results in more data.
 
+%\floatstyle{boxed} 
+%\restylefloat{Code Snippet}
 \begin{Code Snippet}
 \begin{verbatim}
-1   float input1 100 100 foreach 
-            (value = rand/RAND_MAX);
-    float input2 read ("inputdata");
-
-5   float sorted1 vector;
-    float sorted2 vector;
-    sorted1 = sort(<, input1);
-    sorted2 = sort(>, input2);
-
-10  print sorted1;
-    print sorted2;
-
-    float mapped vector;
-    mapped = map(*, sorted1, sorted2);
-15  write (mapped, "outputdata");
-
-    float reduced scalar;
-    reduced = reduce(+, mapped);
-
-20  print reduced;
+   1   float input1 100 100 foreach 
+               (value = rand/RAND_MAX);
+       float input2 read ("inputdata");
+   
+   5   float sorted1 vector;
+       float sorted2 vector;
+       sorted1 = sort(<, input1);
+       sorted2 = sort(>, input2);
+   
+   10  print sorted1;
+       print sorted2;
+   
+       float mapped vector;
+       mapped = map(*, sorted1, sorted2);
+   15  write (mapped, "outputdata");
+   
+       float reduced scalar;
+       reduced = reduce(+, mapped);
+   
+   20  print reduced;
 \end{verbatim}
 \caption{Sample Chestnut code for a program that adds two sorted vectors together, then sums over their mapped result.}
 \label{code:fullprog}
 \end{Code Snippet}
 
-
 \subsection{Translating Chestnut Code to Thrust}
+\label{sec:chestnutToThrust}
 
-Talk about the assumptions we need to make (when/where memory is allocated), some optimizations (\code{constant\_iterators}), the basic Thrust functions used.
+%Talk about the assumptions we need to make (when/where memory is allocated), some optimizations (\code{constant\_iterators}), the basic Thrust functions used.
+
+The process of converting Chestnut Code to Thrust code consists of expanding single lines into many lines of code, declaring extra variables that are encoded implicitly in Chestnut, and making some assumptions that a Thrust programmer would not need to. In certain circumstances, we can also optimize some commands. In this section we discuss Trust code that is produced from samples of Chestnut code. We also use this as a vehicle to discuss other design decisions and assumptions we made regarding the translation.
+
+\subsubsection{Variable Declarations}
+
+Any time a variable is declared in Chestnut there up to five possible variables that may need to be declared in Thrust. Consider a vector defined using the syntax \code{int data vector;} which just creates a vector for later use. This causes a utility function to create a host vector and a device vector along with variables to contain the number of rows and columns of the object. None of these variables are initialized immediately, but they must be declared to be referenced later in the program. The Chestnut code \code{int data scalar;} corresponds to just a single variable in Thrust code.
+
+When translating a \code{foreach} construct, we must create host, device, rows, and columns, but we still have two options after those declarations. If the user specifies a row, column, or the random keyword in the $foreachExpression$, then we must create a double for-loop that iterates over every row and column and fill the host vector, then copy the host vector to the device. But if the user makes no reference to those reserved words we can optimize the process by using the \code{thrust::fill} function. Since all other expressions (those containing \code{maxrows} and \code{maxcols} and all arithmetic expressions) are constants, we can simply pass the expression to the function and have it move straight to the GPU. Since there is no need to copy data from CPU to GPU, this operation is much faster.
+
+When the user calls the \code{read} function, we must create the usual four variables and then must additionally reference a special \code{DataInfo} struct. In the Thrust code, we call a templated library function we wrote that reads the data into a host vector, fills out row and column information and packs them into a special struct. This is then returned to the Thrust file where it gets unpacked.
+
+With so many variables in the Thrust code, we need a convenient naming scheme. The base of every Thrust variable name is the name given from Chestnut. Then some descriptive suffix is added to enable us to reference the variable and to ensure there are no naming collisions. Thus, if a Chestnut vector was \code{input}, the associated host vector in Thrust would be \code{input\_host} and the number of rows would be \code{input\_rows}.
+
+\subsubsection{Manipulator Functions}
+
+%Interesting part comes when you think about memory access $\rightarrow$ different sense of an ``object'' in Chestnut and Thrust.
+
+Where conflicts in name collisions arose when declaring variables, conflicts on function calls come from a mismatch between the rigidity of Thrust (and C++) and our goals of making the language as intuitive as possible. Every function in Chestnut has an input and an output, and unless those two are the same object we guarantee that the function will not modify the input object. But some functions in Thrust modify the data in place. For example, if a user writes the Chestnut code \code{output~=~sort(<,~input)}, we must copy the contents of \code{input} to \code{output} and then run an in-place sort on \code{output}. 
+
+Similarly, when using the map function, a conflict arises when the user sets both the modifier data block and the output as the same object, as in \code{modifier~=~map(+,~modifier,~input)}. Since we want to guarantee \code{input} is not modified, we set the destination (here, \code{modifier}) to an empty vector of the correct size. Thus, left unmodified, the translation results in \code{modifier} being overridden and then simply filled with the \code{input}. Here we need only switch the order of the input and modifier to resolve the problem, because then both input and destination will be the same object and our algorithm knows that this is an in-place modification. These problems are indicative of the level of abstraction we strive for. General purpose graphics processing requires a different way of thinking about the data, and to really establish and enforce this paradigm requires some bridges between existing code structures and our abstractions.
+
+\subsubsection{Output Functions}
+
+With the output functions \code{write} and \code{print} we come to one of the most crucial assumptions. To write a data block out to disk or to print an object, the data must be on the CPU memory. Since the Chestnut programmer is not informed about the CPU/GPU boundary and by design has no way of affecting the location of the data, we must assume that the most recent copy of the data is on the GPU and thus need to copy it over to the CPU on every output function call. Thus every print and write, even if they are consecutive calls, necessitates a slow copy. Future work could look at optimizing this limitation out. 
+
 
 \section{Experiments (RC)}
 
@@ -294,6 +334,8 @@ As features are added to the Chestnut language it is important to continue to fi
 
 \subsection{For Loops}
 
+\bibliographystyle{apacite}
+\bibliography{references}
 
 \end{document}
 
