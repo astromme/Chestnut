@@ -61,6 +61,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   m_ui->palette->setItemDelegate(new PaletteDelegate);
   m_ui->palette->expandAll();
   
+  connect(m_ui->actionClear, SIGNAL(triggered(bool)), this, SLOT(clear()));
   connect(m_ui->actionBuild, SIGNAL(triggered(bool)), this, SLOT(writeFile()));
   
   m_ui->workflowEditor->setScene(m_scene);
@@ -116,6 +117,11 @@ void MainWindow::writeFile()
       return;
     }
   }
+}
+
+void MainWindow::clear()
+{
+  m_scene->clear();
 }
 
 void MainWindow::unvisitAll()
