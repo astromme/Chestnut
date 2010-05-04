@@ -14,7 +14,8 @@ using namespace Chestnut;
 
 
 Connection::Connection(Source* source, Sink* sink)
-  : QGraphicsItem(source)
+  : QGraphicsItem(source),
+  m_highlighted(false)
 {
   setFlag(ItemIsSelectable, false);
   m_source = source;
@@ -24,7 +25,8 @@ Connection::Connection(Source* source, Sink* sink)
 }
 
 Connection::Connection(Source* source) 
-  : QGraphicsItem(source)
+  : QGraphicsItem(source),
+  m_highlighted(false)
 {
   setFlag(ItemIsSelectable, false);
   m_source = source;
@@ -51,6 +53,12 @@ int Connection::type() const
 void Connection::updateConnection()
 {
   prepareGeometryChange();
+  update();
+}
+
+void Connection::setHighlighted(bool highlighted)
+{
+  m_highlighted = highlighted;
   update();
 }
 
@@ -142,6 +150,9 @@ void Connection::paint(QPainter* painter, const QStyleOptionGraphicsItem* option
   painter->drawPath(path());
   
   p.setWidth(1);
+  if (m_highlighted) {
+    p.setBrush(Qt::red);
+  }
   painter->setPen(p);
   painter->drawPath(endShape());
 }

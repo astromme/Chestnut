@@ -19,6 +19,8 @@ class Connection : public QGraphicsItem {
     
     void updateConnection();
     
+    void setHighlighted(bool highlighted);
+    
     bool isPartial() const;
     void setSink(Sink *sink);
     void setEndpoint(const QPointF& scenePoint);
@@ -39,6 +41,7 @@ class Connection : public QGraphicsItem {
   private:
     Source *m_source;
     Sink *m_sink;
+    bool m_highlighted;
     QPointF m_partialEndpoint;
 };
 
