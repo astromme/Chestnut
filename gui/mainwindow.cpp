@@ -144,6 +144,8 @@ void MainWindow::runCompiledCode()
   qDebug() << compileRun->errorString();
   while (!compileRun->waitForFinished(50)) {
     QCoreApplication::processEvents(QEventLoop::AllEvents | QEventLoop::WaitForMoreEvents, 50);
-    m_runOutputUi->runResults->appendPlainText(compileRun->readAllStandardOutput());
+    if (compileRun->bytesAvailable() > 0) {
+      m_runOutputUi->runResults->appendPlainText(compileRun->readAllStandardOutput());
+    }
   }
 }
