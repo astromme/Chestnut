@@ -176,7 +176,7 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         } else {
           delete m_activeConnection;
           m_activeConnection = 0;
-          // Create 'implicit' data TOD\O
+          // Create 'implicit' data TODO
           //if (format())
           //Data *temp = new 
         }
