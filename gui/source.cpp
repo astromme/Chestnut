@@ -161,6 +161,8 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         if (sink->parentObject()->isData()) {
           m_activeConnection->setSink(sink);
         } else {
+          delete m_activeConnection;
+          m_activeConnection = 0;
           // Create 'implicit' data TODO
           //if (format())
           //Data *temp = new 
@@ -169,7 +171,6 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
       return;
     }
   }
-  scene()->removeItem(m_activeConnection);
   delete m_activeConnection;
   m_activeConnection = 0;
 }
