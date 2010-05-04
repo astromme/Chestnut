@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>OutputProgram</class>
- <widget class="QDialog" name="OutputProgram">
+ <class>RunOutput</class>
+ <widget class="QDialog" name="RunOutput">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,15 +11,22 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Chestnut Output</string>
+   <string>Chestnut Run Output</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QPlainTextEdit" name="programCode">
-     <property name="font">
-      <font>
-       <family>Monospace</family>
-      </font>
+    <widget class="QPlainTextEdit" name="runResults">
+     <property name="undoRedoEnabled">
+      <bool>false</bool>
+     </property>
+     <property name="lineWrapMode">
+      <enum>QPlainTextEdit::NoWrap</enum>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::NoTextInteraction</set>
      </property>
     </widget>
    </item>
@@ -34,27 +41,13 @@
     </widget>
    </item>
   </layout>
-  <action name="actionRun">
-   <property name="icon">
-    <iconset resource="icons.qrc">
-     <normaloff>:/icons/system-run.png</normaloff>:/icons/system-run.png</iconset>
-   </property>
-   <property name="text">
-    <string>Run</string>
-   </property>
-   <property name="toolTip">
-    <string>Compile and run this code</string>
-   </property>
-  </action>
  </widget>
- <resources>
-  <include location="icons.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>OutputProgram</receiver>
+   <receiver>RunOutput</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -70,7 +63,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>OutputProgram</receiver>
+   <receiver>RunOutput</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
