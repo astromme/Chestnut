@@ -154,6 +154,7 @@ void MainWindow::runCompiledCode()
       m_runOutputUi->runResults->appendPlainText(compileRun->readAllStandardOutput());
     }
   }
+  m_runOutputUi->runResults->appendPlainText(compileRun->readAllStandardOutput());
   qDebug() << "Finished";
   qDebug() << compileRun->readAllStandardOutput();
   qDebug() << compileRun->readAllStandardError();
