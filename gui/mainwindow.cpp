@@ -155,7 +155,6 @@ void MainWindow::runCompiledCode()
     }
   }
   m_runOutputUi->runResults->appendPlainText(compileRun->readAllStandardOutput());
+  m_runOutputUi->runResults->appendPlainText(compileRun->readAllStandardError()); // HACK to get time to work
   qDebug() << "Finished";
-  qDebug() << compileRun->readAllStandardOutput();
-  qDebug() << compileRun->readAllStandardError();
 }
