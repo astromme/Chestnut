@@ -69,6 +69,7 @@ bool Connection::isPartial() const
 void Connection::setSink(Sink* sink)
 {
   prepareGeometryChange();
+  m_highlighted = false;
   if (m_sink) {
     m_sink->setConnection(0);
   }
