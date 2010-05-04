@@ -79,7 +79,7 @@
           <x>0</x>
           <y>0</y>
           <width>388</width>
-          <height>467</height>
+          <height>488</height>
          </rect>
         </property>
         <attribute name="label">
@@ -106,6 +106,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionClear"/>
    <addaction name="actionBuild"/>
   </widget>
   <action name="actionBuild">
@@ -120,9 +121,16 @@
     <string>Translate the scene to Chestnut code</string>
    </property>
   </action>
-  <action name="actionRun">
+  <action name="actionClear">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/clear-canvas.png</normaloff>:/icons/clear-canvas.png</iconset>
+   </property>
    <property name="text">
-    <string>Run</string>
+    <string>clear</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear the current canvas</string>
    </property>
   </action>
  </widget>

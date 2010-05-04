@@ -20,9 +20,9 @@ class MainWindow : public QMainWindow
     virtual ~MainWindow();
     
   private slots:
+    void clear();
     void writeFile();
     void unvisitAll();
-    
     void runCompiledCode();
     
   private:
