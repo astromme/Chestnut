@@ -6,8 +6,10 @@
 #include <QTextEdit>
 #include <QStandardItemModel>
 #include <QStandardItem>
+#include <QProcess>
 
 #include "ui_output.h"
+#include "ui_runoutput.h"
 #include "ui_mainwindow.h"
 
 #include "scene.h"
@@ -27,7 +29,8 @@
 MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   : QMainWindow (parent, flags),
   m_ui(new Ui::MainWindow),
-  m_outputUi(new Ui::OutputProgram)
+  m_outputUi(new Ui::OutputProgram),
+  m_runOutputUi(new Ui::RunOutput)
 {
   m_scene = new Scene(this);
   m_model = new PaletteModel(this);
@@ -91,6 +94,11 @@ void MainWindow::writeFile()
       // Show resulting program in a window
       QDialog *container = new QDialog();
       m_outputUi->setupUi(container);
+      QToolBar *toolbar = new QToolBar(container);
+      toolbar->addAction(m_outputUi->actionRun);
+      toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+      m_outputUi->verticalLayout->insertWidget(0, toolbar);
+      connect(m_outputUi->actionRun, SIGNAL(triggered(bool)), SLOT(runCompiledCode()));
       container->setWindowTitle("DynamicChestnut.in [Output] - Chestnut");
       
       m_outputUi->programCode->appendPlainText(prog.first.join("\n"));
@@ -120,3 +128,22 @@ void MainWindow::unvisitAll()
   }
 }
 
+void MainWindow::runCompiledCode()
+{
+  QDialog *widget = new QDialog();
+  m_runOutputUi->setupUi(widget);
+  
+  QProcess *compileRun = new QProcess(this);
+  
+  compileRun->start("../runChestnutCode.sh");
+  
+  widget->show();
+  
+  //HACK HACK HACK HACK
+  compileRun->waitForStarted(-1);
+  qDebug() << compileRun->errorString();
+  while (!compileRun->waitForFinished(50)) {
+    QCoreApplication::processEvents(QEventLoop::AllEvents | QEventLoop::WaitForMoreEvents, 50);
+    m_runOutputUi->runResults->appendPlainText(compileRun->readAllStandardOutput());
+  }
+}

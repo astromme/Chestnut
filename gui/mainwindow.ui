@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>781</width>
-    <height>573</height>
+    <height>613</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
           <x>0</x>
           <y>0</y>
           <width>388</width>
-          <height>431</height>
+          <height>488</height>
          </rect>
         </property>
         <attribute name="label">
@@ -78,8 +78,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>307</width>
-          <height>290</height>
+          <width>388</width>
+          <height>467</height>
          </rect>
         </property>
         <attribute name="label">
@@ -91,23 +91,6 @@
      </widget>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>781</width>
-     <height>20</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menuProject">
-    <property name="title">
-     <string>Project</string>
-    </property>
-    <addaction name="actionBuild"/>
-   </widget>
-   <addaction name="menuProject"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -131,7 +114,15 @@
      <normaloff>:/icons/system-run.png</normaloff>:/icons/system-run.png</iconset>
    </property>
    <property name="text">
-    <string>Build</string>
+    <string>Translate</string>
+   </property>
+   <property name="toolTip">
+    <string>Translate the scene to Chestnut code</string>
+   </property>
+  </action>
+  <action name="actionRun">
+   <property name="text">
+    <string>Run</string>
    </property>
   </action>
  </widget>
