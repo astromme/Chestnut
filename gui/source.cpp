@@ -146,13 +146,26 @@ void Source::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void Source::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   m_activeConnection->setEndpoint(mapToScene(event->pos()));
+  
+  // Check for sink under mouse pointer. If it exists, change color of connection endpoint
+  Sink *s = 0;
+  foreach(QGraphicsItem *item, scene()->items(mapToScene(QRectF(event->pos() - QPointF(5, 5), QSizeF(10, 10))))) {
+    Sink* sink = qgraphicsitem_cast<Sink*>(item);
+    if (sink && !sink->isConnected() && sink->allowedFormats().contains(format())) {
+      if ((parentObject()->isData()) || (parentObject()->isFunction() && sink->parentObject()->isData())) {
+        m_activeConnection->setHighlighted(true);
+        return;
+      }
+    }
+  }
+  m_activeConnection->setHighlighted(false);
 }
 
 void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   // Check for sink under mouse pointer. If it exists, connect it
   Sink *s = 0;
-  foreach(QGraphicsItem *item, scene()->items(mapToScene(event->pos()))) {
+  foreach(QGraphicsItem *item, scene()->items(mapToScene(QRectF(event->pos() - QPointF(5, 5), QSizeF(10, 10))))) {
     Sink* sink = qgraphicsitem_cast<Sink*>(item);
     if (sink && !sink->isConnected() && sink->allowedFormats().contains(format())) {
       if (parentObject()->isData()) {
@@ -163,7 +176,7 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
         } else {
           delete m_activeConnection;
           m_activeConnection = 0;
-          // Create 'implicit' data TODO
+          // Create 'implicit' data TOD\O
           //if (format())
           //Data *temp = new 
         }
