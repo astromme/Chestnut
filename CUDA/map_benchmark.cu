@@ -8,7 +8,7 @@
 
 
 // Prototypes
-__global__ void grow(float* array);
+__global__ void grow(float* array, int cols);
 void printArray(float* array, int rows, int cols);
 
 // Host function. Runs on CPU
@@ -28,10 +28,11 @@ int main(int argc, char** argv) {
   // Initialize our 2d array to all 0s. 
   for(int i=0; i<N*N; i++) {
     host[i] = rand() & 0xFF;
+    //host[i] = 0;
   }
   
-  printf("Initial Array:\n");
-  printArray(host, 10, 10);
+//   printf("Initial Array:\n");
+//   printArray(host, 10, 10);
   
   // Copy the array host to dev. We must give it how many bytes to copy hence the sizeof()
   cudaMemcpy(dev, host, N*N*sizeof(float), cudaMemcpyHostToDevice);
@@ -40,18 +41,20 @@ int main(int argc, char** argv) {
   // 1 tells it to have one single block
   // dim3(N,N) tells it to have N by N threads in that block.
   // Give the grow kernel the 'dev' array and the number of columns (N)
-  grow<<<256, dim3(512, 512)>>>(dev);
+  //grow<<<256, dim3(512, 512)>>>(dev, N);
+  for(int i=0; i<100; i++) {
+    grow<<<dim3(512, 512), 256>>>(dev, N);
+  }
   
   // Once the kernel has run, copy back the 'dev' array to the 'host' array
-  cudaMemcpy(host, dev, N*N*sizeof(float), cudaMemcpyDeviceToHost);
+//   cudaMemcpy(host, dev, N*N*sizeof(float), cudaMemcpyDeviceToHost);
   
   // Now it should have incrementing numbers
-  printf("After 'grow' kernel:\n");
-  printArray(host, 10, 10);
+//   printf("After 'grow' kernel:\n");
+//   printArray(host, 10, 10);
     
   // free up the allocated memory on the device
   cudaFree(dev);
-  free(host);
   
   return 0;
 }
@@ -69,9 +72,9 @@ void printArray(float* array, int rows, int cols) {
   printf("\n");
 }
 
-__global__ void grow(float* array) {
+__global__ void grow(float* array, int cols) {
   int index = (blockIdx.x * blockDim.x * blockDim.y) + (threadIdx.y * blockDim.x) + threadIdx.x;
-  array[index] += 10;
+  array[index] += 1;
 //   int row = threadIdx.x;
 //   int col = threadIdx.y;
 //   // set each slot to its index number
