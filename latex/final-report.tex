@@ -123,11 +123,19 @@ The drag and drop paradigm is central to the Chestnut GUI. Objects are placed on
 The Chestnut frontend forces the data-centric GPU model that we illustrated earlier because of the limitations enforced with connections and the high level atomic functions such as sort, reduce, and map. Sort and reduce are both predefined functions with readily available parallel solutions, such as those present in Thrust. Map enforces our model because it operates on each chunk of the data and performs the same operation to each chunk.
 
 
-\subsection{Translate GUI to Chestnut Code (RC)}
+\subsection{Translate GUI to Chestnut Code} 
 
-Visit each node. Each node knows its contribution. Variable Declarations and Function calls.
+%Visit each node. Each node knows its contribution. Variable Declarations and Function calls.
 
-\section{Chestnut Backend (RC)}
+In order to translate the graphical representation of a given program to Chestnut code that we can translate into Thrust code we need a robust method of traversing the graph and constructing correct code. It is difficult to decipher a ``starting point'' in a graphical program, so we start by choosing a node at random from the graph. This node may be data or it may be a function. Each node knows its contribution to the code and also knows what sinks and sources it is connected to. Additionally, every node has a \code{flatten()} function that builds up the Chestnut code. Thus, once we have selected our starting node, we call its \code{flatten()} function which in turn calls the \code{flatten()} function of all its sinks, then provides its contribution to the Chestnut code, and finally calls the \code{flatten()} function of all its sources. Since all sinks are ``flattened'' before the node's contribution is added and all sources are ``flattened'' after that point, we ensure that the order of commands in the resulting Chestnut code is as the GUI layout intended.
+
+We have so far been vague about what a node does to provide its contribution. This of course depends on the node's type and its specific function. But first we need to discuss the structure of Chestnut code as it is being built up. Every Chestnut program can be broken up into variable declarations and function calls (for Chestnut code specifications see section \ref{sec:specifications}) and so we can create two lists of strings, one for declarations and another for calls, that will eventually be written out to disk in the Chestnut code file. Thus as a node contributes to the list of strings, it adds to the declarations or calls. 
+
+So, when a \code{DataBlock} or \code{Value} is encountered its contribution will be to the variable declaration list. The node uses the context provided by a presence or lack of sinks to decide whether or not it has been initialized and adds an appropriate variable declaration (see section \ref{sec:iofunctions} for a description of variable declarations in Chestnut code). If \code{flatten()} is called on a \code{Function}, the contribution will be to the function calls. As with the \code{DataBlock} the node can gain context from its sinks and sources, allowing it to add the appropriate parameters to the Chestnut code string.
+
+In choosing a random node from the graph and traversing it as we are, we make two crucial assumptions. The first is that any connections a \code{Function} has will either me a \code{DataBlock} or \code{Value}. Similarly, any connections to or from a variable must be a \code{Function}. This decision reinforces the data-centric model of pushing data through functions and getting data back. We can enforce this at the graphical level by not allowing two \code{Functions} or two variables to be connected. The second assumption is that the graph is connected -- i.e.\ there are no disjoint subgraphs. Since we choose a node at random and traverse the graph from there, we can only translate code that is reachable from that initial node. Thus at present we don't guarantee any correctness if disjoint subgraphs (including single, unconnected nodes) exist.
+
+\section{Chestnut Backend}
 
 Once the GUI to Chestnut translation is finished, we have Chestnut code output. In this section we discuss the process that brings our Chestnut code to executable object code.
 
