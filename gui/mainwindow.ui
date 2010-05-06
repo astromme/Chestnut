@@ -124,7 +124,7 @@
   <action name="actionClear">
    <property name="icon">
     <iconset resource="icons.qrc">
-     <normaloff>:/icons/clear-canvas.png</normaloff>:/icons/clear-canvas.png</iconset>
+     <normaloff>:/icons/document-new.png</normaloff>:/icons/document-new.png</iconset>
    </property>
    <property name="text">
     <string>clear</string>

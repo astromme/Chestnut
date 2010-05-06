@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="icons">
+    <file>document-new.png</file>
     <file>clear-canvas.png</file>
     <file>document-save.png</file>
     <file>system-run.png</file>
