@@ -23,6 +23,7 @@ cuda_add_executable(example-helloworld helloworld.cu)
 cuda_add_executable(example-array-2d 2d_array_example.cu)
 cuda_add_executable(example-array-2d-aligned 2d_array_aligned_example.cu)
 cuda_add_executable(example-map map_example.cu)
+cuda_add_executable(map-benchmark map_benchmark.cu)
 #add_executable(example-map-cpp map_example_cpp.cpp)
 #cuda_add_executable(example-matrix-operations matrix-operations.cu)
 
