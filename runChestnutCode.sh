@@ -4,7 +4,8 @@
 ## compiles that Thrust code and runs it
 
 function msg() {
-  echo -e "\n\033[1m\033[1m==> $1 \033[0m"
+  #echo -e "\n\033[1m\033[1m==> $1 \033[0m"
+  echo -e "\n==> $1"
 }
 
 #cd build
@@ -21,4 +22,4 @@ cd ../chestnut
 make || exit 3
 
 msg "Running Chestnut Code"
-./chestnut_example || exit 4
+time ./chestnut_example || exit 4
