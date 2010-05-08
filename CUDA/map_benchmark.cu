@@ -42,9 +42,11 @@ int main(int argc, char** argv) {
   // dim3(N,N) tells it to have N by N threads in that block.
   // Give the grow kernel the 'dev' array and the number of columns (N)
   //grow<<<256, dim3(512, 512)>>>(dev, N);
+/*
   for(int i=0; i<100; i++) {
     grow<<<dim3(512, 512), 256>>>(dev, N);
   }
+*/
   
   // Once the kernel has run, copy back the 'dev' array to the 'host' array
 //   cudaMemcpy(host, dev, N*N*sizeof(float), cudaMemcpyDeviceToHost);
