@@ -1,16 +1,18 @@
 %\documentclass{article}
 \documentclass[twocolumn]{article}
 \usepackage{fullpage}
+\usepackage{multirow}
 \usepackage{apacite}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{url}
 \usepackage{fixltx2e} % so that 'starred' figures aren't out of order with 'non-starred' figures
 \usepackage[bottom]{footmisc} % make sure footnote is at bottom of page
-\newcommand{\comment}[1]{}
+%\newcommand{\comment}[1]{}
 
 \usepackage{float}
 \newfloat{Algorithm}{h!}{}{}
+\floatstyle{ruled}
 \newfloat{Code Snippet}{h!}{}{}
 
 % program-related commands
@@ -30,6 +32,7 @@
 \maketitle
 
 \begin{abstract}
+  Hello there fellow travelers. Have I got a story for you!
 \end{abstract}
 
 \section{Introduction (RC)}
@@ -48,9 +51,9 @@ We now turn to work regarding CUDA. Most of an undergraduate's computer science 
 
 Finally, we need to consider the paradigm of actually programming for a graphics processor. Converting existing programs from a singly threaded model to the CUDA model can take significant time and experience, partly because of the mechanical conversions needed such as computing array references instead of using loops. hiCUDA is an example of an OpenMP style C preprocessor language that allows the programmer to wrap his singly threaded loops to allow them to be automatically parallelized by CUDA. It was found that examples written with the prototype hiCUDA implementation did not perform significantly worse than the same examples written directly with CUDA. Additionally, the hiCUDA examples were more concise and better fit into existing loop-based computation models that are often present in single threaded programs. However, the language is still based around C using compiler directives and as such may not reflect or emphasize the models that one must internalize to understand GPGPU programming. Still, hiCUDA shows a similar abstraction-minded attitude and gives us an idea of what can be accomplished when building on top of CUDA \cite{han}.
 
-\section{General Purpose Graphics Processing}
+\section{General Purpose \\ Graphics Processing}
 
-\subsection{Structure of Graphics Processing Unit}
+\subsection{Structure of Graphics \\ Processing Unit}
 
 A graphics processing unit is a dedicated piece of hardware separate from the CPU. It was originally designed for graphics processing where each pixel is run through a series of transformations and filters before it is shown on the screen. However, the massively parallel architecture of the GPU is now being used for more general purpose programming. 
 
@@ -64,11 +67,11 @@ GPUs lend themselves to certain types of programming, and these are not always t
 
 Compute Unified Device Architecture (CUDA)\footnote{\url{http://www.nvidia.com/object/cuda_home_new.html}} is a system developed by NVidia for performing general purpose computations on the GPU. CUDA is a series of extensions to C along with a specialized compiler. This results in a very low level language where the programmer must know about the GPU to program for it. Because of the extensions to C and amount of fine-grained control that CUDA offers code written in it ends up being verbose and difficult to understand for someone who has not learned about how graphics cards work. This creates an enormous learning curve for aspiring GPU programmers.
 
-\subsection{Thrust (RC)}
+\subsection{Thrust}
 
 %Much more C++-y. Easier to grasp. More like programming for CPU but still need to know some stuff about GPU
 
-Thrust\footnote{\url{http://thrust.googlecode.com}} is a C++ template library that provides convenient, optimized abstractions for many common CUDA operations. Where CUDA is very low-level, verbose, and C-like, Thrust operates on a higher level, is more succinct, and much more closely resembles C++ code. Thrust makes an introduction to GPU programming much more feasible compared to CUDA. However, Thrust code is still more verbose than we would like, is specific to C++ -- a python coder would be lost -- and requires knowledge of the GPU. A Thrust coder still needs to know that copying memory between CPU and GPU is very slow. Using this knowledge, there are some optimizations that one can use in Thrust to speed up the execution of code. We want to use many of the paradigms that Thrust expressions while simplifying the process such that a user will not need a deep understanding of the GPU framework.
+Thrust is a C++ template library that provides convenient, optimized abstractions for many common CUDA operations. Where CUDA is very low-level, verbose, and C-like, Thrust operates on a higher level, is more succinct, and much more closely resembles C++ code. Thrust makes an introduction to GPU programming much more feasible compared to CUDA. However, Thrust code is still more verbose than we would like, is specific to C++ -- a python coder would be lost -- and requires knowledge of the GPU. A Thrust coder still needs to know that copying memory between CPU and GPU is very slow. Using this knowledge, there are some optimizations that one can use in Thrust to speed up the execution of code. We want to use many of the paradigms that Thrust expressions while simplifying the process such that a user will not need a deep understanding of the GPU framework \cite{hoberock}.
 
 \subsubsection{Vectors}
 
@@ -160,7 +163,7 @@ At this early stage, the only data types we support are standard C++ \code{int} 
 
 Before a function is called, variables used by that function must be defined. As discussed earlier, variables can be either vectors or scalars. If a vector is going to be assigned data before being used in a function, it must be initialized using a \code{foreach} loop or a \code{read} command, discussed in section \ref{sec:iofunctions}. Otherwise, if data is going to be used as the result of a function, we must still declare it, but need not specify anything except its type, name, and category. To declare a variable in this way, the general syntax is
 \begin{center}
-  \code{[type] variableName [category];\footnote{Bracket notation to indicate there a defined set of choices for the given identifier.}}
+  \code{[type] variableName [category];\footnote{Bracket notation is used to indicate there a defined set of choices for the given identifier. For example, \code{[type]} could be \code{int} or \code{float}.}}
 \end{center}
 
 Chestnut currently has seven functions that operate on data: \code{map}, \code{reduce}, and \code{sort} all manipulate the data in some way; \code{foreach}, \code{read}, \code{write}, and \code{print} comprise the Input/Output interface of our language. The general syntax for a function call in Chestnut is
@@ -230,7 +233,7 @@ The input and output functions Chestnut provides allows the user to view progres
 
 %Do we want to show some samples? Use verbatim!
 
-We have provided in-depth specifications of Chestnut code but have not yet given an example of a full program written in the language. Here we take the opportunity to detail a program written in Chestnut code from start to finish, given in Code Snippet \ref{code:fullprog}. 
+We have provided in-depth specifications of Chestnut code but have not yet given an example of a full program written in the language. Here we take the opportunity to detail a program written in Chestnut code from start to finish, given in Code Snippet \ref{code:fullprog}.
 
 First, we initialize \code{input1} and \code{input2} with a random number and data from file, respectively. We then need to declare two vectors, \code{sorted1} and \code{sorted2}. Below the declarations, we sort the initial vectors into their sorted analogues, the first in ascending order, the second in descending order. To get a peak at the computation in progress, we print out both vectors.
 
@@ -240,28 +243,29 @@ Once the data are sorted, we want to convolve over the vectors using the \code{"
 %\restylefloat{Code Snippet}
 \begin{Code Snippet}
 \begin{verbatim}
+
    1   float input1 100 100 foreach 
                (value = rand/RAND_MAX);
        float input2 read ("inputdata");
    
-   5   float sorted1 vector;
+       float sorted1 vector;
        float sorted2 vector;
-       sorted1 = sort(<, input1);
+   5   sorted1 = sort(<, input1);
        sorted2 = sort(>, input2);
    
-   10  print sorted1;
+       print sorted1;
        print sorted2;
    
        float mapped vector;
-       mapped = map(*, sorted1, sorted2);
-   15  write (mapped, "outputdata");
-   
+   10  mapped = map(*, sorted1, sorted2);
+       write (mapped, "outputdata");
+     
        float reduced scalar;
        reduced = reduce(+, mapped);
    
-   20  print reduced;
+   15  print reduced;
 \end{verbatim}
-\caption{Sample Chestnut code for a program that adds two sorted vectors together, then sums over their mapped result.}
+\caption{Sample Chestnut code for a program that adds two sorted vectors together, then sums over their mapped result. Note that line numbers do not include blank lines or wraparound. We do this to focus on the lines of actual code rather than the code's organization.}
 \label{code:fullprog}
 \end{Code Snippet}
 
@@ -295,17 +299,149 @@ Similarly, when using the map function, a conflict arises when the user sets bot
 With the output functions \code{write} and \code{print} we come to one of the most crucial assumptions. To write a data block out to disk or to print an object, the data must be on the CPU memory. Since the Chestnut programmer is not informed about the CPU/GPU boundary and by design has no way of affecting the location of the data, we must assume that the most recent copy of the data is on the GPU and thus need to copy it over to the CPU on every output function call. Thus every print and write, even if they are consecutive calls, necessitates a slow copy. Future work could look at optimizing this limitation out. 
 
 
-\section{Experiments (RC)}
+\section{Experiments}
 
-Run both qualitative experiments -- compare code samples -- and quantitative experiments with runtimes. We show that, subjectively, our code is easier to read, if less powerful. BUT!\ runtimes are very similar.
+%Run both qualitative experiments -- compare code samples -- and quantitative experiments with runtimes. We show that, subjectively, our code is easier to read, if less powerful. BUT!\ runtimes are very similar.
+
+Experiments with Chestnut take two forms: qualitative and quantitative. The first allows us to evaluate the readability of code. We compare the Chestnut code automatically translated from the graphical interface against equivalent Thrust code and CUDA code. We use this evidence to argue that our language is much more accessible than the alternatives. The quantitative experiments help to validate the usefulness of Chestnut. We show that Chestnut code is significantly faster than sequential code executed on the CPU and is approaching the speed of handwritten CUDA code.
 
 \subsection{Qualitative}
 
-Compare Chestnut to Thrust to CUDA
+%Compare Chestnut to Thrust to CUDA
+To demonstrate the readability and ease of writing in Chestnut, we present a simple example involving a single \code{map} operation and show how the verbosity increases dramatically as we translate the code into equivalent Thrust and then into CUDA code. We see in Code Snippet \ref{code:chestnutExperiment} that in three commands the user can define an array, fill it with a value, add one to every element in that array, and print out the result. The commands are clear, succinct, and immediately accessible to a new user. 
+
+\begin{Code Snippet}
+\begin{verbatim}
+
+   float data 10 10 foreach (value = 2);
+   data = map(+, 1, data);
+   print data;
+\end{verbatim}
+\caption{Chestnut code mapping over each element of a 10x10 array, adding 1 to each element, and printing out the result.}
+\label{code:chestnutExperiment}
+\end{Code Snippet}
+
+Let us contrast the Chestnut code with equivalent Thrust code. Code Snippet \ref{code:thrustExperiment} contains the result of automatic translation from Chestnut to Thrust code, formatted slightly to fit the page. The first feature to notice is how many more lines of code are necessary to do the same thing. In the Chestnut code, we need only declare the variable and use it without worrying about about whether its contents reside on the CPU or GPU. That abstraction disappears when we begin to program in Thrust. First host and device vectors must be declared and populated. Then a verbose \code{transform} function must be called wherein the user must worry about bounds and optimizations like the \code{constant\_iterator}. Finally the data on the GPU must be copied to the CPU and printed out. 
+
+\begin{Code Snippet}
+\begin{verbatim}
+
+  1    int main() {
+         int data_rows = 10;
+         int data_cols = 10;
+
+         // Memory on host and device
+  5      host_vector<float> data_host; 
+         device_vector<float> data_dev
+             (data_rows*data_cols); 
+
+         // populate data
+         thrust::fill(data_dev.begin(),
+             data_dev.end(),  2);
+
+         /* Begin Map Function */
+  10     thrust::transform(data_dev.begin(), 
+             data_dev.end(), 
+             thrust::make_constant_iterator(1), 
+             data_dev.begin(), 
+             thrust::plus<float>()); 
+         /* End Map Function */
+
+         // print out data
+         data_host = data_dev;
+         for (int r=0; r<data_rows; r++){
+  15       for (int c=0; c<data_cols; c++){
+             std::cout
+               << data_host[r*data_cols+c]
+               << " ";
+           }
+           std::cout << "\n";
+         }
+  20     std::cout << "\n";
+
+         return 0;
+  22   }
+\end{verbatim}
+\caption{Thrust code mapping over each element of a 100 element array, adding 1 to each element, and printing out the result.}
+\label{code:thrustExperiment}
+\end{Code Snippet}
+
+But Thrust is still a strong improvement in terms of usability over the low-level CUDA code. In Code Snippet \ref{code:cudaExperiment} we see handwritten code equivalent to the previous two programs. While there are not markedly more lines of code in the CUDA program compared to the Thrust program, each line is nearly indecipherable for a user not well versed in C programming. Among the things a CUDA programmer needs to worry about are pointers, using CUDA's set of memory allocation tools, and running a kernel that uses obscure syntax. Recall the simple task we're accomplishing with each of the programs discussed. All we want to do is add 1 to a small array. We believe that such an easy to understand concept should have accompanying code that is both equally easy to understand and easy to program. We have shown that Chestnut makes this a reality.
+
+\begin{Code Snippet}
+\begin{verbatim}
+ 
+    1   int main() {
+          int* host;
+          int* dev;
+          int N = 100;
+     
+    5     cudaMallocHost((void*)&host, 
+             N*sizeof(int));
+          cudaMalloc((void*)&dev, 
+             N*sizeof(int));
+      
+          for (int i=0; i<N; i++){
+            host[i] = 2;
+          }
+ 
+    10    // Copy the array host to dev
+          cudaMemcpy(dev, host, 
+             N*sizeof(int),
+             cudaMemcpyHostToDevice);
+ 
+          // run map kernel on device
+          map<<<1, dim3(N)>>>(dev, N);
+ 
+          // copy back dev to host
+    15    cudaMemcpy(host, dev, 
+             N*sizeof(int),
+             cudaMemcpyDeviceToHost);
+      
+          for (int i=0; i<N; i++){
+            printf("%d ", host[i]);
+          }
+          printf("\n");
+      
+    20    return 0;
+        }
+ 
+        __global__ void map
+           (int* array, int cols){
+    25    int row = threadIdx.x;
+          int col = threadIdx.y;
+       
+          array[row*cols + col] += 1;
+    28  }                                    
+\end{verbatim}
+\caption{CUDA code mapping over each element of a 100 element array, adding one to each element, and printing out the result}
+\label{code:cudaExperiment}
+\end{Code Snippet}
 
 \subsection{Quantitative}
 
-Runtimes.
+%Runtimes.
+An important step in determining whether Chestnut is a viable alternative to other general purpose graphics processing languages is benchmarking. We ran our automatically generated Thrust code against handwritten sequential code running on the CPU and optimized, handwritten CUDA code. We tested \code{Map}, \code{Reduce}, and \code{Sort}. The first two operations were performed on arrays containing 8192x8192~=~67,108,864 elements. The sorting operation ran on an array of size 1024x1024~=~1,048,576 elements. In all cases, arrays were initialized with random floats between 0~and~1. Each operation was executed 100 times per run. The average runtime over five runs is presented in Table \ref{table:runtimes}. Additionally, speedups between sequential and Thrust code and between Thrust and CUDA code are featured.
+
+\begin{table*}
+  \centering
+\begin{tabular}{| c || c|c || c|c|c |}
+  \hline
+                 & Sequential to Thrust & Thrust to CUDA & Sequential & Thrust & CUDA \\
+                 &       Speedup                   &       Speedup             &    (ms)   &  (ms) & (ms) \\ \hline \hline
+  \code{Map}     &  {\bf 23.1}                     & {\bf 1.01}                & 545       & 24.3  & 24.1 \\
+  \code{Reduce}  &  {\bf 19.2}                     & {\bf 58.0}                & 266       & 13.9  & 0.24 \\
+  \code{Sort}    &  {\bf 13.7}                     & {\bf 3.32}                & 409       & 29.8  & 8.97 \\ \hline
+\end{tabular}
+\caption{Runtime statistics comparing automatically generated Thrust code to Sequential code run on the CPU and optimized CUDA code. Map and Reduce were run on arrays containing 67,108,864 elements while Sort was run on 1,048,576 elements. Each operation was executed 100 times per run and the average runtime per operation is presented in milliseconds. Speedup in the first column is calculated as $\frac{sequential\; time}{Thrust\; time}$, the second column is $\frac{Thrust\; time}{CUDA\; time}$.}
+\label{table:runtimes}
+\end{table*}
+
+We see from the results that in all cases we have excellent speedup compared to sequential code. Our generated Thrust code is anywhere from 13 to 23 times faster than handwritten sequential code. When we look at the Thrust code against optimized CUDA code, we in general fare respectably. When considering the map and sort operations, our code is at most three times slower. The reduction operation, however, is almost sixty times slower than the CUDA code. It would appear that the default Thrust \code{reduce} operation is not nearly as optimized as it could be. We know that the \code{reduce} function requires copying the result from GPU to CPU memory and it may be the case that the optimized CUDA is getting around that. While we are satisfied with the \code{map} and \code{sort} speedups, we need to look more carefully about how to handle reductions to get the best runtimes. 
+
+A few aspects of our experimental methods should be made explicit. Since Thrust function calls are asynchronous, it is difficult to time the actual executions of our operations. Thus our timer was the UNIX time utility. To isolate the function runtimes from the overhead of copying memory from the CPU to the GPU, we timed the execution of that copy without any actual function execution and subtracted that time away from the runs when we issued function calls. The overhead, however, was nontrivial. Since we are using Thrust vectors instead of C-style pointers, the CUDA code spend less time allocating space than the Thrust code. Specifically, in the \code{map} experiments, memory allocation using Thrust took (on average) a full 71.9 \% of the runtime compared to only 30.4 \% using CUDA. So while each operation is comparable, CUDA definitely beats Thrust on memory transfer. We don't view this as a big problem because we expect the average use case of our language to involve allocating the data and then running many consecutive computationally expensive tasks. As computation increases, the significance of memory transfer decreases.
+
+The CUDA and sequential code was a mix of code we wrote and precompiled executables to which we did not have access to the source ({\bf is this true??}). All sequential code was handwritten, and since sequential maps, reductions, and sorts are very straightforward, we believe this is reasonable. The C++ STL \code{sort} function was used, which runs in $O(nlog(n))$ time. We wrote the CUDA \code{map} function, which consists of a single kernel call (as shown in Code Snippet \ref{code:cudaExperiment}). The CUDA \code{reduce} and \code{sort} were precompiled and thus we were limited to the given array sizes. 
 
 \section{Future Work}
 \label{sec:future}
