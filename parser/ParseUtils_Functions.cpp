@@ -80,7 +80,7 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
   // call actual map function (using thrust::transform)
   cuda_outstr += prep_str("thrust::transform(" +
       src_dev + ".begin(), " + src_dev + ".end(), " + // source is
-      mapmodify + "," + // combined with mapmodify and
+      mapmodify + ", " + // combined with mapmodify and
       dest_dev + ".begin(), " + // written to destination.
       thrustop + ");"); // source and mapmodify are compsed with thrustop
   cuda_outstr += prep_str("/* End Map Function */"); 

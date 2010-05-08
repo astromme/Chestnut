@@ -125,7 +125,7 @@ void ParseUtils::makeForeach(string object, string type, string datarows, string
  * ==> col: current column index
  * ==> value: current index of array, 
  *    i.e. arr[row][col], represented as arr[row*maxcols+col]
- * ==> rand: a random real number between 0 and 1
+ * ==> rand: a random real number between 0 and RAND_MAX
  *
  * Thus, as we see these reserved words, we must replace them in the code with
  * the correct names, as given by the object name with which the foreach
