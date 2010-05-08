@@ -29,6 +29,7 @@ float                   yylval.string=strdup(yytext); return TOKFLOAT;
 string                  yylval.string=strdup(yytext); return TOKSTRING;
 
 [a-zA-Z][a-zA-Z0-9_]*   yylval.string=strdup(yytext); return ID; /* ID's used as variable names */
+\".*\"                  yylval.string=strdup(yytext); return FNAME; /* filename, like ID but is between quotes and contains anything */
 
 \"                      return QUOTE;
 \(                      return LPAREN;
