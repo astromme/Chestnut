@@ -43,8 +43,8 @@ ProgramStrings Sort::flatten() const
 
   QString functioncall = QString("%1 = sort(%2, %3);")
     .arg(m_sources[0]->connectedData()[0]->name())
-    .arg(m_sinks[0]->sourceData()->name())
-    .arg("<");
+    .arg("<")
+    .arg(m_sinks[0]->sourceData()->name());
   
   prog.second.append(functioncall);
   
