@@ -34,7 +34,7 @@ void ParseUtils::makeReadDatafile(string fname, string object, string type){
   string rows = objnames.rows;
   string cols = objnames.cols;
   string datainfo = objnames.datainfo;
-  string instream = objnames.instream;
+  string instream = objnames.instream; // TODO: defunct
   string garbage = objnames.garbage;
 
   int old_indent = indent;
