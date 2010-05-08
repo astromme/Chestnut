@@ -5,7 +5,7 @@
 
 using namespace std;
 
-typedef int DataType;
+typedef float DataType;
 
 void map(DataType **arr, DataType modify);
 void convolve(DataType **dest, DataType **src1, DataType **src2);
@@ -18,43 +18,46 @@ void printArr(DataType **arr);
 
 double totalTime(timeval* start, timeval* stop);
 
-
-const int N = 10000;
+const int N = 1024;
 const int rows = N;
 const int cols = N;
 
 int main(){
   
-  //struct timeval start, stop;
+  srand (time(NULL));
   
-  //gettimeofday(&start, 0);
+  struct timeval start, stop;
+  
   
   DataType **arr = createArr();
-  //DataType **twos = createArr();
 
-  fill(arr, 0);
-  //fill(twos, 2);
+  fill(arr, rand()/RAND_MAX);
 
-  /*int iterations = 100;
+  gettimeofday(&start, 0);
+  
+  int iterations = 100;
+/*
+  int reduced;
   for (int i=0;i<iterations; i++){
-    map(arr, 1);
-  }*/
-  
-  //convolve(arr, arr, twos);
+    reduced = reduce(arr);
+  }
+*/
 
-  //DataType reduced = reduce(arr);
-  
-  //vector<DataType> v (arr, arr+(rows*cols));  
-  
-  //gettimeofday(&stop, 0);
-  
-  //cout << "reduced: " << reduced << endl;
+ // sorting
+  vector<DataType> v(N*N);
+  for (int r=0; r<rows; r++){
+    for (int c=0; c<cols; c++){
+      v[r*cols+c] = 0;
+    }
+  }
  
-  //printArr(arr);
-  //cout << "time: " << totalTime(&start, &stop) << "\n";
-
-  //map(arr, 1);
-  //printArr(arr);
+  for (int i=0; i<iterations; i++){
+    sort(v.begin(), v.end());
+  }
+  
+  gettimeofday(&stop, 0);
+  
+  cout << "time: " << totalTime(&start, &stop) << "\n";
 
   return 0;
 }
@@ -86,7 +89,6 @@ void convolve(DataType **dest, DataType **src1, DataType **src2){
     }
   }
 }
-
   
 // map
 void map(DataType **arr, DataType modify){
