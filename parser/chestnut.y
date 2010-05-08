@@ -1,5 +1,6 @@
 %{
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <iostream>
@@ -35,6 +36,7 @@ enum vardec_ops {
 void yyerror(const char *str)
 {
 	fprintf(stderr,"error: %s\n",str);
+  exit(1);
 }
 
 int yywrap()
@@ -87,6 +89,7 @@ TOKROW TOKCOL TOKMAXROWS TOKMAXCOLS
 %token <number> STATE
 %token <string> NUMBER
 %token <string> ID
+%token <string> FNAME
 %token <string> TOKINT
 %token <string> TOKFLOAT
 %token <string> TOKSTRING
@@ -334,9 +337,15 @@ forloop:
   }
 ;*/
 
-filename: QUOTE ID QUOTE
+filename: FNAME
   {
-    $$=$2;
+    string fname = $1;
+    fname = fname.substr(1,fname.length()-2);
+    char *str = new char[fname.length()+1];
+    strcpy(str, fname.c_str());    
+    printf("found file name: %s\n", fname.c_str());
+    $$=str;
+    free($1);
   }
 
 type: TOKINT | TOKFLOAT | TOKSTRING
