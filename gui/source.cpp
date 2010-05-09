@@ -20,8 +20,6 @@ Source::Source(Data::Format format, Object* parent)
   m_activeConnection = 0;
   m_parent = parent;
   setFlag(ItemIsSelectable, false);
-  connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
-  connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
 
 Source::~Source()
@@ -186,11 +184,4 @@ void Source::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   }
   delete m_activeConnection;
   m_activeConnection = 0;
-}
-
-void Source::moved() {
-  //qDebug() << "source moved";
-  if (m_activeConnection) {
-    m_activeConnection->updateConnection();
-  }
 }

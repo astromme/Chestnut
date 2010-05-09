@@ -1,14 +1,15 @@
 #ifndef CHESTNUT_CONNECTION_H
 #define CHESTNUT_CONNECTION_H
 
-#include <QGraphicsItem>
+#include <QGraphicsObject>
 
 #include "types.h"
 
 class Source;
 class Sink;
 
-class Connection : public QGraphicsItem {
+class Connection : public QGraphicsObject {
+  Q_OBJECT
   public:
     Connection(Source *source, Sink *sink);
     Connection(Source *source);
@@ -37,6 +38,9 @@ class Connection : public QGraphicsItem {
     virtual void mousePressEvent(QGraphicsSceneMouseEvent* event);
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent* event);
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
+    
+  private slots:
+    void updateEndpoints();
     
   private:
     Source *m_source;
