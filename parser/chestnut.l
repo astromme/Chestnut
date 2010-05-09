@@ -1,3 +1,9 @@
+/* Tokenizer for Chestnut Code 
+ * ---------------------------
+ * Defines all valid tokens in
+ * Chestnut code.
+ */
+
 %{
 #include <stdio.h>
 #include <string.h>
