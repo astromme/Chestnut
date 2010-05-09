@@ -1,6 +1,7 @@
 %\documentclass{article}
 \documentclass[twocolumn]{article}
 \usepackage{fullpage}
+\usepackage{abstract} % makes abstract work with two-column format
 \usepackage{multirow}
 \usepackage{apacite}
 \usepackage{graphicx}
@@ -8,7 +9,6 @@
 \usepackage{url}
 \usepackage{fixltx2e} % so that 'starred' figures aren't out of order with 'non-starred' figures
 \usepackage[bottom]{footmisc} % make sure footnote is at bottom of page
-%\newcommand{\comment}[1]{}
 
 \usepackage{float}
 \newfloat{Algorithm}{h!}{}{}
@@ -17,7 +17,7 @@
 
 % program-related commands
 \usepackage{program}
-\renewcommand{\|}{\origbar} % use this instead of '|' because program package redefines '|'
+\renewcommand{\|}{\origbar} % use this instead of '|' because the program package redefines '|'
 \renewcommand{\WHILE}{\mbox{{\bf while} }\tab}
 \renewcommand{\FOR}{\mbox{{\bf for} }\tab}
 \renewcommand{\IF}{\mbox{{\bf if} }\tab}
@@ -32,13 +32,10 @@
 \maketitle
 
 \begin{abstract}
-  %Hello there fellow travelers. Have I got a story for you!
   Graphics processing units (GPUs) are powerful devices capable of rapid parallel computation, but using them for general computing needs can be a difficult and tedious task. We have created a graphical language called Chestnut that simplifies the process of programming for a GPU. The graphical environment is supported by a backend language that can be translated into GPU-ready code. Our language is intuitive, discoverable, and supports common operations used by GPU programmers. Runtime tests demonstrate that our code is much faster than sequential code run on the central processing unit (CPU) and is often comparable to optimized code written specifically for the GPU.
 \end{abstract}
 
 \section{Introduction}
-
-%Say why GPGPU is cool but difficult. We have provided an easier way to deal with it. With us, you get the performance gains without the steep learning curve.
 
 There are a number of advantages of using a GPU for general purpose computation. Since GPUs were designed to process large amounts of data in parallel very quickly, a user can greatly speed up his or her runtimes by translating sequential code into code run on GPU. Certain problems lend themselves to such a conversion, which we call embarrassingly parallel problems. In this class of programs, one generally wants to perform the same operation on every element of large chunks of the data. For example, a user might want to double every element in an array, find the sum of every element, or sort the values. Unfortunately, this translation process can be tedious and prohibitively involved. The tools used to program on the GPU require experience with C or C++, a solid grounding in memory management, and an understanding of the interactions between the CPU and GPU. 
 
@@ -48,8 +45,6 @@ The rest of the paper is organized as follows. Section \ref{sec:relatedWorks} di
 
 \section{Related Works}
 \label{sec:relatedWorks}
-
-%Basically just plop our annotated bibliography in here.
 
 We can break up designing this project into two broad categories: pedagogy of programming languages and the paradigm presented by CUDA. In other words, we need to equip ourselves with the tools to design {\em a} language, and then we need to figure out what is necessary to design {\em the} language. Since our language aims to be a teaching language, we look towards {\em Scratch}, a graphical programming language developed at the Massachusetts Institute of Technology (MIT), for guidance. Scratch provides an appealing graphical environment aimed at introducing programming to 8-16 year olds. Familiar programming constructs like conditionals and loops are present, but are presented in an intuitive manner. The authors hold that the ``computational thinking'' that programming affords is a valuable tool that should be encouraged but is currently lacking in non-Computer Science curriculum. Most children's digital fluency is defined by ``reading'' but not ``writing.'' The article discusses some of the design decisions that went into the language. To make it appeal to their target audience, the authors wanted Scratch to be more tinkerable, meaningful, and social. Additionally, we can think of any programming language as having a ``low floor'' (easy to begin), ``high ceiling'' (ability to become more complex), and ``wide walls'' (support for a diverse range of projects). Scratch appropriately focuses on the low floor and wide walls, arguing that a higher ceiling is outside the scope of a learning language, and if students are interesting in ``raising the ceiling'' they can and should look to more established languages like C or Python \cite{resnick}.
 
@@ -62,7 +57,7 @@ Finally, we need to consider the paradigm of actually programming for a graphics
 \section{General Purpose \\ Graphics Processing}
 \label{sec:GPGP}
 
-\subsection{Structure of Graphics \\ Processing Unit}
+\subsection{Structure of the Graphics \\ Processing Unit}
 
 A graphics processing unit is a dedicated piece of hardware separate from the CPU. It was originally designed for graphics processing where each pixel is run through a series of transformations and filters before it is shown on the screen. However, the massively parallel architecture of the GPU is now being used for more general purpose programming. 
 
@@ -77,8 +72,6 @@ GPUs lend themselves to certain types of programming, and these are not always t
 Compute Unified Device Architecture (CUDA)\footnote{\url{http://www.nvidia.com/object/cuda_home_new.html}} is a system developed by NVidia for performing general purpose computations on the GPU. CUDA is a series of extensions to C along with a specialized compiler. This results in a very low level language where the programmer must know about the GPU to program for it. Because of the extensions to C and amount of fine-grained control that CUDA offers code written in it ends up being verbose and difficult to understand for someone who has not learned about how graphics cards work. This creates an enormous learning curve for aspiring GPU programmers.
 
 \subsection{Thrust}
-
-%Much more C++-y. Easier to grasp. More like programming for CPU but still need to know some stuff about GPU
 
 Thrust is a C++ template library that provides convenient, optimized abstractions for many common CUDA operations. Where CUDA is very low-level, verbose, and C-like, Thrust operates on a higher level, is more succinct, and much more closely resembles C++ code. Thrust makes an introduction to GPU programming much more feasible compared to CUDA. However, Thrust code is still more verbose than we would like, is specific to C++ -- a python coder would be lost -- and requires knowledge of the GPU. A Thrust coder still needs to know that copying memory between CPU and GPU is very slow. Using this knowledge, there are some optimizations that one can use in Thrust to speed up the execution of code. We want to use many of the paradigms that Thrust expressions while simplifying the process such that a user will not need a deep understanding of the GPU framework \cite{hoberock}.
 
@@ -139,8 +132,6 @@ The Chestnut frontend forces the data-centric GPU model that we illustrated earl
 
 \subsection{Translate GUI to Chestnut Code} 
 
-%Visit each node. Each node knows its contribution. Variable Declarations and Function calls.
-
 In order to translate the graphical representation of a given program to Chestnut code that we can translate into Thrust code we need a robust method of traversing the graph and constructing correct code. It is difficult to decipher a ``starting point'' in a graphical program, so we start by choosing a node at random from the graph. This node may be data or it may be a function. Each node knows its contribution to the code and also knows what sinks and sources it is connected to. Additionally, every node has a \code{flatten()} function that builds up the Chestnut code. Thus, once we have selected our starting node, we call its \code{flatten()} function which in turn calls the \code{flatten()} function of all its sinks, then provides its contribution to the Chestnut code, and finally calls the \code{flatten()} function of all its sources. Since all sinks are ``flattened'' before the node's contribution is added and all sources are ``flattened'' after that point, we ensure that the order of commands in the resulting Chestnut code is as the GUI layout intended.
 
 We have so far been vague about what a node does to provide its contribution. This of course depends on the node's type and its specific function. But first we need to discuss the structure of Chestnut code as it is being built up. Every Chestnut program can be broken up into variable declarations and function calls (for Chestnut code specifications see section \ref{sec:specifications}) and so we can create two lists of strings, one for declarations and another for calls, that will eventually be written out to disk in the Chestnut code file. Thus as a node contributes to the list of strings, it adds to the declarations or calls. 
@@ -156,7 +147,6 @@ Once the GUI to Chestnut translation is finished, we have Chestnut code output. 
 
 \subsection{Process}
 
-%Lex tokenizes, Yacc accepts sequences of tokens. From Yacc we call helper functions which write Thrust code to disk. Compile that code using nvcc
 The translation from Chestnut to executable is a four step process. First, we use Flex\footnote{An open-source version of Lex, found at \\ \url{http://flex.sourceforge.net/}.} to tokenize the Chestnut code. For each valid word in the language, a token is created. For example, if Flex reads the word \code{map} it outputs the \code{TOKMAP} token. While Flex can return just a token without any extra context, it also has the ability to recognize and then save the input in a string or integer and pass that information along as well. In this case, one might have the variable \code{var1} which gets mapped to the {\em identifier} token \code{ID} and additionally saves the string \code{"var1"} to pass along to the next stage. Every valid word or character in the file (including braces, parentheses, etc.) must be tokenized to be accepted and passed along. If a token is not found, Flex will exit with a syntax error. This provides a simple but effective first level of error checking for our code.
 
 As Flex tokenizes the file, it passes each token along to Bison\footnote{The GNU version of Yacc, found at \\ \url{http://gnu.org/software/bison/}.} for processing. Bison generates an LALR(1) (one token Look-Ahead LR) or a GLR (generalized LR) parser. Using very simple regular expressions, Bison generates code that analyzes each token and matches it to predefined acceptable sequences of tokens. For example, suppose the input code for a reduction was \code{"result~=~reduce(data)"}\footnote{See section \ref{sec:specifications} for a full description of syntax}. The resulting sequence of acceptable tokens to check for would be \code{"ID~ASSIGN~TOKREDUCE~LPAREN~ID~RPAREN"}. Once a valid sequence of tokens is identified, we gather the appropriate information (variable names, operators, parameters) and pass them into a utility function (part of a utility class) that takes care of writing all the necessary Thrust code to disk. Once Thrust code has been written it can be compiled to object code using the CUDA compiler, \code{nvcc}.
@@ -168,7 +158,6 @@ The symbol table is implemented as an STL vector of \code{symbol\_entry} structs
 \subsection{Specifications}
 \label{sec:specifications}
 
-%Support ints, floats. Functions: map, reduce, sort, print, read, write. Ask Tia if we should put specifications here or in an appendix or what.
 We currently support two basic variable types, two variable categories, and seven default functions. Here we discuss them and specify each of their uses. This section will introduce the reader to basic Chestnut syntax and give the reader a sense of the level of abstraction used.
 
 At this early stage, the only data types we support are standard C++ \code{int} and \code{float}. Considering our target audience and what we anticipate them using Chestnut for, we believe that in an overwhelming number of cases these basic number types will be sufficient. Users will be acting primarily on large numerical datasets and our language absolutely supports that. In the future, we would like to implement more default types and allow users to define their own types, described in section \ref{sec:future}. 
@@ -243,16 +232,12 @@ The input and output functions Chestnut provides allows the user to view progres
 
 \subsection{Sample Program}
 
-%Do we want to show some samples? Use verbatim!
-
 We have provided in-depth specifications of Chestnut code but have not yet given an example of a full program written in the language. Here we take the opportunity to detail a program written in Chestnut code from start to finish, given in Code Snippet \ref{code:fullprog}.
 
 First, we initialize \code{input1} and \code{input2} with a random number and data from file, respectively. We then need to declare two vectors, \code{sorted1} and \code{sorted2}. Below the declarations, we sort the initial vectors into their sorted analogues, the first in ascending order, the second in descending order. To get a peak at the computation in progress, we print out both vectors.
 
 Once the data are sorted, we want to convolve over the vectors using the \code{"*"} operator and store them in \code{mapped}, which we then write out to the file \code{"outputdata"}. Finally, we reduce over a sum and print out the result, which is stored in \code{reduced}. This sample program shows the ease with which a user can quickly populate and operate on sets of data. There is also a clear paradigm at work, moving data through functions and storing the results in more data.
 
-%\floatstyle{boxed} 
-%\restylefloat{Code Snippet}
 \begin{Code Snippet}
 \begin{verbatim}
 
@@ -284,8 +269,6 @@ Once the data are sorted, we want to convolve over the vectors using the \code{"
 \subsection{Translating Chestnut Code to Thrust}
 \label{sec:chestnutToThrust}
 
-%Talk about the assumptions we need to make (when/where memory is allocated), some optimizations (\code{constant\_iterators}), the basic Thrust functions used.
-
 The process of converting Chestnut Code to Thrust code consists of expanding single lines into many lines of code, declaring extra variables that are encoded implicitly in Chestnut, and making some assumptions that a Thrust programmer would not need to. In certain circumstances, we can also optimize some commands. In this section we discuss Trust code that is produced from samples of Chestnut code. We also use this as a vehicle to discuss other design decisions and assumptions we made regarding the translation.
 
 \subsubsection{Variable Declarations}
@@ -300,8 +283,6 @@ With so many variables in the Thrust code, we need a convenient naming scheme. T
 
 \subsubsection{Manipulator Functions}
 
-%Interesting part comes when you think about memory access $\rightarrow$ different sense of an ``object'' in Chestnut and Thrust.
-
 Where conflicts in name collisions arose when declaring variables, conflicts on function calls come from a mismatch between the rigidity of Thrust (and C++) and our goals of making the language as intuitive as possible. Every function in Chestnut has an input and an output, and unless those two are the same object we guarantee that the function will not modify the input object. But some functions in Thrust modify the data in place. For example, if a user writes the Chestnut code \code{output~=~sort(<,~input)}, we must copy the contents of \code{input} to \code{output} and then run an in-place sort on \code{output}. 
 
 Similarly, when using the map function, a conflict arises when the user sets both the modifier data block and the output as the same object, as in \code{modifier~=~map(+,~modifier,~input)}. Since we want to guarantee \code{input} is not modified, we set the destination (here, \code{modifier}) to an empty vector of the correct size. Thus, left unmodified, the translation results in \code{modifier} being overridden and then simply filled with the \code{input}. Here we need only switch the order of the input and modifier to resolve the problem, because then both input and destination will be the same object and our algorithm knows that this is an in-place modification. These problems are indicative of the level of abstraction we strive for. General purpose graphics processing requires a different way of thinking about the data, and to really establish and enforce this paradigm requires some bridges between existing code structures and our abstractions.
@@ -314,13 +295,10 @@ With the output functions \code{write} and \code{print} we come to one of the mo
 \section{Experiments}
 \label{sec:experiments}
 
-%Run both qualitative experiments -- compare code samples -- and quantitative experiments with runtimes. We show that, subjectively, our code is easier to read, if less powerful. BUT!\ runtimes are very similar.
-
 Experiments with Chestnut take two forms: qualitative and quantitative. The first allows us to evaluate the readability of code. We compare the Chestnut code automatically translated from the graphical interface against equivalent Thrust code and CUDA code. We use this evidence to argue that our language is much more accessible than the alternatives. The quantitative experiments help to validate the usefulness of Chestnut. We show that Chestnut code is significantly faster than sequential code executed on the CPU and is approaching the speed of handwritten CUDA code.
 
 \subsection{Qualitative}
 
-%Compare Chestnut to Thrust to CUDA
 To demonstrate the readability and ease of writing in Chestnut, we present a simple example involving a single \code{map} operation and show how the verbosity increases dramatically as we translate the code into equivalent Thrust and then into CUDA code. We see in Code Snippet \ref{code:chestnutExperiment} that in three commands the user can define an array, fill it with a value, add one to every element in that array, and print out the result. The commands are clear, succinct, and immediately accessible to a new user. 
 
 \begin{Code Snippet}
@@ -433,7 +411,6 @@ But Thrust is still a strong improvement in terms of usability over the low-leve
 
 \subsection{Quantitative}
 
-%Runtimes.
 An important step in determining whether Chestnut is a viable alternative to other general purpose graphics processing languages is benchmarking. We ran our automatically generated Thrust code against handwritten sequential C++ code running on the CPU and optimized, handwritten CUDA code. We tested \code{Map}, \code{Reduce}, and \code{Sort}. The first two operations were performed on arrays containing 8192x8192~=~67,108,864 elements. The sorting operation ran on an array of size 1024x1024~=~1,048,576 elements. In all cases, arrays were initialized with random floats between 0~and~1. Each operation was executed 100 times per run. The average runtime over five runs is presented in Table \ref{table:runtimes}. Additionally, speedups between sequential and Thrust code and between Thrust and CUDA code are featured.
 
 \begin{table*}
@@ -468,7 +445,7 @@ Chestnut is still in its early stages. We have a working solution to many of the
 
 \subsection{Custom Functions}
 
-A significant limitation with the current Chestnut implementation is that it doesn't support the creation of custom functions from within Chestnut code or from the GUI. This complicates the use of Chestnut for applications which have some inter-dependence of data. One example of such an application is Conway's Game of Life \footnote{\url{http://en.wikipedia.org/wiki/Conway's_Game_of_Life}} which requires knowledge of the 8 neighboring squares to calculate the game state for any given square (TODO: Figure out citing). Custom functions would need significant limits on how they could access memory to ensure that the data-centric GPU model is followed, but we think that they are possible. A custom function would have a limited syntax and would be able to assign the values to each bucket based on the value at that bucket and the values of other nearby or arbitrary buckets. A sample syntax for custom functions is presented in Code Snippet \ref{code:customFunction} where the specific keywords \code{above, below, left, right} correspond to the values in the array at those positions relative to the current bucket and the keyword \code{value} represents the value in the output array of the current bucket.
+A significant limitation with the current Chestnut implementation is that it doesn't support the creation of custom functions from within Chestnut code or from the GUI. This complicates the use of Chestnut for applications which have some inter-dependence of data. One example of such an application is Conway's Game of Life\footnote{\url{http://en.wikipedia.org/wiki/Conway's_Game_of_Life}} which requires knowledge of the 8 neighboring squares to calculate the game state for any given square (TODO: Figure out citing). Custom functions would need significant limits on how they could access memory to ensure that the data-centric GPU model is followed, but we think that they are possible. A custom function would have a limited syntax and would be able to assign the values to each bucket based on the value at that bucket and the values of other nearby or arbitrary buckets. A sample syntax for custom functions is presented in Code Snippet \ref{code:customFunction} where the specific keywords \code{above, below, left, right} correspond to the values in the array at those positions relative to the current bucket and the keyword \code{value} represents the value in the output array of the current bucket.
 
 \begin{Code Snippet}
 \begin{verbatim}
