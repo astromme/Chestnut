@@ -1,3 +1,9 @@
+/* Parser for Chestnut Code
+ * ------------------------
+ * Defines all valid syntax in
+ * Chestnut code.
+ */
+
 %{
 #include <cstdio>
 #include <cstdlib>
@@ -16,6 +22,7 @@ int yylex(void);
 
 ParseUtils parseutils("chestnut");
 
+// variable declaration helper struct
 struct vardec_helper {
   int op;
   string fname;
@@ -25,6 +32,8 @@ struct vardec_helper {
 };
 vardec_helper curVarDec;
 
+// operations used in op field
+// of vardec_helper
 enum vardec_ops {
   VARDEC_NOOP = 10,
   VARDEC_READ,
@@ -49,25 +58,14 @@ int main()
   parseutils.initializeIncludes();
   parseutils.initializeMain();
 
-  //parseutils.initializeHeader(); TODO remove
-
   yyparse();
 
   parseutils.finalizeMain();
-  // parseutils.finalizeHeader(); TODO remove
-
 
   parseutils.writeAllFiles();
 
-  //symtab.print();
-
   return 0;
 }
-
-// Global Vars
-
-string datatype="NoVal"; // could be int, float, etc
-
 %}
 
 %token 
@@ -116,8 +114,6 @@ TOKROW TOKCOL TOKMAXROWS TOKMAXCOLS
 %type <string> read_data
 %type <string> expr
 %type <string> sort_comparators
-//%type <string> map_op_object
-//%type <string> foreach_contents
 
 %right ASSIGN
 %left PLUS MINUS
@@ -139,8 +135,8 @@ variable_declarations:
     string name = $2;
     string fname, rows, cols, expr;
 
-    // read was chosen
     switch (curVarDec.op){
+      
       case VARDEC_READ:
         fname = curVarDec.fname;
         parseutils.makeReadDatafile(fname, name, type);
@@ -157,6 +153,7 @@ variable_declarations:
       case VARDEC_VECTOR: 
         parseutils.makeVector(name, type);
         break;
+        
       case VARDEC_SCALAR:
         parseutils.makeScalar(name, type);
         break;
@@ -187,27 +184,18 @@ read_data:
   {
     curVarDec.op = VARDEC_READ;
     curVarDec.fname = $3;
-    free($3);
+    delete [] $3;
   }
 
 foreach:
   NUMBER NUMBER TOKFOREACH LPAREN expr RPAREN
-  //NUMBER NUMBER TOKFOREACH LPAREN foreach_contents RPAREN
   {
     curVarDec.op = VARDEC_FOREACH;
     curVarDec.rows = $1;
     curVarDec.cols = $2;
     curVarDec.expr = $5;
-    free($1); free($2);
-    delete [] $5;
+    free($1); free($2); free($5);
   }
-
-/*foreach_contents: TOKVALUE ASSIGN expr
-  {
-    $$=$3;
-    free($2); 
-  }
-  */
 
 write_call:
   TOKWRITE LPAREN ID COMMA filename RPAREN
@@ -229,10 +217,9 @@ map_call:
 
     string fcnname = "map";
 
-    //symtab.addEntry(fcnname, FUNCTION, FLOAT); // FIXME: FLOAT issue..
     parseutils.makeMap(source, destination, op, alter);
     printf("Map >\tOperation: %s, Number: %s, Object: %s\n", $5, $7, $9);
-    free($1); free($5); free($7); free($9);
+    free($1); free($2); free($5); delete [] $7; free($9);
   }
 
 reduce_call:
@@ -241,10 +228,13 @@ reduce_call:
     string source = $7;
     string destination = $1;
     string op = $5;
+    
+    printf("Reduce >\t Src: %s, Dest: %s, Op: %s\n",
+           $7, $1, $5);
 
     parseutils.makeReduce(source, destination, op);
 
-    free($1); free($5); free($7);
+    free($1); free($2); free($5); free($7);
   }
 
 sort_call:
@@ -255,7 +245,7 @@ sort_call:
     string comparator = $5;
 
     parseutils.makeSort(source, destination, comparator);
-    free($1); free($5); free($7);
+    free($1); free($2); free($5); free($7);
   }
 
 sort_comparators:
@@ -300,23 +290,6 @@ timer_stop:
     free($1);
   }
 
-/*
-map_op_object:
-    type NUMBER
-{ 
-  string type=$1, id=$2;
-  char *str = new char[type.length()+id.length()+2];
-  strcpy(str,$1);
-  strcat(str," ");
-  strcat(str,$2);
-  free($1); free($2);
-  $$=str;
-}
-  | ID
-{ 
-  $$=$1;
-}*/
-
 alphanumeric: 
   ID | NUMBER
   {
@@ -325,17 +298,9 @@ alphanumeric:
     string str = ss.str();
     char* chstr = new char[str.length()+1];
     strcpy (chstr, str.c_str());
-    $$ = chstr;
     free($1);
+    $$ = chstr;
   }
-
-/*
-forloop:
-  TOKFOR LPAREN expr SEMICOLON expr SEMICOLON expr RPAREN LBRACE RBRACE
-  {
-    printf("found for loop\n");
-  }
-;*/
 
 filename: FNAME
   {
@@ -344,20 +309,27 @@ filename: FNAME
     char *str = new char[fname.length()+1];
     strcpy(str, fname.c_str());    
     printf("found file name: %s\n", fname.c_str());
-    $$=str;
     free($1);
+    $$=str;
   }
 
 type: TOKINT | TOKFLOAT | TOKSTRING
 
 op: PLUS | MINUS | MULT | DIV
+  { 
+    printf("found op %s\n", $1);
+  }
+  
 
-/* Expressions! */
+/*******************
+ * Expressions! 
+ *******************/
+
 expr:
     expr ASSIGN expr
 { 
-  string pt1=$1, pt2=$2, pt3=$3;
-  char *str = new char[pt1.length()+pt2.length()+pt3.length()+1];
+  char *str = (char*) malloc(
+      sizeof(char)*(strlen($1)+strlen($2)+strlen($3)+1));
   strcpy(str,$1);
   strcat(str,$2);
   strcat(str,$3);
@@ -366,8 +338,8 @@ expr:
 }
   | expr PLUS expr
 { 
-  string pt1=$1, pt2=$2, pt3=$3;
-  char *str = new char[pt1.length()+pt2.length()+pt3.length()+1];
+  char *str = (char*) malloc(
+      sizeof(char)*(strlen($1)+strlen($2)+strlen($3)+1));
   strcpy(str,$1);
   strcat(str,$2);
   strcat(str,$3);
@@ -376,8 +348,8 @@ expr:
 }
   | expr MINUS expr
 { 
-  string pt1=$1, pt2=$2, pt3=$3;
-  char *str = new char[pt1.length()+pt2.length()+pt3.length()+1];
+  char *str = (char*) malloc(
+      sizeof(char)*(strlen($1)+strlen($2)+strlen($3)+1));
   strcpy(str,$1);
   strcat(str,$2);
   strcat(str,$3);
@@ -386,8 +358,8 @@ expr:
 }
   | expr MULT expr
 { 
-  string pt1=$1, pt2=$2, pt3=$3;
-  char *str = new char[pt1.length()+pt2.length()+pt3.length()+1];
+  char *str = (char*) malloc(
+      sizeof(char)*(strlen($1)+strlen($2)+strlen($3)+1));
   strcpy(str,$1);
   strcat(str,$2);
   strcat(str,$3);
@@ -396,8 +368,8 @@ expr:
 }
   | expr DIV expr
 { 
-  string pt1=$1, pt2=$2, pt3=$3;
-  char *str = new char[pt1.length()+pt2.length()+pt3.length()+1];
+  char *str = (char*) malloc(
+      sizeof(char)*(strlen($1)+strlen($2)+strlen($3)+1));
   strcpy(str,$1);
   strcat(str,$2);
   strcat(str,$3);
@@ -406,8 +378,8 @@ expr:
 }
   | expr MOD expr
 { 
-  string pt1=$1, pt2=$2, pt3=$3;
-  char *str = new char[pt1.length()+pt2.length()+pt3.length()+1];
+  char *str = (char*) malloc(
+      sizeof(char)*(strlen($1)+strlen($2)+strlen($3)+1));
   strcpy(str,$1);
   strcat(str,$2);
   strcat(str,$3);
@@ -416,8 +388,8 @@ expr:
 }
   | LPAREN expr RPAREN
 {
-  string pt1="(", pt2=$2, pt3=")";
-  char *str = new char[pt1.length()+pt2.length()+pt3.length()+1];
+  char *str = (char*) malloc(
+      sizeof(char)*(strlen("(")+strlen($2)+strlen(")")+1));
   strcpy(str,"(");
   strcat(str,$2);
   strcat(str,")");

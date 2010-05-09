@@ -1,3 +1,12 @@
+/*****************************
+ * Sequential Code for Benchmarking
+ * ---------------------------------
+ * Here we test out maps, convolutions, 
+ * sorts, and reduces in a sequential 
+ * environment. Change the type by
+ * changing the DataType typedef cmd
+ */
+
 #include <iostream>
 #include <algorithm>
 #include <vector>
@@ -7,6 +16,7 @@ using namespace std;
 
 typedef float DataType;
 
+// function declarations
 void map(DataType **arr, DataType modify);
 void convolve(DataType **dest, DataType **src1, DataType **src2);
 void fill(DataType **arr, DataType val);
@@ -61,6 +71,10 @@ int main(){
 
   return 0;
 }
+
+/******************
+ * Function definitions
+ */
  
 // reduce
 DataType reduce(DataType **arr){
