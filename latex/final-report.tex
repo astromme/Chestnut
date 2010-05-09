@@ -44,7 +44,7 @@ There are a number of advantages of using a GPU for general purpose computation.
 
 Chestnut is our solution to these problems. It provides a graphical environment in which users can drag and drop blocks of data along with functions that operate on them. Clearly marked inputs and outputs allow the user to connect data to functions. Thus at the graphical level we enforce the paradigm required to program on general purpose on graphics processing units (GPGPU) which pushes large blocks of data through functions that operate on each element and outputs the result as more blocks of data. The graphical frontend is then translated into a text-based backend language which also reinforces the data-centric model.
 
-The rest of the paper is organized as follows. Section \ref{sec:relatedWorks} discusses work related to both introductory programming languages and GPGPU languages. In section \ref{sec:GPGP} we detail the Graphics Processing Unit and describe the tools used to program on it. We give a broad overview of Chestnut in section \ref{sec:chestnut} before delving into the graphical frontend (section \ref{sec:chestnutFrontend}) and the text-based backend (section \ref{sec:chestnutBackend}). Qualitative and quantitative experiments are presented in section \ref{sec:experiments} showing our code is more readable than the code constructed using current tools and provides comparable speedup benefits. Finally, we add some concluding remarks in section \ref{sec:conclusion} and discuss the future of the project in section \ref{sec:future}.
+The rest of the paper is organized as follows. Section \ref{sec:relatedWorks} discusses work related to both introductory programming languages and GPGPU languages. In section \ref{sec:GPGP} we detail the Graphics Processing Unit and describe the tools used to program on it. We give a broad overview of Chestnut in section \ref{sec:chestnut} before delving into the graphical frontend (section \ref{sec:chestnutFrontend}) and the text-based backend (section \ref{sec:chestnutBackend}). Qualitative and quantitative experiments are presented in section \ref{sec:experiments} showing our code is more readable than the code constructed using current tools and provides comparable speedup benefits. Finally, we add some concluding remarks in section \ref{sec:discussion} and discuss the future of the project in section \ref{sec:future}.
 
 \section{Related Works}
 \label{sec:relatedWorks}
@@ -434,7 +434,7 @@ But Thrust is still a strong improvement in terms of usability over the low-leve
 \subsection{Quantitative}
 
 %Runtimes.
-An important step in determining whether Chestnut is a viable alternative to other general purpose graphics processing languages is benchmarking. We ran our automatically generated Thrust code against handwritten sequential code running on the CPU and optimized, handwritten CUDA code. We tested \code{Map}, \code{Reduce}, and \code{Sort}. The first two operations were performed on arrays containing 8192x8192~=~67,108,864 elements. The sorting operation ran on an array of size 1024x1024~=~1,048,576 elements. In all cases, arrays were initialized with random floats between 0~and~1. Each operation was executed 100 times per run. The average runtime over five runs is presented in Table \ref{table:runtimes}. Additionally, speedups between sequential and Thrust code and between Thrust and CUDA code are featured.
+An important step in determining whether Chestnut is a viable alternative to other general purpose graphics processing languages is benchmarking. We ran our automatically generated Thrust code against handwritten sequential C++ code running on the CPU and optimized, handwritten CUDA code. We tested \code{Map}, \code{Reduce}, and \code{Sort}. The first two operations were performed on arrays containing 8192x8192~=~67,108,864 elements. The sorting operation ran on an array of size 1024x1024~=~1,048,576 elements. In all cases, arrays were initialized with random floats between 0~and~1. Each operation was executed 100 times per run. The average runtime over five runs is presented in Table \ref{table:runtimes}. Additionally, speedups between sequential and Thrust code and between Thrust and CUDA code are featured.
 
 \begin{table*}
   \centering
@@ -452,12 +452,14 @@ An important step in determining whether Chestnut is a viable alternative to oth
 
 We see from the results that in all cases we have excellent speedup compared to sequential code. Our generated Thrust code is anywhere from 13 to 23 times faster than handwritten sequential code. When we look at the Thrust code against optimized CUDA code, we in general fare respectably. When considering the map and sort operations, our code is at most three times slower. The reduction operation, however, is almost sixty times slower than the CUDA code. It would appear that the default Thrust \code{reduce} operation is not nearly as optimized as it could be. We know that the \code{reduce} function requires copying the result from GPU to CPU memory and it may be the case that the optimized CUDA is getting around that. While we are satisfied with the \code{map} and \code{sort} speedups, we need to look more carefully about how to handle reductions to get the best runtimes. 
 
-A few aspects of our experimental methods should be made explicit. Since Thrust function calls are asynchronous, it is difficult to time the actual executions of our operations. Thus our timer was the UNIX time utility. To isolate the function runtimes from the overhead of copying memory from the CPU to the GPU, we timed the execution of that copy without any actual function execution and subtracted that time away from the runs when we issued function calls. The overhead, however, was nontrivial. Since we are using Thrust vectors instead of C-style pointers, the CUDA code spend less time allocating space than the Thrust code. Specifically, in the \code{map} experiments, memory allocation using Thrust took (on average) a full 71.9 \% of the runtime compared to only 30.4 \% using CUDA. So while each operation is comparable, CUDA definitely beats Thrust on memory transfer. We don't view this as a big problem because we expect the average use case of our language to involve allocating the data and then running many consecutive computationally expensive tasks. As computation increases, the significance of memory transfer decreases.
+A few aspects of our experimental methods should be made explicit. Since Thrust function calls are asynchronous, it is difficult to time the actual executions of our operations. Thus our timer was the UNIX time utility. To isolate the function runtimes from the overhead of copying memory from the CPU to the GPU, we timed the execution of that copy without any actual function execution and subtracted that time away from the runs when we issued function calls. The overhead, however, was nontrivial. Since we are using Thrust vectors instead of C-style pointers, the CUDA code spent less time allocating space than the Thrust code. Specifically, in the \code{map} experiments, memory allocation using Thrust took (on average) a full 71.9 \% of the runtime compared to only 30.4 \% using CUDA. So while each operation is comparable, CUDA definitely beats Thrust on memory transfer. We don't view this as a big problem because we expect the average use case of our language to involve allocating the data and then running many consecutive computationally expensive tasks. As computation increases, the significance of memory transfer decreases.
 
 The CUDA and sequential code was a mix of code we wrote and precompiled executables to which we did not have access to the source ({\bf is this true??}). All sequential code was handwritten, and since sequential maps, reductions, and sorts are very straightforward, we believe this is reasonable. The C++ STL \code{sort} function was used, which runs in $O(nlog(n))$ time. We wrote the CUDA \code{map} function, which consists of a single kernel call (as shown in Code Snippet \ref{code:cudaExperiment}). The CUDA \code{reduce} and \code{sort} were precompiled and thus we were limited to the given array sizes. 
 
-\section{Conclusion}
-\label{sec:conclusion}
+\section{Discussion}
+\label{sec:discussion}
+
+In this paper we have presented our graphical language Chestnut aimed at simplifying general purpose graphics processing. Taking advantage of the GPU can greatly speed up runtimes but, with the tools available now, require more knowledge and overhead than many users are willing to put in. Withe Chestnut, we provide a simple, discoverable, intuitive interface that allows amateur programmers or scientists to perform many common data-centric tasks without learning about the details of GPU. Chestnut can also serve as a teaching tool to introduce programmers to the mindset of parallel programming. Our language is much faster than sequential code running on the CPU and is in most cases comparable to handwritten, optimized CUDA code. While our language is limited in this early stage and will never be as fast as well-tuned CUDA code, the resulting Chestnut code is much more readable and easier to follow than the alternatives. 
 
 \section{Future Work}
 \label{sec:future}
@@ -466,35 +468,32 @@ Chestnut is still in its early stages. We have a working solution to many of the
 
 \subsection{Custom Functions}
 
-A significant limitation with the current Chestnut implementation is that it doesn't support the creation of custom functions from within Chestnut code or from the GUI. This complicates the use of Chestnut for applications which have some inter-dependence of data. One example of such an application is Conway's Game of Life \footnote{\url{http://en.wikipedia.org/wiki/Conway's_Game_of_Life}} which requires knowledge of the 8 neighboring squares to calculate the game state for any given square (TODO: Figure out citing). Custom functions would need significant limits on how they could access memory to ensure that the data-centric GPU model is followed, but we think that they are possible. A custom function would have a limited syntax and would be able to assign the values to each bucket based on the value at that bucket and the values of other nearby or arbitrary buckets. A sample syntax for custom functions could look like the following
+A significant limitation with the current Chestnut implementation is that it doesn't support the creation of custom functions from within Chestnut code or from the GUI. This complicates the use of Chestnut for applications which have some inter-dependence of data. One example of such an application is Conway's Game of Life \footnote{\url{http://en.wikipedia.org/wiki/Conway's_Game_of_Life}} which requires knowledge of the 8 neighboring squares to calculate the game state for any given square (TODO: Figure out citing). Custom functions would need significant limits on how they could access memory to ensure that the data-centric GPU model is followed, but we think that they are possible. A custom function would have a limited syntax and would be able to assign the values to each bucket based on the value at that bucket and the values of other nearby or arbitrary buckets. A sample syntax for custom functions is presented in Code Snippet \ref{code:customFunction} where the specific keywords \code{above, below, left, right} correspond to the values in the array at those positions relative to the current bucket and the keyword \code{value} represents the value in the output array of the current bucket.
 
 \begin{Code Snippet}
 \begin{verbatim}
-(TODO: Talk to ryan about this!)
+
 function average(Input in, Output out) {
     value = above + below + left + right;
     value = value / 4;
 }
 \end{verbatim}
+\caption{Proposed syntax for a custom function in Chestnut code.}
+\label{code:customFunction}
 \end{Code Snippet}
 
-where the specific keywords \code{above, below, left, right} correspond to the values in the array at those positions relative to the current bucket and the keyword \code{value} represents the value in the output array of the current bucket.
 
-\subsection{Custom DataTypes}
+\subsection{More Functions and Datatypes}
 
-Chestnut currently supports integers and real values (floats), but both of these are primitive datatypes. It would be nice to support more complex datatypes consisting of the primitive types. In the case of sorting this allows for finding a specific entry by sorting on some subfield.
-
-TODO: insert array that shows this?
-
-\subsection{More Predefined Functions/Data Types}
-
-Doubles, pairs, c style data structures?
+Chestnut currently supports integers and real values (floats), but both of these are very primitive datatypes. Users would benefit from a larger array of types to choose from, including doubles and strings as well as a \code{pair} type capable of combining two values into a single datatype. We would also like to expand the list of default functions and expand the functionality of those we currently provide. For example, if a user had control of a \code{pair} or some arbitrary $n$-tuple, he or she could run different \code{sort} functions along different subfields. We would also like to provide a mechanism by which users could define their own functions and data types. This would greatly increase the functionality and usefulness of Chestnut for our end-users. The syntax for these functions is something we need to carefully consider before implementing. We need to stick to our goals of being intuitive and discoverable while making the process as configurable as possible.
 
 \subsection{Refine GUI}
 
-As features are added to the Chestnut language it is important to continue to find ways to have them cleanly map into the GUI. Custom functions should appear alongside predefined functions and should follow the same semantics for advertising their available inputs and outputs as sinks and sources. The GUI also currently lacks any way of saving or loading a workspace. It would also be important to streamline the build process. Currently it takes quite a few steps and it should be more of a one click process if the user is unfamiliar with the different parts that make up the Chestnut system.
+As features are added to the Chestnut language it is important to continue to find ways to have them cleanly map into the GUI. Custom functions should appear alongside predefined functions and should follow the same semantics for advertising their available inputs and outputs as sinks and sources. The GUI also currently lacks any way of saving or loading a workspace. It would also be important to streamline the build process. Currently it takes quite a few steps and it should be closer to a one click process if the user is unfamiliar with the different parts that make up the Chestnut system.
 
 \subsection{For Loops}
+
+In the current language, there is no looping structure to execute multiple function calls without explicitly laying each one out. For example, to run 100 \code{maps} a user needs to place 100 maps and all the necessary intermediate connections. This is of course infeasible in its current state, especially in the graphical environment. In the future we would like to provide a \code{for loop} that specifies the number of times to execute a section of code. To implement this functionality, we first need to get the backend to recognition the construct and figure out where data needs to be copied to provide reliable and well-defined results. Then we need to implement the appropriate frontend support and decide on the most intuitive way to present a looping construct to the user.
 
 \bibliographystyle{apacite}
 \bibliography{references}
