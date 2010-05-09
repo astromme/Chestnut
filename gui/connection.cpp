@@ -14,7 +14,7 @@ using namespace Chestnut;
 
 
 Connection::Connection(Source* source, Sink* sink)
-  : QGraphicsItem(source),
+  : QGraphicsObject(source),
   m_highlighted(false)
 {
   setFlag(ItemIsSelectable, false);
@@ -22,10 +22,15 @@ Connection::Connection(Source* source, Sink* sink)
   m_sink = sink;
   source->addConnection(this);
   sink->setConnection(this);
+  
+  connect(source->parentObject(), SIGNAL(xChanged()), SLOT(updateEndpoints()));
+  connect(source->parentObject(), SIGNAL(yChanged()), SLOT(updateEndpoints()));
+  connect(sink->parentObject(), SIGNAL(xChanged()), SLOT(updateEndpoints()));
+  connect(sink->parentObject(), SIGNAL(yChanged()), SLOT(updateEndpoints()));
 }
 
 Connection::Connection(Source* source) 
-  : QGraphicsItem(source),
+  : QGraphicsObject(source),
   m_highlighted(false)
 {
   setFlag(ItemIsSelectable, false);
@@ -33,6 +38,9 @@ Connection::Connection(Source* source)
   source->addConnection(this);
   m_sink = 0;
   m_partialEndpoint = source->connectedCenter();
+  
+  connect(source->parentObject(), SIGNAL(xChanged()), SLOT(updateEndpoints()));
+  connect(source->parentObject(), SIGNAL(yChanged()), SLOT(updateEndpoints()));
 }
 
 Connection::~Connection()
@@ -48,12 +56,6 @@ Connection::~Connection()
 int Connection::type() const
 {
   return Type;
-}
-
-void Connection::updateConnection()
-{
-  prepareGeometryChange();
-  update();
 }
 
 void Connection::setHighlighted(bool highlighted)
@@ -72,10 +74,14 @@ void Connection::setSink(Sink* sink)
   m_highlighted = false;
   if (m_sink) {
     m_sink->setConnection(0);
+    disconnect(m_sink->parentObject(), SIGNAL(xChanged()), this, SLOT(updateEndpoints()));
+    disconnect(m_sink->parentObject(), SIGNAL(yChanged()), this, SLOT(updateEndpoints()));
   }
   m_sink = sink;
   if (sink) {
     sink->setConnection(this);
+    connect(sink->parentObject(), SIGNAL(xChanged()), SLOT(updateEndpoints()));
+    connect(sink->parentObject(), SIGNAL(yChanged()), SLOT(updateEndpoints()));
   }
 }
 void Connection::setEndpoint(const QPointF& scenePoint)
@@ -83,6 +89,11 @@ void Connection::setEndpoint(const QPointF& scenePoint)
   prepareGeometryChange();
   m_partialEndpoint = mapFromScene(scenePoint);
 }
+void Connection::updateEndpoints()
+{
+  prepareGeometryChange();
+}
+
 QPointF Connection::endpoint() const
 {
   return isPartial() ? m_partialEndpoint : mapFromItem(sink(), sink()->connectedCenter());

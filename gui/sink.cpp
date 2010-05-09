@@ -19,8 +19,6 @@ Sink::Sink(Data::Formats allowedFormats, Object* parent)
   m_internalMargin = 2;
   m_parent = parent;
   setFlag(ItemIsSelectable, false);
-  connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
-  connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
 Sink::Sink(Data::Format allowedFormat, Object* parent)
   : QGraphicsObject(parent)
@@ -34,8 +32,6 @@ Sink::Sink(Data::Format allowedFormat, Object* parent)
   m_internalMargin = 2;
   m_parent = parent;
   setFlag(ItemIsSelectable, false);
-  connect(parent, SIGNAL(xChanged()), this, SLOT(moved()));
-  connect(parent, SIGNAL(yChanged()), this, SLOT(moved()));
 }
 
 Sink::~Sink()
@@ -153,11 +149,3 @@ void Sink::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWid
   topLeft = QPointF(topLeft.x() + Size::inputHeight + m_internalMargin, topLeft.y());
   }
 }
-
-void Sink::moved() {
-  //qDebug() << "sink moved";
-  if (m_connection) {
-    m_connection->updateConnection();
-  }
-}
-
