@@ -8,6 +8,15 @@
 class Source;
 class Sink;
 
+/**
+ * This class is a generic internal representation of an object that can be
+ * placed on the canvas and manipulated. It has the concept of sources and
+ * sinks. This class is pure virtual and can be subclassed into things that
+ * the user can use.
+ *
+ * @see Function
+ * @see Data
+ */
 class Object : public QGraphicsObject {
   Q_OBJECT
   public:

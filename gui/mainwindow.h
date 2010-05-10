@@ -12,6 +12,11 @@ namespace Ui {
 class QStandardItemModel;
 class QGraphicsScene;
 
+/**
+ * This class is the main interface for the Chestnut GUI. It sets up
+ * the window and provides the global user interactions, as well as support
+ * for building and running Chestnut code.
+ */
 class MainWindow : public QMainWindow
 {
   Q_OBJECT

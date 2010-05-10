@@ -10,6 +10,12 @@ class Object;
 class Sink;
 class Function;
 
+/**
+ * A source is an internal object that represents the output of some data
+ * stream. It allows functions and data express that they have some data
+ * to provide to other objects. Sources allow multiple connections to
+ * other sinks as long as the type of the sink matches the type of the source.
+ */
 class Source : public QGraphicsObject {
   Q_OBJECT
   public:

@@ -5,6 +5,7 @@
 #include <QString>
 
 namespace Chestnut {
+  // Some simple sizes to allow consistent GUI painting
   namespace Size {
     static qreal inputsMarginX = 2;
     static qreal inputsMarginY = 2;

@@ -10,6 +10,11 @@ namespace Ui {
   class ValueProperties;
 }
 
+/**
+ * This class represents a scalar value in Chestnut code. It enforces
+ * either a integer or a floating point type and can take a source/gives
+ * a sink.
+ */
 class Value : public Data {
   Q_OBJECT
   public:
