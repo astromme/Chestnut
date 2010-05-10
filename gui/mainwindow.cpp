@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
   m_model = new PaletteModel(this);
   m_ui->setupUi(this);
   
+  // Populate the left sidebar with variables, functions, operators
   QStandardItem *variables = new QStandardItem("Variables");
     variables->appendRow(new QStandardItem("Data Block"));
     variables->appendRow(new QStandardItem("Value"));
@@ -145,11 +146,13 @@ void MainWindow::runCompiledCode()
   
   widget->show();
   
-  //HACK HACK HACK HACK
+  //HACK HACK HACK HACK should be checking if the sh file even exists,
+  // if it started, if it finished correctly.
   compileRun->waitForStarted(-1);
   qDebug() << compileRun->errorString();
   while (!compileRun->waitForFinished(50)) {
-    QCoreApplication::processEvents(QEventLoop::AllEvents | QEventLoop::WaitForMoreEvents, 50);
+    // Continue to process events while running in the background
+    QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents | QEventLoop::WaitForMoreEvents, 50);
     if (compileRun->bytesAvailable() > 0) {
       m_runOutputUi->runResults->appendPlainText(compileRun->readAllStandardOutput());
     }

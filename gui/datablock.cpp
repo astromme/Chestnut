@@ -21,6 +21,7 @@ DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, in
   m_dimension = 2;
   m_ui = new Ui::DataBlockProperties;
 
+  // Add and arrange the sources/sinks on the canvas. Positions relative to this object
   Sink *in = new Sink(Data::DataBlock, this);
   in->setPos(rect().left()+rect().width()/2, rect().top()-Size::inputHeight);
   m_sinks.append(in);
@@ -29,6 +30,7 @@ DataBlock::DataBlock( const QString& name, const QString& datatype, int rows, in
   out->setPos(rect().left()+rect().width()/2, rect().bottom());
   m_sources.append(out);
   
+  // Set the default initialization to the following code:
   setExpression("foreach( value = rand/RAND_MAX )");
 }
 
@@ -91,8 +93,10 @@ ProgramStrings DataBlock::flatten() const
   return prog;
 }
 
+// A double click on the datablock opens the config dialog
 void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
+  // setup gui/copy values into gui config
   QDialog *dialog = new QDialog();
   m_ui->setupUi(dialog);
   
@@ -123,6 +127,7 @@ void DataBlock::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 
 void DataBlock::configAccepted()
 {
+  // set values from gui
   setName(m_ui->name->text());
   if (m_ui->integers->isChecked()) {
     setDatatype("int");
@@ -134,6 +139,7 @@ void DataBlock::configAccepted()
   
   setExpression(QString("foreach( %1 )").arg(m_ui->forLoopCode->text()));
   
+  // more than likely things were updated that need to be repainted
   update();
 }
 
@@ -159,6 +165,7 @@ QRectF DataBlock::rect() const
 
 QRectF DataBlock::boundingRect() const
 {
+  // margin of 1
   return rect().adjusted(-1, -1, 1, 1);
 }
 
