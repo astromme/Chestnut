@@ -1,3 +1,5 @@
+// Currently not used, but may be expanded in the future
+
 #include <stdexcept>
 #include <algorithm>
 #include <iostream>
@@ -64,8 +66,8 @@ void ParseUtils::makeTimerStart(string timer)
 }
 
 /********************************
- * Function: makeTimerStart
- * ------------------------
+ * Function: makeTimerStop
+ * -----------------------
  * Associated with syntax in Chestnut
  *      <name> stop
  *

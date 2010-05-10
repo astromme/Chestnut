@@ -12,7 +12,15 @@ using boost::algorithm::replace_all;
 /********************************
  * Function: makeMap
  * -----------------
- * Generates code for a map across an object
+ * Generates code for a map/convolution across an object
+ * Associated with the syntax
+ *    <destination> = map(<operator>, <modifier>, <source>);
+ * 
+ * Inputs:
+ *      source: object to be mapped over
+ *      destination: object to contain result of mapping
+ *      op: operator with which to map
+ *      modify: what to modify by. Could be number or data
  */
 void ParseUtils::makeMap(string source, string destination, string op, string modify){
   
@@ -93,7 +101,14 @@ void ParseUtils::makeMap(string source, string destination, string op, string mo
 /********************************
  * Function: makeReduce
  * --------------------
- * Generates code for a reduce of an object
+ * Generates code for a reduce on an object.
+ * Associated with the code
+ *    <destination> = reduce(<operator>, <source>);
+ *
+ * Inputs:
+ *    source: object to be reduced
+ *    destination: object where result of reduction goes
+ *    op: operator that we reduce over
  */
 void ParseUtils::makeReduce(string source, string destination, string op){
   // define names of vars in prog
@@ -136,7 +151,16 @@ void ParseUtils::makeReduce(string source, string destination, string op){
 /********************************
  * Function: makeSort
  * ------------------
- * Generates code for sorting data
+ * Generates code for sorting data.
+ * Associated with the syntax:
+ *      <destination> = sort(<comparator>, <source>);
+ *
+ * Inputs:
+ *    source: object to be sorted
+ *    destination: object where sorted result is stored
+ *    comparator: determines how data is sorted. 
+ *        "<" sorts in ascending order
+ *        ">" sorts in descending order
  */
 void ParseUtils::makeSort(string source, string destination, string comparator){
   obj_names src_objnames = get_obj_names(source);
@@ -169,4 +193,3 @@ void ParseUtils::makeSort(string source, string destination, string comparator){
 
   cudafile->pushMain(cuda_outstr);
 }
-

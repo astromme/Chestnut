@@ -34,25 +34,14 @@ void ParseUtils::makeReadDatafile(string fname, string object, string type){
   string rows = objnames.rows;
   string cols = objnames.cols;
   string datainfo = objnames.datainfo;
-  string instream = objnames.instream; // TODO: defunct
   string garbage = objnames.garbage;
 
   int old_indent = indent;
   indent = 0;
-/* TODO remove
-  if (!cudalang_included){
-    // make sure cu file has cudalang.h included FIXME: won't always be
-    // cudalang
-    string cudalang = add_include("\"" + headerfile->fname() + "\"");
-    cudafile->pushInclude(cudalang);
-    cudalang_included = true;
-  }
-*/
 
   if (!parselibs_included){
     // make sure both header file and cu file have included ParseLibs
     string parselibs = add_include("\"ParseLibs.h\"");
-    // headerfile->pushInclude(parselibs); // TODO remove
     cudafile->pushInclude(parselibs);
     parselibs_included = true;
   }
@@ -66,7 +55,7 @@ void ParseUtils::makeReadDatafile(string fname, string object, string type){
     cuda_outstr += prep_str("int " + rows + ", " + cols + ";");
     cuda_outstr += prep_str("DataInfo<" + type + ">* " + datainfo + ";");
     cuda_outstr += "\n";
-  } // TODO: else we need to delete some memory? i.e. host has already been allocated
+  }
 
   cuda_outstr += prep_str("// Read in data (using ParseLibs)");
   cuda_outstr += prep_str(datainfo + " = readDatafile<" + type +">(\"" + fname + "\");");
@@ -81,18 +70,14 @@ void ParseUtils::makeReadDatafile(string fname, string object, string type){
 /********************************
  * Function: makewriteDatafile
  * ---------------------------
- * Associated with the syntax in our language (TODO: name our language)
+ * Associated with the syntax in Chestnut
  *      write(<data>, "<outfile>");
  *
  * Generates code to write data to a file.
  *
  * Inputs:
  *    fname: filename containing data we want to write to
- *    object: object in which data is currently stored
- *    type: datatype of object
- *
- * Returns:
- *    C++ code to implement this data write
+ *    object: object where data is stored
  */
 void ParseUtils::makeWriteDatafile(string fname, string object){
   string outstr;
@@ -134,9 +119,16 @@ void ParseUtils::makeWriteDatafile(string fname, string object){
 /********************************
  * Function: makePrintData
  * -----------------------
- * Generates code to print out an object (in one dimension).
- * We don't need to explicitly copy device data onto the CPU, so this function
- * might be a bit faster to run than makePrintData2D
+ * Generates code to print out an object in two dimensions
+ * Unlike makePrintData, we need to copy data over to the CPU from the GPU,
+ * but we then gain the ability to structure output in two dimensions
+ *
+ * For example can print out
+ *    1 2 3
+ *    4 5 6
+ *    7 8 9
+ * instead of
+ *    1 2 3 4 5 6 7 8 9
  *
  * Input:
  *    object: variable to be printed
@@ -184,16 +176,9 @@ void ParseUtils::makePrintData(string object){
 /********************************
  * Function: makePrintData1D
  * -------------------------
- * Generates code to print out an object in two dimensions
- * Unlike makePrintData, we need to copy data over to the CPU from the GPU,
- * but we then gain the ability to structure output in two dimensions
- *
- * For example can print out
- *    1 2 3
- *    4 5 6
- *    7 8 9
- * instead of
- *    1 2 3 4 5 6 7 8 9
+ * Generates code to print out an object (in one dimension).
+ * We don't need to explicitly copy device data onto the CPU, so this function
+ * might be a bit faster to run than makePrintData2D
  *
  * Input:
  *    object: variable to be printed
@@ -207,7 +192,7 @@ void ParseUtils::makePrintData1D(string object){
   string cuda_outstr;
   cuda_outstr += prep_str("thrust::copy(" + 
     dev + ".begin(), " + dev + ".end(), " +
-    "std::ostream_iterator<" + type + ">(std::cout, \"\\n\"));");
+    "std::ostream_iterator<" + type + ">(std::cout, \" \"));");
   cuda_outstr += prep_str("std::cout << \"\\n\";");
 
   cudafile->pushMain(cuda_outstr);

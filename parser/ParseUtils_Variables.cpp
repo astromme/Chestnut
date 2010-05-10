@@ -19,8 +19,9 @@ using boost::algorithm::replace_all;
  * inititalized from the outset. For example, if you map across some data A
  * and you want to send it to B, we would declare B here
  *
- *
- * TODO: Inputs/Returns
+ * Inputs:
+ *    object: name of vector
+ *    type: type of vector
  */ 
 void ParseUtils::makeVector(string object, string type){
   // define names of vars in prog
@@ -50,8 +51,9 @@ void ParseUtils::makeVector(string object, string type){
  * inititalized from the outset. For example, if you map across some data A
  * and you want to send it to B, we would declare B here
  *
- *
- * TODO: Inputs/Returns
+ * Inputs:
+ *    object: name of scalar
+ *    type: type of scalar
  */ 
 void ParseUtils::makeScalar(string object, string type){
   // define names of vars in prog
