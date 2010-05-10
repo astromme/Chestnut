@@ -8,6 +8,11 @@
 
 class QValidator;
 
+/**
+ * Data is a small class to represent some form of data.
+ * Although Data is not a pure virtual function it should
+ * not be used directly. Instead, use one of its subclasses
+ */
 class Data : public Object {
   public:
     enum Format {
@@ -22,7 +27,8 @@ class Data : public Object {
     
     enum { Type = ChestnutItemType::Map };
     int type() const;
-    
+   
+    // Used to work around buggy? type() system
     virtual bool isData() const;
     virtual bool isInitialized() const;
     
