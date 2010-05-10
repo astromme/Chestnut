@@ -17,9 +17,8 @@ using boost::algorithm::replace_all;
  *
  * Generates code to fill data with given expression.
  *
- * FIXME: more specific
- * Expression can consist of a bunch of stuff like rows, cols, maxrows, etc
- * that we have to deal with
+ * Expression can consist of an arithmetic expressions and keywords like
+ * "row" "col" "value" etc (see helper function below)
  *
  * Inputs:
  *    object: name of variable to be initialized
@@ -93,7 +92,7 @@ void ParseUtils::makeForeach(string object, string type, string datarows, string
     cuda_outstr += prep_str("device_vector<" + type + "> " + dev + 
         "(" + rows + "*" + cols + "); // Memory on device (gpu) side");
     cuda_outstr += "\n";
-  } // TODO: else we need to delete some memory? i.e. host has already been allocated
+  } 
 
   cuda_outstr += prep_str("// populate data");
   // if we can optimize using fill, do so
@@ -137,7 +136,6 @@ string ParseUtils::processForeachExpr(string expr, const obj_names &objnames){
   
   // since the right hand side may have something like "row/maxrows" we want
   // that to be a float, not an int, so let's cast variables as floats
-  // TODO: make sure this doesn't break anything
   replace_all(expr, "row", decimalcast + "row");
   replace_all(expr, "max" + decimalcast + "rows", decimalcast + objnames.rows);
 
@@ -148,8 +146,6 @@ string ParseUtils::processForeachExpr(string expr, const obj_names &objnames){
 
   replace_all(expr, "value", objnames.host + "[row*" + objnames.cols + "+col]");
   replace_all(expr, "=", " = ");
-  //replace_all(expr, "=", ".push_back(");
-  // TODO: implement rand
 
   return expr;
 }

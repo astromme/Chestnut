@@ -58,10 +58,6 @@ void ParseUtils::finalizeMain(){
 void ParseUtils::initializeIncludes(){
   // add #include infos
   string includes;
-  /*includes += add_include("string");
-  includes += add_include("fstream");
-  includes += add_include("iostream");
-  includes += "\n";*/
 
   // cudafile includes
   string cuda_includes;
@@ -73,22 +69,9 @@ void ParseUtils::initializeIncludes(){
   cuda_includes += add_include("<thrust/device_vector.h>");
   cuda_includes += add_include("<thrust/iterator/constant_iterator.h>");
   cudafile->pushInclude(cuda_includes);
-
-  // cpp includes  TODO remove
-  /*string cpp_includes;
-  cpp_includes += add_include("<fstream>");
-  cpp_includes += add_include("<iostream>");
-  cpp_includes += add_include("<string>");
-  cpp_includes += add_include("\"" + headerfile->fname() + "\"");
-  cppfile->pushInclude(cpp_includes);*/
-
-  // also throw in "using namespace std" into cpp function declarations, which
-  // will always come before the definition but after all the includes
-  /*string namespace_std = prep_str("using namespace std;");
-  cppfile->pushFcnDec(namespace_std);*/
 }
 
-// TODO remove
+// TODO defunct for now but may need later. Keep for now.
 /********************************
  * Function: initializeHeader
  * --------------------------
@@ -114,21 +97,6 @@ void ParseUtils::initializeHeader(){
 
   string includes;
   headerfile->pushInclude(includes);
-
-  indent = old_indent;
-}*/
-
-/* TODO remove
-void ParseUtils::finalizeHeader(){
-  int old_indent = indent;
-  indent = 0;
-
-  string endheader;
-  endheader += prep_str("#endif");
-
-  // adding #endif to the "Function Definition" part of a .h file ensures that
-  // it comes last
-  headerfile->pushFcnDef(endheader);
 
   indent = old_indent;
 }*/
