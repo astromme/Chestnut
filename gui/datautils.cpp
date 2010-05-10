@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QTextStream>
 
+// Some useful operators for ProgramStrings. They do exactly what you think they would with strings
 const ProgramStrings operator+(const ProgramStrings& p1, const ProgramStrings& p2) {
   return ProgramStrings(p1.first + p2.first, p1.second + p2.second);
 }
