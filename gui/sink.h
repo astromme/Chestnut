@@ -46,9 +46,6 @@ class Sink : public QGraphicsObject {
     virtual QRectF boundingRect() const;
     virtual void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget = 0);
 
-  private slots:
-    void moved();
-
   private:
     Data::Formats m_allowedFormats;
     Connection *m_connection;

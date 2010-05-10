@@ -50,6 +50,7 @@ set(chestnut_sources
 set(chestnut_headers
     sink.h
     source.h
+    connection.h
     object.h
     datablock.h
     value.h
