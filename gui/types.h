@@ -3,6 +3,9 @@
 
 #include <QGraphicsItem>
 
+// Internal types used for QGraphicsItem derived classes
+// When adding a new type here ensure it doesn't conflict with any others
+// i.e. make sure that the + xy; is unique for each.
 namespace ChestnutItemType {
   
   // Data

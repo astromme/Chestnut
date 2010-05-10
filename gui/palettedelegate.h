@@ -3,6 +3,9 @@
 
 #include <QStyledItemDelegate>
 
+/**
+ * An internal chestnut class to modify how the left pane is visualized
+ */
 class PaletteDelegate : public QStyledItemDelegate {
   public:
     virtual void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const;

@@ -5,6 +5,11 @@
 
 class Object;
 
+/**
+ * Represents some simple binary operation.
+ *
+ * @see StandardOperation
+ */
 class Operation : public QGraphicsObject {
   public:
     Operation(const QString &name, Object *parent);

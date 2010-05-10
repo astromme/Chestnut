@@ -4,6 +4,11 @@
 #include "function.h"
 #include "datautils.h"
 
+/**
+ * This represents the sort() function in Chestnut code. It will
+ * sort the array of numbers in ascending or decending order.
+ * Currently only ascending order is supported.
+ */
 class Sort : public Function {
   public:
     Sort(QGraphicsObject* parent = 0);

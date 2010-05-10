@@ -12,6 +12,12 @@ class Output;
 
 class Operation;
 
+/**
+ * This is the base class for all Chestnut functions. It is not meant to
+ * be used directly but rather should be subclassed into something that
+ * initializes the necessary sinks and implements the correct flatten()
+ * function.
+ */
 class Function : public Object {
   public:
     Function(const QString& name, QGraphicsObject* parent = 0);
@@ -22,10 +28,12 @@ class Function : public Object {
     
     virtual bool isFunction() const;
     
-    /** Checks to see if this function has the necessary sources/sinks/operator
-      * @returns true if everything is as it should be
-      * @returns false if there is a problem.
-      */
+    /** 
+     * Checks to see if this function has the necessary sources/sinks/operator
+     *
+     * @return @p true if everything is as it should be,
+     *         @p false if there is a problem
+     */
     bool isFullyConnected() const;
     
     //virtual QStringList flatten() const = 0;

@@ -3,6 +3,10 @@
 
 #include <QGraphicsScene>
 
+/**
+ * The internal Chestnut canvas that objects can be placed on. Must be
+ * connected to a QGraphicsView to show the scene.
+ */
 class Scene : public QGraphicsScene {
   public:
     Scene(QObject* parent = 0);
