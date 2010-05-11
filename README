@@ -1,0 +1,25 @@
+CS 87 Final Project README
+Andrew Stromme & Ryan Carlson
+
+To get our project to run, we have a few simple tasks.
+First, run the "startupChestnut.sh" script from the top-level directory
+
+** ./startupChestnut.sh
+
+this will initialize all necessary files and will compile the files. This may
+take a while.
+
+==> To run the GUI, do the following:
+    ** cd build/gui/
+    ** ./chestnut
+
+From this interface (once you've created your graphical program) you can click
+on the "Translate" button and then the "Run" button to compile the code.
+
+==> To run just the backend, do the following:
+    ** cd build/parser/
+    ** ./chestnut_parse < chestnut.in
+
+==> To compile the Thrust code produced by chestnut_parse, do the following:
+    ** cd build/chestnut/
+    ** ./chestnut_example

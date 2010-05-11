@@ -1,8 +1,8 @@
-float data 8192 8192 foreach (value = 1+2);
-float data2 read("hi");
+// sample Chestnut file to bootstrap the build process
+// and give an example of Chestnut code
+float data 10 10 foreach (value = rand/RAND_MAX);
 float reduced scalar;
 
+data = map(*,2,data);
 reduced = reduce(+, data);
-data = map(+,1,data);
-data = sort(<, data);
 print data;
