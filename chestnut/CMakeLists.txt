@@ -10,7 +10,7 @@ include_directories("/usr/local/cuda/include" ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(chestnut_program_sources
     chestnut.cu
-    chestnut.cpp
+#   chestnut.cpp # don't need this right now, saving for later
     ParseLibs.cpp
     ParseLibs.inl
     )
