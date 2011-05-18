@@ -6,3 +6,5 @@ float reduced scalar;
 data = map(*,2,data);
 reduced = reduce(+, data);
 print data;
+print reduced;
+data = map(/, 2, data);
