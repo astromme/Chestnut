@@ -13,3 +13,6 @@
 /latex/tex.backup
 /cudalang/cudalang.cpp
 qtcreator-build/
+.DS_Store
+.*.swp
+CMakeLists.txt.user
