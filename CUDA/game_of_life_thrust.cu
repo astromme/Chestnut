@@ -35,51 +35,7 @@ std::string stringFromInt(int number)
    return ss.str();//return a string with the contents of the stream
 }
 
-struct array_left_side_functor
-{
-  __host__ __device__
-  bool operator()(const int &index)
-  {
-    // width == 5
-    // first value is at 1
-    //
-    //  0 1 2 3 4
-    //  _________
-    // |x x x x x|
-    // |x d d d x|
-    // |x d d d x|
-    // |x x x x x|
-    //  ---------
 
-    //int index = thrust::get<0>(t);
-    int width = 100; //thrust::get<1>(t);
-
-    return (index % width == 1);
-  }
-};
-
-struct array_right_side_functor
-{
-  __host__ __device__
-  bool operator()(const int &index)
-  {
-    // width == 5
-    // last value is at width-2=3
-    //
-    //  0 1 2 3 4
-    //  _________
-    // |x x x x x|
-    // |x d d d x|
-    // |x d d d x|
-    // |x x x x x|
-    //  ---------
-
-    //int index = thrust::get<0>(t);
-    int width = 100;// thrust::get<1>(t);
-
-    return (index % width == width-2);
-  }
-};
 
 struct game_of_life_functor
 {
@@ -146,6 +102,18 @@ __global__ void copyWrapAroundAreas(int *array, int width, int height) {
 
   switch (condition) {
   case WrapAroundConditionCorners:
+    // width == 5
+    // first value is at 1
+    //
+    //  0 1 2 3 4
+    //  _________
+    // |d c . d c|
+    // |b A - B a|
+    // |. - - - .|
+    // |d C - D c|
+    // |b a . b a|
+    //  ---------
+
     switch (position) {
     case 1: // top left
       sourceX = 1;
@@ -308,8 +276,8 @@ int main(void)
   thrust::host_vector<int> h_vec(paddedWidth*paddedHeight);
   //thrust::generate(h_vec.begin(), h_vec.end(), rand);
 
-  for (int y=0; y<paddedHeight; y++) {
-    for (int x=0; x<paddedWidth; x++) {
+  for (int y=1; y<height+1; y++) {
+    for (int x=1; x<width+1; x++) {
       int i = y*paddedWidth + x;
 
       /*
@@ -343,7 +311,7 @@ int main(void)
 
 
   for (int iteration=0; iteration<iterations; iteration++) {
-    if ((iterations/100 > 0) && iteration % (iterations/100) == 0) {
+    if ((iterations/10 > 0) && iteration % (iterations/10) == 0) {
       std::cout << "Iteration " << iteration << std::endl;
     }
 
