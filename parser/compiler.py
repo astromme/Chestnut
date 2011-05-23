@@ -346,7 +346,9 @@ def compile(ast):
   return main_function
 
 def main():
-  import sys
+  import sys, os
+  import shlex, subprocess
+
   with open(sys.argv[1], 'r') as f:
     code = ''.join(f.readlines())
 
@@ -364,15 +366,22 @@ def main():
           'input_file' : sys.argv[2]+'.cu',
           'output_file' : sys.argv[2] }
 
-  import shlex, subprocess
   pass1 = subprocess.Popen(shlex.split(cuda_compile_pass1 % env))
   pass1.wait()
+  print('stage one complete')
   
   pass2 = subprocess.Popen(shlex.split(cuda_compile_pass2 % env))
   pass2.wait()
+  print('stage two complete')
 
   pass3 = subprocess.Popen(shlex.split(cuda_compile_pass3 % env))
   pass3.wait()
+  print('stage three complete')
+
+  os.remove(sys.argv[2]+'.cu')
+  os.remove(sys.argv[2]+'.cu.o')
+  os.remove(sys.argv[2]+'.cu.o.NVCC-depend')
+
 
 if __name__ == '__main__':
   main()
