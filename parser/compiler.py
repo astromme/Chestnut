@@ -217,17 +217,6 @@ void printArray2D(const thrust::host_vector<int> &vector, int width, int height)
 
 """
 
-functor_template = """
-struct game_of_life_functor
-{
-    template <typename Tuple>
-    __host__ __device__
-    void operator()(Tuple t)
-    {
-      %s
-    }
-};
-"""
 
 main_template = """
 int main(void)
@@ -241,54 +230,45 @@ int main(void)
   int paddedWidth = width+2;
   int paddedHeight = height+2;
 
-  thrust::host_vector<int> h_vec(paddedWidth*paddedHeight);
+  thrust::host_vector<int> hostData(paddedWidth*paddedHeight);
   //thrust::generate(h_vec.begin(), h_vec.end(), rand);
 
   for (int y=1; y<height+1; y++) {
     for (int x=1; x<width+1; x++) {
       int i = y*paddedWidth + x;
 
-      /*
-      if (y == 1 && x > 0 && x < 4) {
-        h_vec[i] = 1;
-      }
-      */
-
       int randVal = rand() % 100;
-      h_vec[i] = (randVal < percentLivingAtStart) ? 1 : 0;
+      hostData[i] = (randVal < percentLivingAtStart) ? 1 : 0;
     }
   }
 
-
-  printArray2D(h_vec, paddedWidth, paddedHeight);
+  printArray2D(hostData, paddedWidth, paddedHeight);
   std::cout << std::endl;
 
   // transfer data to the device
-  thrust::device_vector<int> evenState = h_vec;
-  thrust::device_vector<int> oddState(paddedWidth*paddedHeight);
+  thrust::device_vector<int> currentState = hostData;
+  thrust::device_vector<int> nextState(paddedWidth*paddedHeight);
 
-  thrust::zip_iterator<IntIterator9Tuple> evenStartIterator
-      = thrust::make_zip_iterator(createStartTuple(evenState, oddState, paddedWidth));
-  thrust::zip_iterator<IntIterator9Tuple> evenEndIterator
-      = thrust::make_zip_iterator(createEndTuple(evenState, oddState, paddedWidth));
+  thrust::zip_iterator<IntIterator9Tuple> currentStateStartIterator
+      = thrust::make_zip_iterator(createStartTuple(currentState, nextState, paddedWidth));
+  thrust::zip_iterator<IntIterator9Tuple> currentStateEndIterator
+      = thrust::make_zip_iterator(createEndTuple(currentState, nextState, paddedWidth));
 
-  thrust::zip_iterator<IntIterator9Tuple> oddStartIterator
-      = thrust::make_zip_iterator(createStartTuple(oddState, evenState, paddedWidth));
-  thrust::zip_iterator<IntIterator9Tuple> oddEndIterator
-      = thrust::make_zip_iterator(createEndTuple(oddState, evenState, paddedWidth));
+  thrust::zip_iterator<IntIterator9Tuple> nextStateStartIterator
+      = thrust::make_zip_iterator(createStartTuple(nextState, currentState, paddedWidth));
+  thrust::zip_iterator<IntIterator9Tuple> nextStateEndIterator
+      = thrust::make_zip_iterator(createEndTuple(nextState, currentState, paddedWidth));
 
+  thrust::device_vector<int> temp;
+  thrust::zip_iterator<IntIterator9Tuple> tempStartIterator;
+  thrust::zip_iterator<IntIterator9Tuple> tempEndIterator;
 
   for (int iteration=0; iteration<iterations; iteration++) {
     if ((iterations/10 > 0) && iteration % (iterations/10) == 0) {
       std::cout << "Iteration " << iteration << std::endl;
     }
 
-    int *raw_pointer;
-    if (iteration % 2 == 0) {
-      raw_pointer = thrust::raw_pointer_cast(&evenState[0]);
-    } else {
-      raw_pointer = thrust::raw_pointer_cast(&oddState[0]);
-    }
+    int *raw_pointer = thrust::raw_pointer_cast(&currentState[0]);
 
     if (wrapAround) {
       int maxBlockDimensionSize = 512;
@@ -309,27 +289,29 @@ int main(void)
       copyWrapAroundAreas<<<1, dim3(blockWidth, blockHeight, 5)>>>(raw_pointer, paddedWidth, paddedHeight);
     }
 
-    if (iteration % 2 == 0) {
-      thrust::for_each(evenStartIterator, evenEndIterator, game_of_life_functor());
-    } else {
-      thrust::for_each(oddStartIterator, oddEndIterator, game_of_life_functor());
-    }
+    thrust::for_each(currentStateStartIterator, currentStateEndIterator, game_of_life_functor());
+
+    tempStartIterator = currentStateStartIterator;
+    tempEndIterator = currentStateEndIterator;
+
+    currentStateStartIterator = nextStateStartIterator;
+    currentStateEndIterator = nextStateEndIterator;
+    nextStateStartIterator = tempStartIterator;
+    nextStateEndIterator = tempEndIterator;
   }
 
   // transfer data back to host
-  if (iterations % 2 == 0) {
-    h_vec = evenState;
-  } else {
-    h_vec = oddState;
-  }
+  hostData = currentState;
 
-  printArray2D(h_vec, paddedWidth, paddedHeight);
+
+  printArray2D(hostData, paddedWidth, paddedHeight);
 
   return 0;
 }
 """
 
 from parser import parse
+from parser import Function, DataDeclaration, VariableDeclaration
 
 cuda_compiler='/usr/local/cuda/bin/nvcc'
 
@@ -339,11 +321,43 @@ cuda_compile_pass2 = """%(cuda_compiler)s %(input_file)s -c -o %(input_file)s.o 
 
 cuda_compile_pass3 = """/usr/bin/c++   -O2 -g -Wl,-search_paths_first -headerpad_max_install_names  ./%(input_file)s.o -o %(output_file)s /usr/local/cuda/lib/libcudart.dylib -Wl,-rpath -Wl,/usr/local/cuda/lib /usr/local/cuda/lib/libcuda.dylib"""
 
+
+device_function_template = """
+struct %(function_name)s_functor
+{
+    template <typename Tuple>
+    __host__ __device__
+    void operator()(Tuple t)
+    {
+      %(function_body)s
+    }
+};
+"""
+def create_device_function(function_node):
+  name, parameters, block = function_node
+  if not (len(parameters) == 1 or parameters[0][0] == 'window'):
+    raise Exception('Error, parameters %s must instead be window')
+
+  environment = { 'function_name' : name,
+                  'function_body' : block.to_cpp() }
+
+  return device_function_template % environment
+
 def compile(ast):
-  main_functor_lines = ""
-  print ast[0][2]
-  main_function = ast[0][2].to_cpp()
-  return main_function
+  print ast
+  functions = []
+  for program_node in ast:
+    if type(program_node) == Function:
+      functions.append(create_device_function(program_node))
+    elif type(program_node) == DataDeclaration:
+      pass
+    elif type(program_node) == VariableDeclaration:
+      pass
+    else:
+      pass
+
+  thrust_code = preamble + '\n'.join(functions) + main_template
+  return thrust_code
 
 def main():
   import sys, os
@@ -353,10 +367,7 @@ def main():
     code = ''.join(f.readlines())
 
   ast = parse(code)
-  main_function = compile(ast)
-  print main_function
-
-  thrust_code = preamble + (functor_template % main_function) + main_template
+  thrust_code = compile(ast) 
 
   with open(sys.argv[2]+'.cu', 'w') as f:
     f.write(thrust_code)
@@ -366,6 +377,7 @@ def main():
           'input_file' : sys.argv[2]+'.cu',
           'output_file' : sys.argv[2] }
 
+  print('compiling...')
   pass1 = subprocess.Popen(shlex.split(cuda_compile_pass1 % env))
   pass1.wait()
   print('stage one complete')

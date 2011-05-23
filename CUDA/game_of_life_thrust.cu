@@ -273,54 +273,45 @@ int main(void)
   int paddedWidth = width+2;
   int paddedHeight = height+2;
 
-  thrust::host_vector<int> h_vec(paddedWidth*paddedHeight);
+  thrust::host_vector<int> hostData(paddedWidth*paddedHeight);
   //thrust::generate(h_vec.begin(), h_vec.end(), rand);
 
   for (int y=1; y<height+1; y++) {
     for (int x=1; x<width+1; x++) {
       int i = y*paddedWidth + x;
 
-      /*
-      if (y == 1 && x > 0 && x < 4) {
-        h_vec[i] = 1;
-      }
-      */
-
       int randVal = rand() % 100;
-      h_vec[i] = (randVal < percentLivingAtStart) ? 1 : 0;
+      hostData[i] = (randVal < percentLivingAtStart) ? 1 : 0;
     }
   }
 
-
-  printArray2D(h_vec, paddedWidth, paddedHeight);
+  printArray2D(hostData, paddedWidth, paddedHeight);
   std::cout << std::endl;
 
   // transfer data to the device
-  thrust::device_vector<int> evenState = h_vec;
-  thrust::device_vector<int> oddState(paddedWidth*paddedHeight);
+  thrust::device_vector<int> currentState = hostData;
+  thrust::device_vector<int> nextState(paddedWidth*paddedHeight);
 
-  thrust::zip_iterator<IntIterator9Tuple> evenStartIterator
-      = thrust::make_zip_iterator(createStartTuple(evenState, oddState, paddedWidth));
-  thrust::zip_iterator<IntIterator9Tuple> evenEndIterator
-      = thrust::make_zip_iterator(createEndTuple(evenState, oddState, paddedWidth));
+  thrust::zip_iterator<IntIterator9Tuple> currentStateStartIterator
+      = thrust::make_zip_iterator(createStartTuple(currentState, nextState, paddedWidth));
+  thrust::zip_iterator<IntIterator9Tuple> currentStateEndIterator
+      = thrust::make_zip_iterator(createEndTuple(currentState, nextState, paddedWidth));
 
-  thrust::zip_iterator<IntIterator9Tuple> oddStartIterator
-      = thrust::make_zip_iterator(createStartTuple(oddState, evenState, paddedWidth));
-  thrust::zip_iterator<IntIterator9Tuple> oddEndIterator
-      = thrust::make_zip_iterator(createEndTuple(oddState, evenState, paddedWidth));
+  thrust::zip_iterator<IntIterator9Tuple> nextStateStartIterator
+      = thrust::make_zip_iterator(createStartTuple(nextState, currentState, paddedWidth));
+  thrust::zip_iterator<IntIterator9Tuple> nextStateEndIterator
+      = thrust::make_zip_iterator(createEndTuple(nextState, currentState, paddedWidth));
 
+  thrust::device_vector<int> temp;
+  thrust::zip_iterator<IntIterator9Tuple> tempStartIterator;
+  thrust::zip_iterator<IntIterator9Tuple> tempEndIterator;
 
   for (int iteration=0; iteration<iterations; iteration++) {
     if ((iterations/10 > 0) && iteration % (iterations/10) == 0) {
       std::cout << "Iteration " << iteration << std::endl;
     }
 
-    int *raw_pointer;
-    if (iteration % 2 == 0) {
-      raw_pointer = thrust::raw_pointer_cast(&evenState[0]);
-    } else {
-      raw_pointer = thrust::raw_pointer_cast(&oddState[0]);
-    }
+    int *raw_pointer = thrust::raw_pointer_cast(&currentState[0]);
 
     if (wrapAround) {
       int maxBlockDimensionSize = 512;
@@ -341,21 +332,22 @@ int main(void)
       copyWrapAroundAreas<<<1, dim3(blockWidth, blockHeight, 5)>>>(raw_pointer, paddedWidth, paddedHeight);
     }
 
-    if (iteration % 2 == 0) {
-      thrust::for_each(evenStartIterator, evenEndIterator, game_of_life_functor());
-    } else {
-      thrust::for_each(oddStartIterator, oddEndIterator, game_of_life_functor());
-    }
+    thrust::for_each(currentStateStartIterator, currentStateEndIterator, game_of_life_functor());
+
+    tempStartIterator = currentStateStartIterator;
+    tempEndIterator = currentStateEndIterator;
+
+    currentStateStartIterator = nextStateStartIterator;
+    currentStateEndIterator = nextStateEndIterator;
+    nextStateStartIterator = tempStartIterator;
+    nextStateEndIterator = tempEndIterator;
   }
 
   // transfer data back to host
-  if (iterations % 2 == 0) {
-    h_vec = evenState;
-  } else {
-    h_vec = oddState;
-  }
+  hostData = currentState;
 
-  printArray2D(h_vec, paddedWidth, paddedHeight);
+
+  printArray2D(hostData, paddedWidth, paddedHeight);
 
   return 0;
 }

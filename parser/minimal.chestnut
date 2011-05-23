@@ -25,6 +25,14 @@ function game_of_life(window) {
   return state;
 }
 
-real2d data(20, 40) = random(20, 40);
-data = map(game_of_life, data);
+function shift_right(window) {
+  return window.left;
+}
 
+real2d data(20, 40) = random(20, 40);
+
+int iterations = 0;
+while (iterations < 10000) {
+  data = map(game_of_life, data);
+  iterations = iterations + 1;
+}
