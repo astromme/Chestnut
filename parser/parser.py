@@ -1,58 +1,139 @@
 #!/usr/bin/env python
 
+
 import re
 from lepl import *
 from collections import namedtuple
 
+#helpers so that we don't get errors about undefined to_cpp methods
+class str(str): to_cpp = lambda self: self
+class int(int): to_cpp = lambda self: str(self)
+class float(float): to_cpp = lambda self: str(self)
+
+#helper to convert sub-members into strings
+def cpp_tuple(obj):
+  return tuple(map(lambda element: element.to_cpp(), obj))
+
 # Operators
-class Not(List): pass
-class Neg(List): pass
+class Not(namedtuple('Not', ['value'])):
+  def to_cpp(self):
+    return "!%s" % cpp_tuple(self)
+class Neg(namedtuple('Neg', ['value'])):
+  def to_cpp(self):
+    return "-%s" % cpp_tuple(self)
 
-class Mul(List): pass
-class Div(List): pass
+class Mul(namedtuple('Mul', ['left', 'right'])):
+  def to_cpp(self):
+    return "%s * %s" % cpp_tuple(self)
+class Div(namedtuple('Div', ['numerator', 'divisor'])):
+  def to_cpp(self):
+    return "%s / %s" % cpp_tuple(self)
 
-class Add(List): pass
-class Sub(List): pass
+class Add(namedtuple('Add', ['left', 'right'])):
+  def to_cpp(self):
+    return "%s + %s" % cpp_tuple(self)
+class Sub(namedtuple('Sub', ['left', 'right'])):
+  def to_cpp(self):
+    return "%s - %s" % cpp_tuple(self)
 
-class LessThan(List): pass
-class LessThanOrEqual(List): pass
-class GreaterThan(List): pass
-class GreaterThanOrEqual(List): pass
+class LessThan(namedtuple('LessThan', ['left', 'right'])):
+  def to_cpp(self):
+    return "%s < %s" % cpp_tuple(self)
+class LessThanOrEqual(namedtuple('LessThanOrEqual', ['left', 'right'])):
+  def to_cpp(self):
+    return "%s <= %s" % cpp_tuple(self)
+class GreaterThan(namedtuple('GreaterThan', ['left', 'right'])):
+  def to_cpp(self):
+    return "%s > %s" % cpp_tuple(self)
+class GreaterThanOrEqual(namedtuple('GreaterThanOrEqual', ['left', 'right'])):
+  def to_cpp(self):
+    return "%s >= %s" % cpp_tuple(self)
 
-class Equal(List): pass
-class NotEqual(List): pass
+class Equal(namedtuple('Equal', ['left', 'right'])):
+  def to_cpp(self):
+    return "%s == %s" % cpp_tuple(self)
+class NotEqual(namedtuple('NotEqual', ['left', 'right'])):
+  def to_cpp(self):
+    return "%s != %s" % cpp_tuple(self)
 
 class BooleanAnd(List): pass
 
 class BooleanOr(List): pass
 
-class Assignment(List): pass
+class Assignment(List):
+  def to_cpp(self):
+    return '%s = %s' % cpp_tuple(self)
 # End Operators
 
 class Program(List): pass
-class VariableDeclaration(List): pass
+class VariableDeclaration(List):
+  def to_cpp(self):
+    if len(self) == 3: # we have an initialization
+      return '%s %s = %s;' % cpp_tuple(self)
+    else:
+      return '%s %s;' % cpp_tuple(self)
+
 class DataDeclaration(List): pass
 class Function(List): pass
 class Parameters(List): pass
-class Block(List): pass
-class Initialization(List): pass
+class Block(List):
+  def to_cpp(self):
+    return '{\n' + '\n'.join(cpp_tuple(self)) + '\n}'
+class Initialization(List):
+  def to_cpp(self):
+    return ''.join(cpp_tuple(self))
 
 class FunctionCall(List): pass
 
 class Size(List): pass
 class Parameter(List): pass
-class Statement(List): pass
-class Expressions(List): pass
-class Property(List): pass
+class Statement(List):
+  def to_cpp(self):
+    return ''.join(cpp_tuple(self)) + ';'
+class Expressions(List):
+  def to_cpp(self):
+    return ''.join(cpp_tuple(self))
 
-class Return(List): pass
-class Break(List): pass
-class If(List): pass
+coordinates = {
+               'topLeft' : 1,
+               'topCenter' : 2,
+               'topRight' : 3,
+               'left' : 4,
+               'center' : 5,
+               'right' : 6,
+               'bottomLeft' : 7,
+               'bottom' : 8,
+               'bottomRight' : 9
+               }
+
+class Property(List):
+  def to_cpp(self):
+    if self[0] == 'window':
+      return "thrust::get<%s>(t)" % coordinates[self[1]]
+    else:
+      print self
+      raise Exception
+
+class Return(List):
+  def to_cpp(self):
+    return 'thrust::get<0>(t) = %s;' % cpp_tuple(self)
+class Break(List):
+  def to_cpp(self):
+    return 'break;'
+class If(List):
+  def to_cpp(self):
+    if len(self) == 2: # simple if (condition) {statement}
+      return 'if (%s) %s' % cpp_tuple(self)
+    elif len(self) == 3: # full if (condition) {statement} else {statement}
+      return 'if (%s) %s else %s' % cpp_tuple(self)
+    else:
+      raise Exception("Wrong type of if statement with %s length" % len(self))
+
 class While(List): pass
 
 
 
-identifier = Token('[a-zA-Z][a-zA-Z0-9_]*')
+identifier = Token('[a-zA-Z][a-zA-Z0-9_]*') >> str
 property = identifier
 symbol = Token('[^0-9a-zA-Z \t\r\n]')
 keyword = Token('[a-z]+')
@@ -61,16 +142,16 @@ comma = symbol(',')
 identifier_property = identifier & ~symbol('.') & property > Property
 
 # tokens
-real_declaration = Token('real')
-integer_declaration = Token('int')
+real_declaration = Token('real') >> str
+integer_declaration = Token('int') >> str
 type_ = real_declaration | integer_declaration
 
 real2d_declaration = Token('real2d')
 integer2d_declaration = Token('int2d')
 data_type = real2d_declaration | integer2d_declaration
 
-real = Token(UnsignedReal())
-integer = Token(UnsignedInteger())
+real = Token(UnsignedReal()) >> float
+integer = Token(UnsignedInteger()) >> int
 number = integer | real | keyword('true') >> bool | keyword('false') >> bool
 
 width = integer
@@ -98,28 +179,28 @@ primary = Delayed()
 parens = ~symbol('(') & expression & ~symbol(')')
 group1 = parens | number | primary 
 
-unary_not = ~symbol('!') & group2 > Not
-unary_neg = ~symbol('-') & group2 > Neg
+unary_not = ~symbol('!') & group2 > Not._make
+unary_neg = ~symbol('-') & group2 > Neg._make
 group2 += unary_not | unary_neg | group1
 
 # third layer, next most tightly grouped, is multiplication
-mul = group2 & ~symbol('*') & group3 > Mul
-div = group2 & ~symbol('/') & group3 > Div
+mul = group2 & ~symbol('*') & group3 > Mul._make
+div = group2 & ~symbol('/') & group3 > Div._make
 group3 += mul | div | group2
 
 # fourth layer, least tightly grouped, is addition
-add = group3 & ~symbol('+') & group4 > Add
-sub = group3 & ~symbol('-') & group4 > Sub
+add = group3 & ~symbol('+') & group4 > Add._make
+sub = group3 & ~symbol('-') & group4 > Sub._make
 group4 += add | sub | group3
 
-less_than              = group4 & ~symbol('<')   & group5 > LessThan
-less_than_or_equal     = group4 & ~symbol('<') & ~symbol('=') & group5 > LessThanOrEqual
-greater_than           = group4 & ~symbol('>')   & group5 > GreaterThan
-greather_than_or_equal = group4 & ~symbol('>') & ~symbol('=') & group5 > GreaterThanOrEqual
+less_than              = group4 & ~symbol('<')   & group5 > LessThan._make
+less_than_or_equal     = group4 & ~symbol('<') & ~symbol('=') & group5 > LessThanOrEqual._make
+greater_than           = group4 & ~symbol('>')   & group5 > GreaterThan._make
+greather_than_or_equal = group4 & ~symbol('>') & ~symbol('=') & group5 > GreaterThanOrEqual._make
 group5 += less_than | less_than_or_equal | greater_than | greather_than_or_equal | group4
 
-equal     = group5 & ~symbol('=')[2] & group6 > Equal
-not_equal = group5 & ~symbol('!') & ~symbol('=') & group6 > NotEqual
+equal     = group5 & ~symbol('=')[2] & group6 > Equal._make
+not_equal = group5 & ~symbol('!') & ~symbol('=') & group6 > NotEqual._make
 group6 += equal | not_equal | group5
 
 boolean_and = group6 & ~symbol('&')[2] & group7 > BooleanAnd
@@ -138,7 +219,7 @@ return_ = ~keyword('return') & expression & ~semi > Return
 break_ =  ~keyword('break') & ~semi > Break
 if_ =     ~keyword('if') & ~symbol('(') & expression & ~symbol(')') & statement & Optional(~keyword('else') & statement) > If
 while_ =  ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & statement > While
-statement += ~semi | (expression & ~semi) | return_ | break_ | if_ | while_ | block > Statement
+statement += ~semi | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
 parameter_declaration = identifier > Parameter
@@ -213,12 +294,21 @@ def remove_single_line_comments(code):
   comment_remover = (~Regexp(r'//[^\n]*') | Any())[:, ...]
   return comment_remover.parse(code)[0]
 
-import sys
-with open(sys.argv[1], 'r') as f:
-  code = ''.join(f.readlines())
+def parse(code):
+  code = remove_multi_line_comments(code)
+  code = remove_single_line_comments(code)
 
-code = remove_multi_line_comments(code)
-code = remove_single_line_comments(code)
+  return program.parse(code)[0]
 
-print(program.parse(code)[0])
+def main():
+  import sys
+  with open(sys.argv[1], 'r') as f:
+    code = ''.join(f.readlines())
 
+  code = remove_multi_line_comments(code)
+  code = remove_single_line_comments(code)
+
+  print(program.parse(code)[0])
+
+if __name__ == '__main__':
+  main()

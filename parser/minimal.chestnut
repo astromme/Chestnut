@@ -1,9 +1,3 @@
-// sample Chestnut file explore functions
-
-function square_root(window) {
-  return sqrt(window.center);
-}
-
 function game_of_life(window) {
   int neighbor_count = window.topLeft    + window.topCenter + window.topRight +
                        window.left       + 0                + window.right +
@@ -28,14 +22,9 @@ function game_of_life(window) {
     }
   }
 
-  return state;  
+  return state;
 }
 
-
-//parallel(20, 40, game_of_life);
 real2d data(20, 40) = random(20, 40);
-
-data.wrap_around = true;
-
 data = map(game_of_life, data);
-//print data;
+
