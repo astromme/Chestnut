@@ -224,41 +224,10 @@ struct game_of_life_functor
     __host__ __device__
     void operator()(Tuple t)
     {
-        // result[i] = left[i] + right[i] + top[i] + bottom[i] + tl + tr + bl + br;
-
-
-        int neighborCount = thrust::get<1>(t) + thrust::get<2>(t) + thrust::get<3>(t)
-                           +thrust::get<4>(t) +                     thrust::get<6>(t)
-                           +thrust::get<7>(t) + thrust::get<8>(t) + thrust::get<9>(t);
-
-        int state;
-
-        // if cell is live
-        if (thrust::get<5>(t)){
-          // if <= 1 neighbor, cell dies from loneliness
-          if (neighborCount <= 1){
-            state = 0;
-          }
-          // if >= 4 neighbors, cell dies from overpopulation
-          else if (neighborCount >= 4){
-            state = 0;
-          } else {
-            state = 1;
-          }
-        // if cell is dead
-        } else {
-          if (neighborCount == 3){
-            state = 1;
-          } else {
-            state = 0;
-          }
-        }
-
-        thrust::get<0>(t) = state;
+      %s
     }
 };
 """
-
 
 main_template = """
 int main(void)
@@ -362,11 +331,19 @@ int main(void)
 
 from parser import parse
 
+cuda_compiler='/usr/local/cuda/bin/nvcc'
+
+cuda_compile_pass1 = """%(cuda_compiler)s -M -D__CUDACC__ %(input_file)s -o %(input_file)s.o.NVCC-depend -m64 -Xcompiler ,\"-g\" -DNVCC -I/usr/local/cuda/include -I/usr/local/cuda/include  -I/usr/include"""
+
+cuda_compile_pass2 = """%(cuda_compiler)s %(input_file)s -c -o %(input_file)s.o -m64 -Xcompiler ,\"-g\" -DNVCC -I/usr/local/cuda/include -I/usr/local/cuda/include -I/usr/include"""
+
+cuda_compile_pass3 = """/usr/bin/c++   -O2 -g -Wl,-search_paths_first -headerpad_max_install_names  ./%(input_file)s.o -o %(output_file)s /usr/local/cuda/lib/libcudart.dylib -Wl,-rpath -Wl,/usr/local/cuda/lib /usr/local/cuda/lib/libcuda.dylib"""
+
 def compile(ast):
   main_functor_lines = ""
   print ast[0][2]
-  print ast[0][2].to_cpp()
-  pass
+  main_function = ast[0][2].to_cpp()
+  return main_function
 
 def main():
   import sys
@@ -374,7 +351,28 @@ def main():
     code = ''.join(f.readlines())
 
   ast = parse(code)
-  compile(ast)
+  main_function = compile(ast)
+  print main_function
+
+  thrust_code = preamble + (functor_template % main_function) + main_template
+
+  with open(sys.argv[2]+'.cu', 'w') as f:
+    f.write(thrust_code)
+
+
+  env = { 'cuda_compiler' : cuda_compiler,
+          'input_file' : sys.argv[2]+'.cu',
+          'output_file' : sys.argv[2] }
+
+  import shlex, subprocess
+  pass1 = subprocess.Popen(shlex.split(cuda_compile_pass1 % env))
+  pass1.wait()
+  
+  pass2 = subprocess.Popen(shlex.split(cuda_compile_pass2 % env))
+  pass2.wait()
+
+  pass3 = subprocess.Popen(shlex.split(cuda_compile_pass3 % env))
+  pass3.wait()
 
 if __name__ == '__main__':
   main()
