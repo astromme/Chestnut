@@ -15,4 +15,6 @@
 qtcreator-build/
 .DS_Store
 .*.swp
+.*.swo
+*.pyc
 CMakeLists.txt.user
