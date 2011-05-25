@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 preamble = """
+
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/iterator/constant_iterator.h>
@@ -12,16 +13,8 @@ preamble = """
 #include <iostream>
 #include <sstream>
 
-typedef typename thrust::device_vector<float>::iterator                     FloatIterator;
-typedef typename thrust::tuple<FloatIterator, FloatIterator, FloatIterator> FloatIteratorTuple;
-typedef typename thrust::zip_iterator<FloatIteratorTuple>                   Float3Iterator;
-
-typedef typename thrust::device_vector<int>                                 IntVector;
-typedef typename thrust::device_vector<int>::iterator                       IntIterator;
-typedef typename thrust::tuple<IntIterator, IntIterator, IntIterator,
-                               IntIterator, IntIterator, IntIterator,
-                               IntIterator, IntIterator, IntIterator, IntIterator>       IntIterator9Tuple;
-typedef typename thrust::zip_iterator<IntIterator9Tuple>                    Int9Iterator;
+template <typename T>
+__global__ void copyWrapAroundAreas(T *array, int width, int height);
 
 std::string stringFromInt(int number)
 {
@@ -30,13 +23,248 @@ std::string stringFromInt(int number)
    return ss.str();//return a string with the contents of the stream
 }
 
+/*
+  Simple debugging function to print out a 2d array. Does not know about
+  padding, so send it the padded width/height rather than the base width/height
+*/
+template <typename T>
+static void printFullArray2D(const thrust::host_vector<T> &vector, int width, int height) {
+  for (int y=0; y<height; y++) {
+    for (int x=0; x<width; x++) {
+      int i = y*width + x;
+      std::cout << ((vector[i] == 0) ? "." : stringFromInt(vector[i])) << " ";
+    }
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
+}
+
+/*
+   Slightly smarter padding-aware print function. Send it in the width and the
+   padding and it will do the dirty work for you.
+*/
+template <typename T>
+static void printArray2D(const thrust::host_vector<T> &vector, int width, int height, int padding) {
+  int paddedWidth = width + 2*padding;
+  int paddedHeight = height + 2*padding;
+
+  for (int y=padding; y<height+padding; y++) {
+    for (int x=padding; x<width+padding; x++) {
+      int i = y*paddedWidth + x;
+      std::cout << ((vector[i] == 0) ? "." : stringFromInt(vector[i])) << " ";
+    }
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
+}
+
+/*********************************************************
+ * DeviceData contains two device vectors of the same size
+ * and allows for the active one to be swapped at any time.
+ * it also manages when these things should be deleted */
+template <class T>
+struct DeviceData
+{
+  DeviceData(int width_, int height_) : width(width_), height(height_), wrap(false) {
+    int length = width*height;
+
+    data1 = thrust::device_vector<T>(length);
+    data2 = thrust::device_vector<T>(length);
+
+    mainData = &data1;
+    alternateData = &data2;
+
+    static unsigned int lastUid = 0;
+    uid = lastUid;
+    lastUid++;
+  }
+
+  int uid;
+  int width;
+  int height;
+  bool wrap;
+
+  thrust::device_vector<T> data1;
+  thrust::device_vector<T> data2;
+
+  thrust::device_vector<T> *mainData;
+  thrust::device_vector<T> *alternateData;
+
+  bool operator==(const DeviceData &other) const {
+    return this->uid == other.uid;
+  }
+
+  void maybeWrap() {
+    if (!wrap) {
+      return;
+    }
+
+    T *raw_pointer = thrust::raw_pointer_cast(&((*this->mainData)[0]));
+
+    // TODO: make dynamic
+    // Maximum cuda block dimension, we should really get this dynamically
+    int maxBlockDimensionSize = 512;
+    int largestSide = max(this->width, this->height);
+    largestSide = max(largestSide, 5); // ensure that we get all 4 corners starting from 1
+
+    int blockWidth;
+    int blockHeight;
+
+    if (largestSide > maxBlockDimensionSize) {
+      blockWidth = maxBlockDimensionSize;
+      blockHeight = 1 + largestSide / maxBlockDimensionSize;
+    } else {
+      blockWidth = largestSide;
+      blockHeight = 1;
+    }
+
+    copyWrapAroundAreas<<<1, dim3(blockWidth, blockHeight, 5)>>>(raw_pointer, this->width, this->height);
+  }
+
+  void swap() {
+    if (mainData == &data1) {
+      mainData = &data2;
+      alternateData = &data1;
+    } else {
+      mainData = &data1;
+      alternateData = &data2;
+    }
+  }
+};
+
+
+/*
+   This is in a struct rather than a namespace because of some C++ typing
+   issues that seem to be unresolvable. Consider it a namespace from the usage
+   point of view. But otherwise it contains all of the helper functions for
+   working with thrust datatypes and for doing wrapping and creation of (very)
+   fancy iterators
+*/
+template <typename T>
+struct Chestnut
+{
+  typedef typename thrust::device_vector<T> vectorType;
+  typedef typename vectorType::iterator iterType;
+  // Allows for a destination plus a source value and its 8 surrounding neighbors
+  typedef typename thrust::tuple<iterType, iterType, iterType,
+                                 iterType, iterType, iterType,
+                                 iterType, iterType, iterType,
+                                 iterType> tupleType;
+
+  typedef typename thrust::zip_iterator<tupleType> tupleIterType;
+
+  static iterType shiftedIterator(iterType iterator, int xChange, int yChange, int width) {
+    iterator += yChange*width;
+    iterator += xChange;
+
+    return iterator;
+  }
+
+  static tupleType createStartTuple(iterType &currentBegin, iterType &nextBegin, int width) {
+    // Thinking about top left
+    // we have a linear array that is has 1 dimension. To convert this to a 2d representation
+    // we need to perform some pointer math
+    // First observe the following, which is the top-left part of the 2d array
+    //  ___________
+    // |a b c + + +
+    // |d e f + + +
+    // |g h i + + +
+    // |+ + + + + +
+    // |+ + + + + +
+    //
+    // a is at array[0], b is array[1], c is array[2]
+    // e is the point that we are looking at but it is way over at array[1*width+1]
+    // g is at array[1*width+0]
+    // i, the last point is at array[2*width+2]
+    // these values are passed into shiftedIterator
+
+    iterType topLeft     = shiftedIterator(currentBegin, 0, 0, width);
+    iterType top         = shiftedIterator(currentBegin, 1, 0, width);
+    iterType topRight    = shiftedIterator(currentBegin, 2, 0, width);
+    iterType left        = shiftedIterator(currentBegin, 0, 1, width);
+    iterType center      = shiftedIterator(currentBegin, 1, 1, width);
+    iterType right       = shiftedIterator(currentBegin, 2, 1, width);
+    iterType bottomLeft  = shiftedIterator(currentBegin, 0, 2, width);
+    iterType bottom      = shiftedIterator(currentBegin, 1, 2, width);
+    iterType bottomRight = shiftedIterator(currentBegin, 2, 2, width);
+
+    iterType centerResult = shiftedIterator(nextBegin, 1, 1, width);
+
+
+    tupleType begin = thrust::make_tuple(centerResult, topLeft, top, topRight,
+                                                        left,center ,    right,
+                                                        bottomLeft, bottom, bottomRight);
+    return begin;
+  }
+
+  static tupleType createStartTuple(DeviceData<T> &sourceData, DeviceData<T> &destinationData) {
+    if (sourceData == destinationData) {
+      iterType currentBegin = sourceData.mainData->begin();
+      iterType nextBegin = sourceData.alternateData->begin();
+
+      return createStartTuple(currentBegin, nextBegin, sourceData.width);
+    } else {
+      iterType currentBegin = sourceData.mainData->begin();
+      iterType nextBegin = destinationData.mainData->begin();
+
+      return createStartTuple(currentBegin, nextBegin, sourceData.width);
+    }
+  }
+
+
+  static tupleIterType createStartIterator(DeviceData<T> &sourceData, DeviceData<T> &destinationData) {
+    return thrust::make_zip_iterator(createStartTuple(sourceData, destinationData));
+  }
+
+  // End Iterators
+  static tupleType createEndTuple(iterType &currentEnd, iterType &nextEnd, int width) {
+    iterType topLeft     = shiftedIterator(currentEnd, -2, -2, width);
+    iterType top         = shiftedIterator(currentEnd, -1, -2, width);
+    iterType topRight    = shiftedIterator(currentEnd, -0, -2, width);
+    iterType left        = shiftedIterator(currentEnd, -2, -1, width);
+    iterType center      = shiftedIterator(currentEnd, -1, -1, width);
+    iterType right       = shiftedIterator(currentEnd, -0, -1, width);
+    iterType bottomLeft  = shiftedIterator(currentEnd, -2, -0, width);
+    iterType bottom      = shiftedIterator(currentEnd, -1, -0, width);
+    iterType bottomRight = shiftedIterator(currentEnd, -0, -0, width);
+
+    iterType centerEndResult  = shiftedIterator(nextEnd, -1, -1, width);
+
+    tupleType end = thrust::make_tuple(centerEndResult, topLeft, top, topRight,
+                                              left,center ,    right,
+                                              bottomLeft, bottom, bottomRight);
+    return end;
+  }
+
+
+  static tupleType createEndTuple(DeviceData<T> &sourceData, DeviceData<T> &destinationData) {
+    if (sourceData == destinationData) {
+      iterType currentEnd = sourceData.mainData->end();
+      iterType nextEnd = sourceData.alternateData->end();
+
+      return createEndTuple(currentEnd, nextEnd, sourceData.width);
+    } else {
+      iterType currentEnd = sourceData.mainData->end();
+      iterType nextEnd = destinationData.mainData->end();
+
+      return createEndTuple(currentEnd, nextEnd, sourceData.width);
+    }
+  }
+
+  static tupleIterType createEndIterator(DeviceData<T> &sourceData, DeviceData<T> &destinationData) {
+    return thrust::make_zip_iterator(createEndTuple(sourceData, destinationData));
+  }
+};
+
+
 enum WrapAroundCondition { WrapAroundConditionCorners = 0,
                            WrapAroundConditionLeft = 1,
                            WrapAroundConditionRight = 2,
                            WrapAroundConditionTop = 3,
                            WrapAroundConditionBottom = 4 };
 
-__global__ void copyWrapAroundAreas(int *array, int width, int height) {
+template <typename T>
+__global__ void copyWrapAroundAreas(T *array, int width, int height) {
   // 5 conditions
   //   - corners
   //   - left
@@ -133,185 +361,20 @@ __global__ void copyWrapAroundAreas(int *array, int width, int height) {
   array[destinationIndex] = array[sourceIndex];
 }
 
-IntIterator shiftedIterator(IntIterator iterator, int xChange, int yChange, int width) {
-  iterator += yChange*width;
-  iterator += xChange;
-
-  return iterator;
-}
-
-IntIterator9Tuple createStartTuple(IntVector &currentState, IntVector &nextState, int width) {
-  IntIterator currentBegin = currentState.begin();
-  IntIterator nextBegin = nextState.begin();
-
-  // Thinking about top left
-  // we have a linear array that is has 1 dimension. To convert this to a 2d representation
-  // we need to perform some pointer math
-  // First observe the following, which is the top-left part of the 2d array
-  //  ___________
-  // |a b c + + +
-  // |d e f + + +
-  // |g h i + + +
-  // |+ + + + + +
-  // |+ + + + + +
-  //
-  // a is at array[0], b is array[1], c is array[2]
-  // e is the point that we are looking at but it is way over at array[1*width+1]
-  // g is at array[1*width+0]
-  // i, the last point is at array[2*width+2]
-  // these values are passed into shiftedIterator
-
-  IntIterator topLeft     = shiftedIterator(currentBegin, 0, 0, width);
-  IntIterator top         = shiftedIterator(currentBegin, 1, 0, width);
-  IntIterator topRight    = shiftedIterator(currentBegin, 2, 0, width);
-  IntIterator left        = shiftedIterator(currentBegin, 0, 1, width);
-  IntIterator center      = shiftedIterator(currentBegin, 1, 1, width);
-  IntIterator right       = shiftedIterator(currentBegin, 2, 1, width);
-  IntIterator bottomLeft  = shiftedIterator(currentBegin, 0, 2, width);
-  IntIterator bottom      = shiftedIterator(currentBegin, 1, 2, width);
-  IntIterator bottomRight = shiftedIterator(currentBegin, 2, 2, width);
-
-  IntIterator centerResult = shiftedIterator(nextBegin, 1, 1, width);
-
-
-  IntIterator9Tuple begin = thrust::make_tuple(centerResult, topLeft, top, topRight,
-                                                       left,center ,    right,
-                                                       bottomLeft, bottom, bottomRight);
-
-  return begin;
-}
-
-IntIterator9Tuple createEndTuple(IntVector &currentState, IntVector &nextState, int width) {
-  IntIterator currentEnd = currentState.end();
-  IntIterator nextEnd = nextState.end();
-
-  IntIterator topLeft     = shiftedIterator(currentEnd, -2, -2, width);
-  IntIterator top         = shiftedIterator(currentEnd, -1, -2, width);
-  IntIterator topRight    = shiftedIterator(currentEnd, -0, -2, width);
-  IntIterator left        = shiftedIterator(currentEnd, -2, -1, width);
-  IntIterator center      = shiftedIterator(currentEnd, -1, -1, width);
-  IntIterator right       = shiftedIterator(currentEnd, -0, -1, width);
-  IntIterator bottomLeft  = shiftedIterator(currentEnd, -2, -0, width);
-  IntIterator bottom      = shiftedIterator(currentEnd, -1, -0, width);
-  IntIterator bottomRight = shiftedIterator(currentEnd, -0, -0, width);
-
-  IntIterator centerEndResult  = shiftedIterator(nextEnd, -1, -1, width);
-
-  IntIterator9Tuple end = thrust::make_tuple(centerEndResult, topLeft, top, topRight,
-                                             left,center ,    right,
-                                             bottomLeft, bottom, bottomRight);
-
-  return end;
-}
-
-void printArray2D(const thrust::host_vector<int> &vector, int width, int height) {
-  for (int y=0; y<height; y++) {
-    for (int x=0; x<width; x++) {
-      int i = y*width + x;
-      std::cout << ((vector[i] == 0) ? "." : stringFromInt(vector[i])) << " ";
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
-}
-
 """
 
 
 main_template = """
 int main(void)
 {
-  int width = 30;
-  int height = 10;
-  int iterations = 100000;
-  int percentLivingAtStart = 30;
-  bool wrapAround = true;
-
-  int paddedWidth = width+2;
-  int paddedHeight = height+2;
-
-  thrust::host_vector<int> hostData(paddedWidth*paddedHeight);
-  //thrust::generate(h_vec.begin(), h_vec.end(), rand);
-
-  for (int y=1; y<height+1; y++) {
-    for (int x=1; x<width+1; x++) {
-      int i = y*paddedWidth + x;
-
-      int randVal = rand() % 100;
-      hostData[i] = (randVal < percentLivingAtStart) ? 1 : 0;
-    }
-  }
-
-  printArray2D(hostData, paddedWidth, paddedHeight);
-  std::cout << std::endl;
-
-  // transfer data to the device
-  thrust::device_vector<int> currentState = hostData;
-  thrust::device_vector<int> nextState(paddedWidth*paddedHeight);
-
-  thrust::zip_iterator<IntIterator9Tuple> currentStateStartIterator
-      = thrust::make_zip_iterator(createStartTuple(currentState, nextState, paddedWidth));
-  thrust::zip_iterator<IntIterator9Tuple> currentStateEndIterator
-      = thrust::make_zip_iterator(createEndTuple(currentState, nextState, paddedWidth));
-
-  thrust::zip_iterator<IntIterator9Tuple> nextStateStartIterator
-      = thrust::make_zip_iterator(createStartTuple(nextState, currentState, paddedWidth));
-  thrust::zip_iterator<IntIterator9Tuple> nextStateEndIterator
-      = thrust::make_zip_iterator(createEndTuple(nextState, currentState, paddedWidth));
-
-  thrust::device_vector<int> temp;
-  thrust::zip_iterator<IntIterator9Tuple> tempStartIterator;
-  thrust::zip_iterator<IntIterator9Tuple> tempEndIterator;
-
-  for (int iteration=0; iteration<iterations; iteration++) {
-    if ((iterations/10 > 0) && iteration % (iterations/10) == 0) {
-      std::cout << "Iteration " << iteration << std::endl;
-    }
-
-    int *raw_pointer = thrust::raw_pointer_cast(&currentState[0]);
-
-    if (wrapAround) {
-      int maxBlockDimensionSize = 512;
-      int largestSide = max(paddedWidth, paddedHeight);
-      largestSide = max(largestSide, 5); // ensure that we get all 4 corners starting from 1
-
-      int blockWidth;
-      int blockHeight;
-
-      if (largestSide > maxBlockDimensionSize) {
-        blockWidth = maxBlockDimensionSize;
-        blockHeight = 1 + largestSide / maxBlockDimensionSize;
-      } else {
-        blockWidth = largestSide;
-        blockHeight = 1;
-      }
-
-      copyWrapAroundAreas<<<1, dim3(blockWidth, blockHeight, 5)>>>(raw_pointer, paddedWidth, paddedHeight);
-    }
-
-    thrust::for_each(currentStateStartIterator, currentStateEndIterator, game_of_life_functor());
-
-    tempStartIterator = currentStateStartIterator;
-    tempEndIterator = currentStateEndIterator;
-
-    currentStateStartIterator = nextStateStartIterator;
-    currentStateEndIterator = nextStateEndIterator;
-    nextStateStartIterator = tempStartIterator;
-    nextStateEndIterator = tempEndIterator;
-  }
-
-  // transfer data back to host
-  hostData = currentState;
-
-
-  printArray2D(hostData, paddedWidth, paddedHeight);
+  %(main_code)s
 
   return 0;
 }
 """
 
 from parser import parse
-from parser import Function, DataDeclaration, VariableDeclaration
+from nodes import *
 
 cuda_compiler='/usr/local/cuda/bin/nvcc'
 
@@ -322,41 +385,24 @@ cuda_compile_pass2 = """%(cuda_compiler)s %(input_file)s -c -o %(input_file)s.o 
 cuda_compile_pass3 = """/usr/bin/c++   -O2 -g -Wl,-search_paths_first -headerpad_max_install_names  ./%(input_file)s.o -o %(output_file)s /usr/local/cuda/lib/libcudart.dylib -Wl,-rpath -Wl,/usr/local/cuda/lib /usr/local/cuda/lib/libcuda.dylib"""
 
 
-device_function_template = """
-struct %(function_name)s_functor
-{
-    template <typename Tuple>
-    __host__ __device__
-    void operator()(Tuple t)
-    {
-      %(function_body)s
-    }
-};
-"""
-def create_device_function(function_node):
-  name, parameters, block = function_node
-  if not (len(parameters) == 1 or parameters[0][0] == 'window'):
-    raise Exception('Error, parameters %s must instead be window')
-
-  environment = { 'function_name' : name,
-                  'function_body' : block.to_cpp() }
-
-  return device_function_template % environment
-
 def compile(ast):
   print ast
   functions = []
+  main_function_statements = []
   for program_node in ast:
-    if type(program_node) == Function:
-      functions.append(create_device_function(program_node))
+    if type(program_node) in [SequentialFunctionDeclaration,
+            ParallelFunctionDeclaration]:
+      functions.append(program_node.to_cpp())
     elif type(program_node) == DataDeclaration:
-      pass
+      main_function_statements.append(program_node.to_cpp())
     elif type(program_node) == VariableDeclaration:
-      pass
+      main_function_statements.append(program_node.to_cpp())
     else:
-      pass
+      main_function_statements.append(program_node.to_cpp())
 
-  thrust_code = preamble + '\n'.join(functions) + main_template
+  main_function = main_template % { 'main_code' : '\n'.join(main_function_statements) }
+
+  thrust_code = preamble + '\n'.join(functions) + main_function
   return thrust_code
 
 def main():
@@ -367,7 +413,7 @@ def main():
     code = ''.join(f.readlines())
 
   ast = parse(code)
-  thrust_code = compile(ast) 
+  thrust_code = compile(ast)
 
   with open(sys.argv[2]+'.cu', 'w') as f:
     f.write(thrust_code)
@@ -390,7 +436,7 @@ def main():
   pass3.wait()
   print('stage three complete')
 
-  os.remove(sys.argv[2]+'.cu')
+  #os.remove(sys.argv[2]+'.cu')
   os.remove(sys.argv[2]+'.cu.o')
   os.remove(sys.argv[2]+'.cu.o.NVCC-depend')
 

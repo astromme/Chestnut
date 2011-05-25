@@ -1,139 +1,14 @@
 #!/usr/bin/env python
 
-
 import re
-from lepl import *
-from collections import namedtuple
-
-#helpers so that we don't get errors about undefined to_cpp methods
-class str(str): to_cpp = lambda self: self
-class int(int): to_cpp = lambda self: str(self)
-class float(float): to_cpp = lambda self: str(self)
-
-#helper to convert sub-members into strings
-def cpp_tuple(obj):
-  return tuple(map(lambda element: element.to_cpp(), obj))
-
-# Operators
-class Not(namedtuple('Not', ['value'])):
-  def to_cpp(self):
-    return "!%s" % cpp_tuple(self)
-class Neg(namedtuple('Neg', ['value'])):
-  def to_cpp(self):
-    return "-%s" % cpp_tuple(self)
-
-class Mul(namedtuple('Mul', ['left', 'right'])):
-  def to_cpp(self):
-    return "%s * %s" % cpp_tuple(self)
-class Div(namedtuple('Div', ['numerator', 'divisor'])):
-  def to_cpp(self):
-    return "%s / %s" % cpp_tuple(self)
-
-class Add(namedtuple('Add', ['left', 'right'])):
-  def to_cpp(self):
-    return "%s + %s" % cpp_tuple(self)
-class Sub(namedtuple('Sub', ['left', 'right'])):
-  def to_cpp(self):
-    return "%s - %s" % cpp_tuple(self)
-
-class LessThan(namedtuple('LessThan', ['left', 'right'])):
-  def to_cpp(self):
-    return "%s < %s" % cpp_tuple(self)
-class LessThanOrEqual(namedtuple('LessThanOrEqual', ['left', 'right'])):
-  def to_cpp(self):
-    return "%s <= %s" % cpp_tuple(self)
-class GreaterThan(namedtuple('GreaterThan', ['left', 'right'])):
-  def to_cpp(self):
-    return "%s > %s" % cpp_tuple(self)
-class GreaterThanOrEqual(namedtuple('GreaterThanOrEqual', ['left', 'right'])):
-  def to_cpp(self):
-    return "%s >= %s" % cpp_tuple(self)
-
-class Equal(namedtuple('Equal', ['left', 'right'])):
-  def to_cpp(self):
-    return "%s == %s" % cpp_tuple(self)
-class NotEqual(namedtuple('NotEqual', ['left', 'right'])):
-  def to_cpp(self):
-    return "%s != %s" % cpp_tuple(self)
-
-class BooleanAnd(List): pass
-
-class BooleanOr(List): pass
-
-class Assignment(List):
-  def to_cpp(self):
-    return '%s = %s' % cpp_tuple(self)
-# End Operators
-
-class Program(List): pass
-class VariableDeclaration(List):
-  def to_cpp(self):
-    if len(self) == 3: # we have an initialization
-      return '%s %s = %s;' % cpp_tuple(self)
-    else:
-      return '%s %s;' % cpp_tuple(self)
-
-class DataDeclaration(List): pass
-class Function(List): pass
-class Parameters(List): pass
-class Block(List):
-  def to_cpp(self):
-    return '{\n' + '\n'.join(cpp_tuple(self)) + '\n}'
-class Initialization(List):
-  def to_cpp(self):
-    return ''.join(cpp_tuple(self))
-
-class FunctionCall(List): pass
-
-class Size(List): pass
-class Parameter(List): pass
-class Statement(List):
-  def to_cpp(self):
-    return ''.join(cpp_tuple(self)) + ';'
-class Expressions(List):
-  def to_cpp(self):
-    return ''.join(cpp_tuple(self))
-
-coordinates = {
-               'topLeft' : 1,
-               'topCenter' : 2,
-               'topRight' : 3,
-               'left' : 4,
-               'center' : 5,
-               'right' : 6,
-               'bottomLeft' : 7,
-               'bottom' : 8,
-               'bottomRight' : 9
-               }
-
-class Property(List):
-  def to_cpp(self):
-    if self[0] == 'window':
-      return "thrust::get<%s>(t)" % coordinates[self[1]]
-    else:
-      print self
-      raise Exception
-
-class Return(List):
-  def to_cpp(self):
-    return 'thrust::get<0>(t) = %s;\nreturn;' % cpp_tuple(self)
-class Break(List):
-  def to_cpp(self):
-    return 'break;'
-class If(List):
-  def to_cpp(self):
-    if len(self) == 2: # simple if (condition) {statement}
-      return 'if (%s) %s' % cpp_tuple(self)
-    elif len(self) == 3: # full if (condition) {statement} else {statement}
-      return 'if (%s) %s else %s' % cpp_tuple(self)
-    else:
-      raise Exception("Wrong type of if statement with %s length" % len(self))
-
-class While(List): pass
-
-
+from nodes import *
 
 identifier = Token('[a-zA-Z][a-zA-Z0-9_]*') >> str
+variable_identifier = identifier
+data_identifier = identifier
+sequential_identifier = identifier
+parallel_identifier = identifier
+
 property = identifier
 symbol = Token('[^0-9a-zA-Z \t\r\n]')
 keyword = Token('[a-z]+')
@@ -142,7 +17,7 @@ comma = symbol(',')
 identifier_property = identifier & ~symbol('.') & property > Property
 
 # tokens
-real_declaration = Token('real') >> str
+real_declaration = Token('real') >> (lambda real: str('float')) # c++ only has floats, not reals
 integer_declaration = Token('int') >> str
 type_ = real_declaration | integer_declaration
 
@@ -156,7 +31,7 @@ number = integer | real | keyword('true') >> bool | keyword('false') >> bool
 
 width = integer
 height = integer
-size = ~symbol('(') & width & ~comma & height & ~symbol(')') > Size
+size = ~symbol('(') & width & ~comma & height & ~symbol(')') > Size._make
 
 #### Expression Parsing ####
 # Operator precedence, inside to outside
@@ -174,10 +49,12 @@ group2, group3, group4, group5, group6, group7, group8 \
 
 expression = Delayed()
 primary = Delayed()
+parallel_function_call = Delayed()
+host_function_call = Delayed()
 
 # first layer, most tightly grouped, is parens and numbers
 parens = ~symbol('(') & expression & ~symbol(')')
-group1 = parens | number | primary 
+group1 = parens | number | primary
 
 unary_not = ~symbol('!') & group2 > Not._make
 unary_neg = ~symbol('-') & group2 > Neg._make
@@ -212,32 +89,48 @@ group8 += boolean_or | group7
 assignment = (identifier | identifier_property) & ~symbol('=') & expression > Assignment
 expression += assignment | group8
 
-expression_list = expression[0:, ~comma, ...] > Expressions
+expression_list = expression[0:, ~comma] > Expressions
 
 statement, block = Delayed(), Delayed()
 return_ = ~keyword('return') & expression & ~semi > Return
 break_ =  ~keyword('break') & ~semi > Break
 if_ =     ~keyword('if') & ~symbol('(') & expression & ~symbol(')') & statement & Optional(~keyword('else') & statement) > If
 while_ =  ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & statement > While
-statement += ~semi | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
+statement += ~semi | parallel_function_call | host_function_call | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
-parameter_declaration = identifier > Parameter
+parameter_declaration = Optional(type_) & identifier > Parameter
 #parameter_declaration = type_ & identifier > Parameter
 parameter_declaration_list = parameter_declaration[0:, ~comma] > Parameters
 
 initialization = ~symbol('=') & expression > Initialization
 
 variable_declaration = type_ & identifier & Optional(initialization) & ~semi > VariableDeclaration
-data_declaration = data_type & identifier & Optional(size) & Optional(initialization) & ~semi > DataDeclaration
-function_declaration = ~Token('function') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > Function
+data_declaration = data_type & identifier & size & Optional(initialization) & ~semi > DataDeclaration
+sequential_function_declaration = ~Token('sequential') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > SequentialFunctionDeclaration
+parallel_function_declaration = ~Token('parallel') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
 
-function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > FunctionCall
-primary += function_call | identifier | identifier_property
+sequential_function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > SequentialFunctionCall
+primary += sequential_function_call | identifier | identifier_property
 
+## Semi-parallel functions
+#data_read  = ~symbol(':') & ~keyword('read') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Read
+#data_write = ~symbol(':') & ~keyword('write') & ~symbol('(') & data_identifier & ~comma & filename & ~symbol(')') & ~semi > Write
+data_print = ~symbol(':') & ~keyword('print') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Print
+host_function_call += data_print
+
+## Parallel functions
+parallel_map = data_identifier & ~symbol('=') & \
+               ~symbol(':') & ~keyword('map') & ~symbol('(') & data_identifier & ~comma & parallel_identifier & ~symbol(')') & ~semi > ParallelMap
+parallel_reduce = variable_identifier & ~symbol('=') & \
+                  ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelReduce
+parallel_sort = ~symbol(':') & ~keyword('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelSort
+parallel_function_call += parallel_map | parallel_reduce | parallel_sort
+
+## Now we can define the last bits
 block += ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > Block
 
-declaration_list = (data_declaration | variable_declaration | function_declaration | statement)[0:]
+declaration_list = (data_declaration | variable_declaration | sequential_function_declaration | parallel_function_declaration | statement)[0:]
 
 program = declaration_list > Program
 
