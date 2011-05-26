@@ -118,7 +118,7 @@ sequential_function_declaration = ~Token('sequential') & identifier & ~symbol('(
 parallel_function_declaration = ~Token('parallel') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
 
 #Built-in Sequential functions
-sequential_print = ~keyword('print') & ~symbol('(') & string & ~symbol(')') > SequentialPrint
+sequential_print = ~keyword('print') & ~symbol('(') & string & (~comma & expression)[:] & ~symbol(')') > SequentialPrint
 generic_sequential_function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > SequentialFunctionCall
 
 sequential_function_call = sequential_print | generic_sequential_function_call

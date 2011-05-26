@@ -145,7 +145,22 @@ class Initialization(List):
 
 class SequentialPrint(List):
     def to_cpp(self):
-        return 'std::cout << "%s" << std::endl' % self[0].to_cpp()
+        num_format_placeholders = self[0].to_cpp().count('%s')
+        num_args = len(self)-1
+
+        if num_format_placeholders != num_args:
+            raise CompilerException("Error, there are %s format specifiers but %s arguments to print()" % \
+                    (num_format_placeholders, num_args))
+        format_substrings = self[0].to_cpp().split('%s')
+
+        code = 'std::cout'
+        for substring, placeholder in zip(format_substrings[:-1], cpp_tuple(self[1:])):
+            code += ' << "%s"' % substring
+            code += ' << %s' % placeholder
+        code += ' << "%s" << std::endl' % format_substrings[-1]
+
+        return code
+
 
 class SequentialFunctionCall(List): pass
 
