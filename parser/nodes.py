@@ -47,6 +47,9 @@ class Mul(namedtuple('Mul', ['left', 'right'])):
 class Div(namedtuple('Div', ['numerator', 'divisor'])):
   def to_cpp(self):
     return "%s / %s" % cpp_tuple(self)
+class Mod(namedtuple('Mod', ['number', 'modder'])):
+  def to_cpp(self):
+    return "%s %% %s" % cpp_tuple(self)
 
 class Add(namedtuple('Add', ['left', 'right'])):
   def to_cpp(self):
@@ -152,22 +155,39 @@ class Expressions(List):
   def to_cpp(self):
     return ''.join(cpp_tuple(self))
 
+# int index = thrust::get<2>(t);
+# int paddedWidth = thrust::get<3>(t);
+# int paddedHeight = thrust::get<4>(t);
+# 
+# int x = index % paddedWidth - 1; // -1 for padding
+# int y = index / paddedWidth - 1;
+# 
+# int width = paddedWidth - 2;
+# int height = paddedHeight - 2;
+
 coordinates = {
-               'topLeft' : 1,
-               'topCenter' : 2,
-               'topRight' : 3,
-               'left' : 4,
-               'center' : 5,
-               'right' : 6,
-               'bottomLeft' : 7,
-               'bottom' : 8,
-               'bottomRight' : 9
+               'topLeft' : r'thrust::get<0>(thrust::get<1>(t))',
+               'topCenter' : r'thrust::get<1>(thrust::get<1>(t))',
+               'topRight' : r'thrust::get<2>(thrust::get<1>(t))',
+
+               'left' : r'thrust::get<3>(thrust::get<1>(t))',
+               'center' : r'thrust::get<4>(thrust::get<1>(t))',
+               'right' : r'thrust::get<5>(thrust::get<1>(t))',
+
+               'bottomLeft' : r'thrust::get<6>(thrust::get<1>(t))',
+               'bottom' : r'thrust::get<7>(thrust::get<1>(t))',
+               'bottomRight' : r'thrust::get<8>(thrust::get<1>(t))',
+
+               'x' : r'(thrust::get<2>(t) % thrust::get<3>(t) - 1)',
+               'y' : r'(thrust::get<2>(t) / thrust::get<3>(t) - 1)',
+               'width' : r'(thrust::get<3>(t) - 2)',
+               'height' : r'(thrust::get<4>(t) - 2)',
                }
 
 class Property(List):
   def to_cpp(self):
     if self[0] == 'window':
-      return "thrust::get<%s>(t)" % coordinates[self[1]]
+      return coordinates[self[1]]
     else:
       print self
       raise Exception
@@ -220,18 +240,39 @@ class Print(List):
                                   'length' : pad(data.width)*pad(data.height) }
 
 
+
+
+random_template = """
+{
+  thrust::host_vector<%(type)s> randoms(%(data)s.width*%(data)s.height);
+  thrust::generate(randoms.begin(), randoms.end(), rand);
+  *%(data)s.mainData = randoms;
+}
+"""
+class ParallelRandom(List):
+    def to_cpp(self):
+        input = self[0]
+        check_is_symbol(input)
+        input = symbolTable.lookup(input)
+        check_type(input, Data)
+
+        return random_template % { 'data' : input.name,
+                                   'type' : type_map[input.type] }
+
 map_template = """
 {
     %(input_data)s.maybeWrap();
-    Chestnut<%(type)s>::tupleIterType startIterator
-      = Chestnut<%(type)s>::createStartIterator(%(input_data)s, %(output_data)s);
-    Chestnut<%(type)s>::tupleIterType endIterator
-      = Chestnut<%(type)s>::createEndIterator(%(input_data)s, %(output_data)s);
+    Chestnut<%(type)s>::chestnut2dTupleIterator startIterator
+        = Chestnut<%(type)s>::startIterator(%(input_data)s, %(output_data)s);
+
+    Chestnut<%(type)s>::chestnut2dTupleIterator endIterator
+        = Chestnut<%(type)s>::endIterator(%(input_data)s, %(output_data)s);
+
 
     thrust::for_each(startIterator, endIterator, %(function)s_functor());
 
     if (%(input_data)s == %(output_data)s) {
-        std::cout << "%(input_data)s == %(output_data)s, swapping" << std::endl;
+        //std::cout << "%(input_data)s == %(output_data)s, swapping" << std::endl;
         %(input_data)s.swap();
     }
 }

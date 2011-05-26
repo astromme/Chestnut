@@ -37,7 +37,7 @@ size = ~symbol('(') & width & ~comma & height & ~symbol(')') > Size._make
 # Operator precedence, inside to outside
 #  1 parentheses ()
 #  2 not, unary minus (!, -)
-#  3 multiplication, division (*, /)
+#  3 multiplication, division (*, /, %)
 #  4 addition, subtraction (+, -)
 #  5 less than, less than or equal, greater than, greater than or equal (<, <=,>, >=)
 #  6 equal, not equal (==, !=)
@@ -63,7 +63,8 @@ group2 += unary_not | unary_neg | group1
 # third layer, next most tightly grouped, is multiplication
 mul = group2 & ~symbol('*') & group3 > Mul._make
 div = group2 & ~symbol('/') & group3 > Div._make
-group3 += mul | div | group2
+mod = group2 & ~symbol('%') & group3 > Mod._make
+group3 += mul | div | mod | group2
 
 # fourth layer, least tightly grouped, is addition
 add = group3 & ~symbol('+') & group4 > Add._make
@@ -120,12 +121,13 @@ data_print = ~symbol(':') & ~keyword('print') & ~symbol('(') & data_identifier &
 host_function_call += data_print
 
 ## Parallel functions
+parallel_random = ~symbol(':') & ~keyword('random') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > ParallelRandom
 parallel_map = data_identifier & ~symbol('=') & \
                ~symbol(':') & ~keyword('map') & ~symbol('(') & data_identifier & ~comma & parallel_identifier & ~symbol(')') & ~semi > ParallelMap
 parallel_reduce = variable_identifier & ~symbol('=') & \
                   ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelReduce
 parallel_sort = ~symbol(':') & ~keyword('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelSort
-parallel_function_call += parallel_map | parallel_reduce | parallel_sort
+parallel_function_call += parallel_random | parallel_map | parallel_reduce | parallel_sort
 
 ## Now we can define the last bits
 block += ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > Block

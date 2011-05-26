@@ -1,10 +1,39 @@
 // sample Chestnut file explore functions
 
-function square_root(window) {
-  return sqrt(window.center);
+/*
+sequential square(int value) {
+  return value*2;
+}
+*/
+
+parallel square_root(window) {
+  //return sqrt(window.center);
 }
 
-function game_of_life(window) {
+parallel init_with_one(window) {
+  return 1;
+}
+
+parallel mod_0_2(window) {
+  return window.center % 2;
+}
+
+parallel times_2(window) {
+  return window.center * 2;
+}
+
+parallel x(window) {
+  return window.x;
+}
+parallel y(window) {
+  return window.y;
+}
+
+parallel write_index(window) {
+  return window.x + window.width*window.y;
+}
+
+parallel game_of_life(window) {
   int neighbor_count = window.topLeft    + window.topCenter + window.topRight +
                        window.left       + 0                + window.right +
                        window.bottomLeft + window.bottom    + window.bottomRight;
@@ -31,11 +60,31 @@ function game_of_life(window) {
   return state;  
 }
 
-
 //parallel(20, 40, game_of_life);
-real2d data(20, 40) = random(20, 40);
+int2d output(500, 500);// = random(20, 40);
+//int2d input(5000, 5000); 
+//data.wrap_around = true;
 
-data.wrap_around = true;
+:random(output);
+output = :map(output, mod_0_2);
+//:print(output);
 
-data = map(game_of_life, data);
+int2d index(10, 5);
+index = :map(index, write_index);
+:print(index);
+
+//int iteration = 0;
+//while (iteration < 10000) {
+//  output = :map(output, game_of_life);
+//  iteration = iteration + 1;
+//}
+
+//:print(output);
+//:sort(input);
+//:sort(input, function);
+//int value;
+//value = :reduce(data, function);
+//value = :reduce(input);
+//value = square(2);
+
 //print data;
