@@ -156,17 +156,17 @@ struct Chestnut
       largestSide = max(largestSide, 5); // ensure that we get all 4 corners starting from 1
 
       int blockWidth;
-      int blockHeight;
+      int gridWidth;
 
       if (largestSide > maxBlockDimensionSize) {
         blockWidth = maxBlockDimensionSize;
-        blockHeight = 1 + largestSide / maxBlockDimensionSize;
+        gridWidth = 1 + largestSide / maxBlockDimensionSize;
       } else {
         blockWidth = largestSide;
-        blockHeight = 1;
+        gridWidth = 1;
       }
 
-      copyWrapAroundAreas<<<1, dim3(blockWidth, blockHeight, 5)>>>(raw_pointer, this->width, this->height);
+      copyWrapAroundAreas<<<dim3(gridWidth, 5), dim3(blockWidth, 1, 1)>>>(raw_pointer, this->width, this->height);
     }
 
     void swap() {
@@ -301,11 +301,11 @@ __global__ void copyWrapAroundAreas(T *array, int width, int height) {
   //   - right
   //   - top
   //   - bottom
-  WrapAroundCondition condition = (WrapAroundCondition)threadIdx.z;
+  WrapAroundCondition condition = (WrapAroundCondition)blockIdx.y;
 
   // To find the thing to operate on, we unroll a 2d structure into 1d
   // so that we can support 512*512 = 262144 length arrays on my (GeForce 320M) hardware
-  int position = threadIdx.y*blockDim.x + threadIdx.x;
+  int position = blockIdx.x*blockDim.x + threadIdx.x;
   int sourceX;
   int sourceY;
   int destinationX;
