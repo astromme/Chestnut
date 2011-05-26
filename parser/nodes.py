@@ -143,6 +143,10 @@ class Initialization(List):
   def to_cpp(self):
     return ''.join(cpp_tuple(self))
 
+class SequentialPrint(List):
+    def to_cpp(self):
+        return 'std::cout << "%s" << std::endl' % self[0].to_cpp()
+
 class SequentialFunctionCall(List): pass
 
 class Size(namedtuple('Size', ['width', 'height'])): pass

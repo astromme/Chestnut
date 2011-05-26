@@ -16,6 +16,12 @@ semi = symbol(';')
 comma = symbol(',')
 identifier_property = identifier & ~symbol('.') & property > Property
 
+#TODO: These are not quite perfect... they don't allow for escaped quotes in the string.
+string_single_quote = Token(r"'[^']*'") > (lambda s: s[0][1:-1].replace('\\',''))
+string_double_quote = Token(r'"[^"]*"') > (lambda s: s[0][1:-1].replace('\\',''))
+
+string = string_single_quote | string_double_quote >> str
+
 # tokens
 real_declaration = Token('real') >> (lambda real: str('float')) # c++ only has floats, not reals
 integer_declaration = Token('int') >> str
@@ -111,7 +117,11 @@ data_declaration = data_type & identifier & size & Optional(initialization) & ~s
 sequential_function_declaration = ~Token('sequential') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > SequentialFunctionDeclaration
 parallel_function_declaration = ~Token('parallel') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
 
-sequential_function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > SequentialFunctionCall
+#Built-in Sequential functions
+sequential_print = ~keyword('print') & ~symbol('(') & string & ~symbol(')') > SequentialPrint
+generic_sequential_function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > SequentialFunctionCall
+
+sequential_function_call = sequential_print | generic_sequential_function_call
 primary += sequential_function_call | identifier | identifier_property
 
 ## Semi-parallel functions
