@@ -1,0 +1,34 @@
+parallel mandelbrot(window) {
+  // x0 = scaled x co-ordinate of pixel (must be scaled to lie somewhere in the interval (-2.5 to 1)
+  real x0 = window.x/window.width;
+  x0 = x0 * 3.5 - 2.5;
+
+  //y0 = scaled y co-ordinate of pixel (must be scaled to lie somewhere in the interval (-1, 1)
+  real y0 = window.y/window.height;
+  y0 = y0 * 2 - 1;
+
+  real x = 0;
+  real y = 0;
+
+  int iteration = 0;
+  int max_iteration = 1000;
+
+  while (x*x + y*y <= (2*2) && iteration < max_iteration) {
+    real xtemp = x*x - y*y + x0;
+    y = 2*x*y + y0;
+
+    x = xtemp;
+
+    iteration = iteration + 1;
+  }
+
+  if (iteration == max_iteration)
+    return 0;
+  else
+    return iteration;
+}
+
+int2d display(100, 100);
+display = :map(display, mandelbrot);
+
+:print(display);
