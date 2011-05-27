@@ -43,48 +43,48 @@ class Neg(namedtuple('Neg', ['value'])):
 
 class Mul(namedtuple('Mul', ['left', 'right'])):
   def to_cpp(self):
-    return "%s * %s" % cpp_tuple(self)
+    return "(%s * %s)" % cpp_tuple(self)
 class Div(namedtuple('Div', ['numerator', 'divisor'])):
   def to_cpp(self):
-    return "(float)%s / %s" % cpp_tuple(self)
+    return "((float)%s / %s)" % cpp_tuple(self)
 class Mod(namedtuple('Mod', ['number', 'modder'])):
   def to_cpp(self):
-    return "(int)%s %% %s" % cpp_tuple(self)
+    return "((int)%s %% %s)" % cpp_tuple(self)
 
 class Add(namedtuple('Add', ['left', 'right'])):
   def to_cpp(self):
-    return "%s + %s" % cpp_tuple(self)
+    return "(%s + %s)" % cpp_tuple(self)
 class Sub(namedtuple('Sub', ['left', 'right'])):
   def to_cpp(self):
-    return "%s - %s" % cpp_tuple(self)
+    return "(%s - %s)" % cpp_tuple(self)
 
 class LessThan(namedtuple('LessThan', ['left', 'right'])):
   def to_cpp(self):
-    return "%s < %s" % cpp_tuple(self)
+    return "(%s < %s)" % cpp_tuple(self)
 class LessThanOrEqual(namedtuple('LessThanOrEqual', ['left', 'right'])):
   def to_cpp(self):
-    return "%s <= %s" % cpp_tuple(self)
+    return "(%s <= %s)" % cpp_tuple(self)
 class GreaterThan(namedtuple('GreaterThan', ['left', 'right'])):
   def to_cpp(self):
-    return "%s > %s" % cpp_tuple(self)
+    return "(%s > %s)" % cpp_tuple(self)
 class GreaterThanOrEqual(namedtuple('GreaterThanOrEqual', ['left', 'right'])):
   def to_cpp(self):
-    return "%s >= %s" % cpp_tuple(self)
+    return "(%s >= %s)" % cpp_tuple(self)
 
 class Equal(namedtuple('Equal', ['left', 'right'])):
   def to_cpp(self):
-    return "%s == %s" % cpp_tuple(self)
+    return "(%s == %s)" % cpp_tuple(self)
 class NotEqual(namedtuple('NotEqual', ['left', 'right'])):
   def to_cpp(self):
-    return "%s != %s" % cpp_tuple(self)
+    return "(%s != %s)" % cpp_tuple(self)
 
 class BooleanAnd(List):
   def to_cpp(self):
-    return "%s && %s" % cpp_tuple(self)
+    return "%(s && %s)" % cpp_tuple(self)
 
 class BooleanOr(List):
   def to_cpp(self):
-    return "%s || %s" % cpp_tuple(self)
+    return "(%s || %s)" % cpp_tuple(self)
 
 class Assignment(List):
   def to_cpp(self):
