@@ -367,7 +367,7 @@ map_template = """
         = Chestnut<%(type)s>::endIterator(%(input_data)s, %(output_data)s);
 
 
-    thrust::for_each(startIterator, endIterator, %(function)s_functor());
+    thrust::for_each(startIterator, endIterator, %(function)s_functor(%(variable_arguments)s));
 
     if (%(input_data)s == %(output_data)s) {
         //std::cout << "%(input_data)s == %(output_data)s, swapping" << std::endl;
@@ -393,14 +393,17 @@ class ParallelFunctionCall(List):
         output = symbolTable.lookup(output)
         check_type(output, Data)
 
+        variable_arguments = []
         for argument, parameter in zip(arguments, function.parameters):
-            argument.to_cpp()
+            if not parameter.type == 'window':
+                variable_arguments.append(argument.to_cpp())
 
-
+        #TODO: Fix for multiple source datas... requires tuple-stuffing
         input_expression = arguments[0].to_cpp()
 
         return map_template % { 'input_data' : input_expression,
                                 'output_data' : output.name,
+                                'variable_arguments' : ','.join(variable_arguments),
                                 'type' : type_map[output.type],
                                 'function' : function.name }
       
