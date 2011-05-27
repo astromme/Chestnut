@@ -1,3 +1,5 @@
+// Mandelbrot algorithm taken almost verbatim from Wikipedia
+// http://en.wikipedia.org/wiki/Mandelbrot_set#Escape_time_algorithm
 parallel mandelbrot(window) {
   // x0 = scaled x co-ordinate of pixel (must be scaled to lie somewhere in the interval (-2.5 to 1)
   real x0 = window.x/window.width;
