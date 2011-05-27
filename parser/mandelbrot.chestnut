@@ -1,13 +1,17 @@
 // Mandelbrot algorithm taken almost verbatim from Wikipedia
 // http://en.wikipedia.org/wiki/Mandelbrot_set#Escape_time_algorithm
-parallel mandelbrot(window data, real xcenter, real ycenter, real xzoom, real yzoom) {
+parallel mandelbrot(window data, real xleft, real xright, real ytop, real ybottom) {
   // x0 = scaled x co-ordinate of pixel (must be scaled to lie somewhere in the interval (-2.5 to 1)
   real x0 = data.x/data.width;
-  x0 = x0 * 3.5 - 2.5;
+  //x0 = x0 * 3.5 - 2.5;
+  real xrange = xright - xleft;
+  x0 = x0 * xrange + xleft;
 
   //y0 = scaled y co-ordinate of pixel (must be scaled to lie somewhere in the interval (-1, 1)
   real y0 = data.y/data.height;
   y0 = y0 * 2 - 1;
+  real yrange = ybottom - ytop;
+  y0 = y0 * yrange + ytop;
 
   real x = 0;
   real y = 0;
@@ -30,7 +34,11 @@ parallel mandelbrot(window data, real xcenter, real ycenter, real xzoom, real yz
     return iteration;
 }
 
-int2d display(100, 100);
-display = :mandelbrot(display, -.75, 0, 1, 1);
-
+int2d display(50, 50);
+display = :mandelbrot(display, -2.5, 1, -1, 1);
 :print(display);
+display = :mandelbrot(display, -2.5/2, 1/2, -1/2, 1/2);
+:print(display);
+display = :mandelbrot(display, -2.5/4, 1/4, -1/4, 1/4);
+:print(display);
+
