@@ -131,7 +131,8 @@ data_print = ~symbol(':') & ~keyword('print') & ~symbol('(') & data_identifier &
 host_function_call += data_print
 
 ## Parallel functions
-parallel_random = ~symbol(':') & ~keyword('random') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > ParallelRandom
+parallel_random = data_identifier & ~symbol('=') & \
+                  ~symbol(':') & ~keyword('random') & ~symbol('(') & ~symbol(')') & ~semi > ParallelRandom
 parallel_map = data_identifier & ~symbol('=') & \
                ~symbol(':') & ~keyword('map') & ~symbol('(') & data_identifier & ~comma & parallel_identifier & ~symbol(')') & ~semi > ParallelMap
 parallel_reduce = variable_identifier & ~symbol('=') & \
