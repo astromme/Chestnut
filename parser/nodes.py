@@ -46,7 +46,7 @@ class Mul(namedtuple('Mul', ['left', 'right'])):
     return "%s * %s" % cpp_tuple(self)
 class Div(namedtuple('Div', ['numerator', 'divisor'])):
   def to_cpp(self):
-    return "%s / %s" % cpp_tuple(self)
+    return "(float)%s / %s" % cpp_tuple(self)
 class Mod(namedtuple('Mod', ['number', 'modder'])):
   def to_cpp(self):
     return "%s %% %s" % cpp_tuple(self)
