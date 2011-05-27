@@ -1,0 +1,22 @@
+parallel mod_20(window) {
+  return window.center % 10;
+}
+
+parallel by_index(window) {
+  return window.width*window.y + window.x;
+}
+
+parallel divergence(window) {
+  return window.right - window.left +
+         window.top - window.bottom;
+}
+
+real2d dataset(50, 20);
+dataset = :map(dataset, by_index);
+dataset = :map(dataset, mod_20);
+
+:print(dataset);
+
+real2d derivative(50, 20);
+derivative = :map(dataset, divergence);
+:print(derivative);
