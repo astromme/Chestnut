@@ -15,13 +15,13 @@ parallel laplacian(window) {
 }
 
 real2d dataset(50, 20);
-dataset = :map(dataset, by_index);
-dataset = :map(dataset, mod_20);
+dataset = :by_index(dataset);
+dataset = :mod_20(dataset);
 
 print("Original Array");
 :print(dataset);
 
 real2d modified(50, 20);
 print("Laplacian");
-modified = :map(dataset, laplacian);
+modified = :laplacian(dataset);
 :print(modified);

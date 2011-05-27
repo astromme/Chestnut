@@ -12,11 +12,11 @@ parallel divergence(window) {
 }
 
 real2d dataset(50, 20);
-dataset = :map(dataset, by_index);
-dataset = :map(dataset, mod_20);
+dataset = :by_index(dataset);
+dataset = :mod_20(dataset);
 
 :print(dataset);
 
 real2d derivative(50, 20);
-derivative = :map(dataset, divergence);
+derivative = :divergence(dataset);
 :print(derivative);
