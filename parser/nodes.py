@@ -213,7 +213,7 @@ class Property(List):
 
 class Return(List):
   def to_cpp(self):
-    return 'thrust::get<0>(t) = %s;\nreturn;' % cpp_tuple(self)
+    return '{ thrust::get<0>(t) = %s;\nreturn; }' % cpp_tuple(self)
 class Break(List):
   def to_cpp(self):
     return 'break;'
