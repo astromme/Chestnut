@@ -14,7 +14,7 @@ keywords = ['int',
 
 
 Keyword = namedtuple('Keyword', ['name'])
-Variable = namedtuple('Variable', ['name', 'type']) 
+Variable = namedtuple('Variable', ['name', 'type'])
 Data = namedtuple('Data', ['name', 'type', 'width', 'height'])
 Array = namedtuple('Array', ['name', 'type'])
 SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters'])

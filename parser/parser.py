@@ -106,7 +106,7 @@ while_ =  ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & stateme
 statement += ~semi | parallel_function_call | host_function_call | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
-parameter_declaration = Optional(type_) & identifier > Parameter
+parameter_declaration = (type_ | keyword('window')) & identifier > Parameter._make
 #parameter_declaration = type_ & identifier > Parameter
 parameter_declaration_list = parameter_declaration[0:, ~comma] > Parameters
 
@@ -133,12 +133,12 @@ host_function_call += data_print
 ## Parallel functions
 parallel_random = data_identifier & ~symbol('=') & \
                   ~symbol(':') & ~keyword('random') & ~symbol('(') & ~symbol(')') & ~semi > ParallelRandom
-parallel_map = data_identifier & ~symbol('=') & \
-               ~symbol(':') & ~keyword('map') & ~symbol('(') & data_identifier & ~comma & parallel_identifier & ~symbol(')') & ~semi > ParallelMap
 parallel_reduce = variable_identifier & ~symbol('=') & \
                   ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelReduce
 parallel_sort = ~symbol(':') & ~keyword('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelSort
-parallel_function_call += parallel_random | parallel_map | parallel_reduce | parallel_sort
+genric_parallel_function_call = data_identifier & ~symbol('=') & ~symbol(':') & identifier & ~symbol('(') & expression_list & ~symbol(')') & ~semi > ParallelFunctionCall
+
+parallel_function_call += parallel_random | parallel_reduce | parallel_sort | genric_parallel_function_call
 
 ## Now we can define the last bits
 block += ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > Block

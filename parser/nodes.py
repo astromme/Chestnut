@@ -128,8 +128,15 @@ class SequentialFunctionDeclaration(List): pass
 class ParallelFunctionDeclaration(List):
     def to_cpp(self):
         name, parameters, block = self
-        symbolTable.add(ParallelFunction(name, map(lambda param: param[0], parameters)))
-        return create_device_function(self)
+        symbolTable.add(ParallelFunction(name, parameters))
+        symbolTable.createScope()
+        for parameter in parameters:
+            symbolTable.add(Variable(name=parameter.name, type=parameter.type))
+
+        device_function = create_device_function(self)
+
+        symbolTable.removeScope()
+        return device_function
 
 class Parameters(List): pass
 class Block(List):
@@ -166,7 +173,7 @@ class SequentialFunctionCall(List): pass
 
 class Size(namedtuple('Size', ['width', 'height'])): pass
 
-class Parameter(List): pass
+class Parameter(namedtuple('Parameter', ['type', 'name'])): pass
 class Statement(List):
   def to_cpp(self):
     return ''.join(cpp_tuple(self)) + ';'
@@ -204,12 +211,16 @@ coordinates = {
                }
 
 class Property(List):
-  def to_cpp(self):
-    if self[0] == 'window':
-      return coordinates[self[1]]
-    else:
-      print self
-      raise Exception
+    def to_cpp(self):
+        check_is_symbol(self[0])
+        symbol = symbolTable.lookup(self[0])
+        check_type(symbol, Variable) #TODO: Support Data properties
+
+        if symbol.type == 'window':
+            return coordinates[self[1]]
+        else:
+            print self
+            raise Exception
 
 class Return(List):
   def to_cpp(self):
@@ -278,44 +289,6 @@ class ParallelRandom(List):
         return random_template % { 'data' : input.name,
                                    'type' : type_map[input.type] }
 
-map_template = """
-{
-    %(input_data)s.maybeWrap();
-    Chestnut<%(type)s>::chestnut2dTupleIterator startIterator
-        = Chestnut<%(type)s>::startIterator(%(input_data)s, %(output_data)s);
-
-    Chestnut<%(type)s>::chestnut2dTupleIterator endIterator
-        = Chestnut<%(type)s>::endIterator(%(input_data)s, %(output_data)s);
-
-
-    thrust::for_each(startIterator, endIterator, %(function)s_functor());
-
-    if (%(input_data)s == %(output_data)s) {
-        //std::cout << "%(input_data)s == %(output_data)s, swapping" << std::endl;
-        %(input_data)s.swap();
-    }
-}
-"""
-class ParallelMap(List):
-  def to_cpp(self):
-    output, input, function = self
-    check_is_symbol(input)
-    check_is_symbol(output)
-    check_is_symbol(function)
-
-    input = symbolTable.lookup(input)
-    output = symbolTable.lookup(output)
-    function = symbolTable.lookup(function)
-
-    check_type(input, Data)
-    check_type(output, Data)
-    check_type(function, ParallelFunction)
-    check_dimensions_are_equal(input, output)
-
-    return map_template % { 'input_data' : input.name,
-                            'output_data' : output.name,
-                            'type' : type_map[input.type],
-                            'function' : function.name }
 
 reduce_template = """
 {
@@ -382,3 +355,52 @@ class ParallelSort(List):
 
         else:
             return sort_template % { 'data' : input.name }
+
+
+map_template = """
+{
+    %(input_data)s.maybeWrap();
+    Chestnut<%(type)s>::chestnut2dTupleIterator startIterator
+        = Chestnut<%(type)s>::startIterator(%(input_data)s, %(output_data)s);
+
+    Chestnut<%(type)s>::chestnut2dTupleIterator endIterator
+        = Chestnut<%(type)s>::endIterator(%(input_data)s, %(output_data)s);
+
+
+    thrust::for_each(startIterator, endIterator, %(function)s_functor());
+
+    if (%(input_data)s == %(output_data)s) {
+        //std::cout << "%(input_data)s == %(output_data)s, swapping" << std::endl;
+        %(input_data)s.swap();
+    }
+}
+"""
+class ParallelFunctionCall(List):
+    def to_cpp(self):
+        output, function = self[0:2]
+        arguments = self[2:][0]
+
+        check_is_symbol(function)
+        function = symbolTable.lookup(function)
+        check_type(function, ParallelFunction)
+
+        if not len(arguments) == len(function.parameters):
+            print arguments
+            raise CompilerException("Error, parallel function ':%s' takes %s parameters but %s were given" % \
+                    (function.name, len(function.parameters), len(arguments)))
+
+        check_is_symbol(output)
+        output = symbolTable.lookup(output)
+        check_type(output, Data)
+
+        for argument, parameter in zip(arguments, function.parameters):
+            argument.to_cpp()
+
+
+        input_expression = arguments[0].to_cpp()
+
+        return map_template % { 'input_data' : input_expression,
+                                'output_data' : output.name,
+                                'type' : type_map[output.type],
+                                'function' : function.name }
+      
