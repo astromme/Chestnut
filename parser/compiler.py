@@ -76,10 +76,10 @@ struct Chestnut
 
   // constant iterator information for the location in the array + the bounds
   // from these we can compute the x, y, width, height inside of the kernel
-  typedef typename thrust::counting_iterator<T> indexIterType;
+  typedef typename thrust::counting_iterator<int> indexIterType;
 
-  typedef typename thrust::constant_iterator<T> widthIterType;
-  typedef typename thrust::constant_iterator<T> heightIterType;
+  typedef typename thrust::constant_iterator<int> widthIterType;
+  typedef typename thrust::constant_iterator<int> heightIterType;
 
   // Allows for a 2d window of data with a source value and its 8 surrounding neighbors
   typedef typename thrust::tuple<dataIterType, dataIterType, dataIterType,
