@@ -34,7 +34,7 @@ parallel write_index(window) {
 }
 
 parallel game_of_life(window) {
-  int neighbor_count = window.topLeft    + window.topCenter + window.topRight +
+  int neighbor_count = window.topLeft    + window.top       + window.topRight +
                        window.left       + 0                + window.right +
                        window.bottomLeft + window.bottom    + window.bottomRight;
 

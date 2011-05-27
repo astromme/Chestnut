@@ -186,7 +186,7 @@ class Expressions(List):
 
 coordinates = {
                'topLeft' : r'thrust::get<0>(thrust::get<1>(t))',
-               'topCenter' : r'thrust::get<1>(thrust::get<1>(t))',
+               'top' : r'thrust::get<1>(thrust::get<1>(t))',
                'topRight' : r'thrust::get<2>(thrust::get<1>(t))',
 
                'left' : r'thrust::get<3>(thrust::get<1>(t))',
