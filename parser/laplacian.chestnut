@@ -1,0 +1,27 @@
+parallel mod_20(window) {
+  return window.center % 10;
+}
+
+parallel by_index(window) {
+  return window.width*window.y + window.x;
+}
+
+parallel laplacian(window) {
+  real alpha = 1;
+  real beta = 1;
+
+  return alpha * window.center +
+         beta * (window.left + window.right + window.top + window.bottom);
+}
+
+real2d dataset(50, 20);
+dataset = :map(dataset, by_index);
+dataset = :map(dataset, mod_20);
+
+print("Original Array");
+:print(dataset);
+
+real2d modified(50, 20);
+print("Laplacian");
+modified = :map(dataset, laplacian);
+:print(modified);
