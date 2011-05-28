@@ -16,11 +16,9 @@ semi = symbol(';')
 comma = symbol(',')
 identifier_property = identifier & ~symbol('.') & property > Property
 
-#TODO: These are not quite perfect... they don't allow for escaped quotes in the string.
-string_single_quote = Token(r"'[^']*'") > (lambda s: s[0][1:-1].replace('\\',''))
-string_double_quote = Token(r'"[^"]*"') > (lambda s: s[0][1:-1].replace('\\',''))
-
-string = string_single_quote | string_double_quote >> str
+string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'")
+string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"')
+string = string_single_quote | string_double_quote
 
 # tokens
 real_declaration = Token('real') >> (lambda real: str('float')) # c++ only has floats, not reals
