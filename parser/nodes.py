@@ -80,7 +80,7 @@ class NotEqual(namedtuple('NotEqual', ['left', 'right'])):
 
 class BooleanAnd(List):
   def to_cpp(self):
-    return "%(s && %s)" % cpp_tuple(self)
+    return "(%s && %s)" % cpp_tuple(self)
 
 class BooleanOr(List):
   def to_cpp(self):
