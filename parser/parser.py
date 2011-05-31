@@ -16,8 +16,8 @@ semi = symbol(';')
 comma = symbol(',')
 identifier_property = identifier & ~symbol('.') & property > Property
 
-string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'")
-string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"')
+string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'") >> (lambda obj: str(obj[1:-1]))
+string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"') >> (lambda obj: str(obj[1:-1]))
 string = string_single_quote | string_double_quote
 
 # tokens
@@ -129,11 +129,12 @@ data_print = ~symbol(':') & ~keyword('print') & ~symbol('(') & data_identifier &
 host_function_call += data_print
 
 ## Parallel functions
-parallel_random = data_identifier & ~symbol('=') & \
-                  ~symbol(':') & ~keyword('random') & ~symbol('(') & ~symbol(')') & ~semi > ParallelRandom
-parallel_reduce = variable_identifier & ~symbol('=') & \
-                  ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelReduce
-parallel_sort = ~symbol(':') & ~keyword('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelSort
+parallel_random = data_identifier & ~symbol('=') & ~symbol(':') & ~keyword('random') & ~symbol('(') & ~symbol(')') & ~semi > ParallelRandom
+
+parallel_reduce = variable_identifier & ~symbol('=') & ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelReduce
+
+parallel_sort   = data_identifier & ~symbol('=') & ~symbol(':') & ~keyword('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelSort
+
 genric_parallel_function_call = data_identifier & ~symbol('=') & ~symbol(':') & identifier & ~symbol('(') & expression_list & ~symbol(')') & ~semi > ParallelFunctionCall
 
 parallel_function_call += parallel_random | parallel_reduce | parallel_sort | genric_parallel_function_call

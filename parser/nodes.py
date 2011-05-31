@@ -273,9 +273,15 @@ class Print(List):
 
 
 random_template = """
+// A CPU-driven random function that fills the 2d data '%(data)s'.
 {
+  // Create host vector to hold the random numbers
   thrust::host_vector<%(type)s> randoms(%(data)s.width*%(data)s.height);
+
+  // Generate the random numbers
   thrust::generate(randoms.begin(), randoms.end(), rand);
+
+  // Copy data from CPU to GPU
   *%(data)s.mainData = randoms;
 }
 """
@@ -291,8 +297,14 @@ class ParallelRandom(List):
 
 
 reduce_template = """
+// Reducing '%(input_data)s' to the single value '%(output_variable)s'
+
+// To do this we first unpad our 2d array, %(input_data)s. Thrust then performs the hard work,
+// and the final output is copied back into the padded array %(output_variable)s.
 {
-  %(output_variable)s = thrust::reduce(%(input_data)s.mainData->begin(), %(input_data)s.mainData->end());
+  thrust::device_vector<%(type)s> *unpadded = %(input_data)s.unpadded();
+  int length = %(input_data)s.height * %(input_data)s.width;
+  %(output_variable)s = thrust::reduce(unpadded->begin(), unpadded->begin()+length);
 }
 """
 class ParallelReduce(List):
@@ -324,26 +336,41 @@ class ParallelReduce(List):
 
         else:
             return reduce_template % { 'input_data' : input.name,
-                                       'output_variable' : output.name }
+                                       'output_variable' : output.name,
+                                       'type' : type_map[input.type] }
 
 sort_template = """
+// Sorting '%(input_data)s' and placing it into '%(output_data)s'
+
+// To do this we first unpad our 2d array, %(input_data)s. Thrust then performs the hard work,
+// and the final output is copied back into the padded array %(output_data)s.
 {
-  thrust::reduce(%(data)s.mainData->begin(), %(data)s.mainData->end());
+  thrust::device_vector<%(type)s> *unpadded = %(input_data)s.unpadded();
+  int length = %(input_data)s.height * %(input_data)s.width;
+  thrust::sort(unpadded->begin(), unpadded->begin()+length);
+
+  %(output_data)s.loadWithUnpaddedData(*unpadded);
 }
 """
 class ParallelSort(List):
     def to_cpp(self):
         function = None
-        if len(self) == 1:
-            input = self[0]
-        elif len(self) == 2:
-            input, function = self
+
+        if len(self) == 2:
+            output, input = self
+        elif len(self) == 3:
+            output, input, function = self
         else:
             raise InternalException("Wrong list length to parallel sort")
 
         check_is_symbol(input)
+        check_is_symbol(output)
+
         input = symbolTable.lookup(input)
+        output = symbolTable.lookup(output)
+
         check_type(input, Data)
+        check_type(output, Data)
 
         #TODO: Actually use function
         if function:
@@ -354,12 +381,15 @@ class ParallelSort(List):
             return ''
 
         else:
-            return sort_template % { 'data' : input.name }
+            return sort_template % { 'input_data' : input.name,
+                                     'output_data' : output.name,
+                                     'type' : type_map[input.type] }
 
 
 map_template = """
 {
-    %(input_data)s.maybeWrap();
+    %(maybe_wraps)s
+
     Chestnut<%(type)s>::chestnut2dTupleIterator startIterator
         = Chestnut<%(type)s>::startIterator(%(input_data)s, %(output_data)s);
 
@@ -394,15 +424,20 @@ class ParallelFunctionCall(List):
         check_type(output, Data)
 
         variable_arguments = []
+        data_arguments = []
         for argument, parameter in zip(arguments, function.parameters):
             if not parameter.type == 'window':
                 variable_arguments.append(argument.to_cpp())
+            else:
+                data_arguments.append(argument.to_cpp())
 
-        #TODO: Fix for multiple source datas... requires tuple-stuffing
-        input_expression = arguments[0].to_cpp()
+
+        #TODO: the iterator creation depends on having one input and one output. Not always true, bah.
+        input_expression = data_arguments[0]
 
         return map_template % { 'input_data' : input_expression,
                                 'output_data' : output.name,
+                                'maybe_wraps' : '\n'.join(map(lambda data: '%s.maybeWrap();' % data, data_arguments)),
                                 'variable_arguments' : ','.join(variable_arguments),
                                 'type' : type_map[output.type],
                                 'function' : function.name }

@@ -178,6 +178,27 @@ struct Chestnut
         alternateData = &data2;
       }
     }
+
+    thrust::device_vector<T>* unpadded() {
+      // Start but ignore the padding
+      for (int row = 1; row < height-1; row++) {
+      int unpaddedOffset = (row-1)*(width-2);
+      int paddedOffset = row*width+1;
+      thrust::copy(mainData->begin()+paddedOffset, mainData->begin()+paddedOffset+width-2,
+                  alternateData->begin()+unpaddedOffset);
+      }
+
+      return alternateData;
+    }
+
+    void loadWithUnpaddedData(thrust::device_vector<T> &unpaddedData) {
+      // Start but ignore the padding
+      for (int row = 0; row < height-2; row++) {
+        int unpaddedOffset = row*(width-2);
+        int paddedOffset = (row+1)*width+1;
+        thrust::copy(unpaddedData.begin()+unpaddedOffset, unpaddedData.begin()+unpaddedOffset+width-2, mainData->begin()+paddedOffset);
+      }
+    }
   };
 
 
