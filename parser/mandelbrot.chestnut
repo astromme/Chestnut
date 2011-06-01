@@ -1,44 +1,36 @@
-// Mandelbrot algorithm taken almost verbatim from Wikipedia
-// http://en.wikipedia.org/wiki/Mandelbrot_set#Escape_time_algorithm
 parallel mandelbrot(window data, real xleft, real xright, real ytop, real ybottom) {
-  // x0 = scaled x co-ordinate of pixel (must be scaled to lie somewhere in the interval (-2.5 to 1)
-  real x0 = data.x/data.width;
-  //x0 = x0 * 3.5 - 2.5;
-  real xrange = xright - xleft;
-  x0 = x0 * xrange + xleft;
-
-  //y0 = scaled y co-ordinate of pixel (must be scaled to lie somewhere in the interval (-1, 1)
-  real y0 = data.y/data.height;
-  y0 = y0 * 2 - 1;
-  real yrange = ybottom - ytop;
-  y0 = y0 * yrange + ytop;
+  // Scale coordinates to be in the given window
+  real x0 = (data.x/data.width) * (xright - xleft) + xleft;
+  real y0 = (data.y/data.height) * (ytop - ybottom) + ybottom;
 
   real x = 0;
   real y = 0;
-
   int iteration = 0;
   int max_iteration = 1000;
 
-  while (x*x + y*y <= (2*2) && iteration < max_iteration) {
-    real xtemp = x*x - y*y + x0;
+  while (((x*x + y*y) <= (2*2)) && (iteration < max_iteration)) {
+    real xtemp = (x*x - y*y) + x0;
+
     y = 2*x*y + y0;
-
     x = xtemp;
-
     iteration = iteration + 1;
   }
 
   if (iteration == max_iteration)
-    return 0;
+    return 0;         // Failed to diverge -- in the set
   else
-    return iteration;
+    return iteration; // diverged in some number of iterations
 }
 
-int2d display(50, 50);
-display = :mandelbrot(display, -2.5, 1, -1, 1);
-:print(display);
-display = :mandelbrot(display, -2.5/2, 1/2, -1/2, 1/2);
-:print(display);
-display = :mandelbrot(display, -2.5/4, 1/4, -1/4, 1/4);
+real left = -2.5;
+real right = 1;
+real top = 1;
+real bottom = -1;
+
+int2d display(80, 50);
+
+display = :mandelbrot(display, left, right, top, bottom);
 :print(display);
 
+display = :mandelbrot(display, left/4-1, right/4-1, top/4-0.3, bottom/4-0.3);
+:print(display);

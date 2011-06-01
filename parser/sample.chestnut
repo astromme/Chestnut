@@ -60,18 +60,49 @@ parallel game_of_life(window) {
   return state;  
 }
 
+
+
+int raiseToPower(int a, int b) {
+  return a * b;
+}
+
+device int bigstuff(window a) {
+  return raiseToPower(a.left, a.right);
+}
+
+data = :raiseToPower(4, 5);
+
+:bigstuff(data);
+
+raiseToPower();
+
 //parallel(20, 40, game_of_life);
-int2d output(500, 500);// = random(20, 40);
+//int2d output(500, 500);// = random(20, 40);
 //int2d input(5000, 5000); 
 //data.wrap_around = true;
 
-:random(output);
-output = :map(output, mod_0_2);
+//:random(output);
+//output = :map(output, mod_0_2);
 //:print(output);
 
-int2d index(10, 5);
-index = :map(index, write_index);
-:print(index);
+//int2d index(10, 5);
+//index = :map(index, write_index);
+//:print(index);
+
+int2d life_data(10, 5);
+
+life_data = :random();
+life_data = :map(life_data, mod_0_2);
+:print(life_data);
+
+int iteration = 0;
+int iterations = 10000;
+while (iteration < iterations) {
+  print("Iteration %s of %s", iteration, iterations);
+  life_data = :map(life_data, game_of_life);
+  :print(life_data);
+  iteration = iteration + 1;
+}
 
 //int iteration = 0;
 //while (iteration < 10000) {
