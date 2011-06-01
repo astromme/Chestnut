@@ -70,10 +70,17 @@ div = group2 & ~symbol('/') & group3 > Div._make
 mod = group2 & ~symbol('%') & group3 > Mod._make
 group3 += mul | div | mod | group2
 
-# fourth layer, least tightly grouped, is addition
+# fourth layer, less tightly grouped, is addition
 add = group3 & ~symbol('+') & group4 > Add._make
 sub = group3 & ~symbol('-') & group4 > Sub._make
 group4 += add | sub | group3
+
+#group4end = Delayed()
+#add = ~symbol('+') & group3 & group4end > List
+#sub = ~symbol('-') & group3 & group4end > List
+#group4end += Optional(add | sub)
+#group4 += group3 & group4end > List
+
 
 less_than              = group4 & ~symbol('<')   & group5 > LessThan._make
 less_than_or_equal     = group4 & ~symbol('<') & ~symbol('=') & group5 > LessThanOrEqual._make
