@@ -8,5 +8,6 @@ set(sequential_sources
     )
 
 add_executable(mapreduce ${sequential_sources})
+add_executable(mandelbrot mandelbrot.cpp)
 
 #set(CMAKE_BUILD_TYPE RelWithDebInfo)
