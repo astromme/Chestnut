@@ -1,0 +1,5 @@
+sequential int hello() {
+	return 5;
+}
+
+print("Hello World says %s", hello());
