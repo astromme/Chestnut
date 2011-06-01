@@ -136,7 +136,8 @@ data_print = ~symbol(':') & ~keyword('print') & ~symbol('(') & data_identifier &
 host_function_call += data_print
 
 ## Parallel functions
-parallel_random = data_identifier & ~symbol('=') & ~symbol(':') & ~keyword('random') & ~symbol('(') & ~symbol(')') & ~semi > ParallelRandom
+min_value = max_value = integer
+parallel_random = data_identifier & ~symbol('=') & ~symbol(':') & ~keyword('random') & ~symbol('(') & Optional(min_value & ~comma & max_value) & ~symbol(')') & ~semi > ParallelRandom
 
 parallel_reduce = variable_identifier & ~symbol('=') & ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelReduce
 

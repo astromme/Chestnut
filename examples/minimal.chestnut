@@ -1,38 +1,12 @@
-function game_of_life(window) {
-  int neighbor_count = window.topLeft    + window.topCenter + window.topRight +
-                       window.left       + 0                + window.right +
-                       window.bottomLeft + window.bottom    + window.bottomRight;
+int2d unsorted(10, 5);
+unsorted = :random(80, 100);
 
-  int state;
-  int alive = window.center;
+int2d sorted(10, 5);
+sorted = :sort(unsorted);
 
-  if (alive) {
-    if (neighbor_count <= 1) {
-      state = 0; // dies from loneliness
-    } else if (neighbor_count >= 4) {
-      state = 0; // dies from overpopulation
-    } else {
-      state = 1; // lives
-    }
-  } else { // if dead
-    if (neighbor_count == 3) {
-      state = 1;
-    } else {
-      state = 0;
-    }
-  }
+int reduced;
+reduced = :reduce(sorted);
 
-  return state;
-}
-
-function shift_right(window) {
-  return window.left;
-}
-
-real2d data(20, 40) = random(20, 40);
-
-int iterations = 0;
-while (iterations < 10000) {
-  data = map(game_of_life, data);
-  iterations = iterations + 1;
-}
+:print(unsorted);
+:print(sorted);
+print("Reduced = %s", reduced);

@@ -317,18 +317,8 @@ class Print(List):
 
 
 
-random_template = """
-// A CPU-driven random function that fills the 2d data '%(data)s'.
-{
-  // Create host vector to hold the random numbers
-  thrust::host_vector<%(type)s> randoms(%(data)s.width*%(data)s.height);
-
-  // Generate the random numbers
-  thrust::generate(randoms.begin(), randoms.end(), rand);
-
-  // Copy data from CPU to GPU
-  *%(data)s.mainData = randoms;
-}
+random_template = """\
+%(data)s.randomize(%(limits)s);
 """
 class ParallelRandom(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -337,7 +327,13 @@ class ParallelRandom(List):
         input = symbolTable.lookup(input)
         check_type(input, Data)
 
+        if len(self) == 3:
+            limits = ', '.join(cpp_tuple(self[1:3]))
+        else:
+            limits = ''
+
         return random_template % { 'data' : input.name,
+                                   'limits' : limits,
                                    'type' : type_map[input.type] }
 
 
@@ -348,7 +344,7 @@ reduce_template = """
 // and the final output is copied back into the padded array %(output_variable)s.
 {
   thrust::device_vector<%(type)s> *unpadded = %(input_data)s.unpadded();
-  int length = %(input_data)s.height * %(input_data)s.width;
+  int length = (%(input_data)s.height-2) * (%(input_data)s.width-2);
   %(output_variable)s = thrust::reduce(unpadded->begin(), unpadded->begin()+length);
 }
 """
@@ -391,7 +387,7 @@ sort_template = """
 // and the final output is copied back into the padded array %(output_data)s.
 {
   thrust::device_vector<%(type)s> *unpadded = %(input_data)s.unpadded();
-  int length = %(input_data)s.height * %(input_data)s.width;
+  int length = (%(input_data)s.height-2) * (%(input_data)s.width-2);
   thrust::sort(unpadded->begin(), unpadded->begin()+length);
 
   %(output_data)s.loadWithUnpaddedData(*unpadded);

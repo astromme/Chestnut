@@ -8,6 +8,7 @@ preamble = """\
 #include <thrust/generate.h>
 #include <thrust/sort.h>
 #include <thrust/copy.h>
+#include <limits.h>
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
@@ -98,6 +99,21 @@ struct Chestnut
   // iterator for this information to be sent in correctly
   typedef typename thrust::zip_iterator<chestnut2dTuple> chestnut2dTupleIterator;
 
+
+  struct randoms_helper_functor {
+    int minValue;
+    int maxValue;
+
+    randoms_helper_functor(int minValue_, int maxValue_) : minValue(minValue_), maxValue(maxValue_) {}
+
+    __host__ __device__
+    void operator()(int &value)
+    {
+      value = (value % (maxValue - minValue)) + minValue;
+    }
+  };
+
+
   /*********************************************************
    * DeviceData contains two device vectors of the same size
    * and allows for the active one to be swapped at any time.
@@ -107,6 +123,7 @@ struct Chestnut
     DeviceData(int width_, int height_) : width(width_), height(height_),
     wrap(true) {
       int length = width*height;
+      srand(NULL);
 
       data1 = thrust::device_vector<T>(length);
       data2 = thrust::device_vector<T>(length);
@@ -140,6 +157,22 @@ struct Chestnut
 
     bool operator==(const DeviceData &other) const {
       return this->uid == other.uid;
+    }
+
+    // A CPU-driven random function that fills the data
+    void randomize(int minValue=0, int maxValue=INT_MAX) {
+      // Create host vector to hold the random numbers
+      thrust::host_vector<T> randoms(width*height);
+
+      // Generate the random numbers
+      thrust::generate(randoms.begin(), randoms.end(), rand);
+
+      // Copy data from CPU to GPU
+      *mainData = randoms;
+
+      thrust::for_each(mainData->begin(),
+                       mainData->end(),
+                       randoms_helper_functor(minValue, maxValue));
     }
 
     void maybeWrap() {
