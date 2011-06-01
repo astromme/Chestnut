@@ -17,7 +17,7 @@ Keyword = namedtuple('Keyword', ['name'])
 Variable = namedtuple('Variable', ['name', 'type'])
 Data = namedtuple('Data', ['name', 'type', 'width', 'height'])
 Array = namedtuple('Array', ['name', 'type'])
-SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters'])
+SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device'])
 ParallelFunction = namedtuple('ParallelFunction', ['name', 'parameters'])
 
 class EntryExistsError(Exception):
@@ -31,6 +31,7 @@ class Scope(dict):
     if entry.name in self:
         raise EntryExistsError(entry.name)
     self[entry.name] = entry
+    return entry
 
 class SymbolTable:
     def __init__(self):
@@ -47,7 +48,7 @@ class SymbolTable:
         return result
 
     def add(self, entry):
-        self.currentScope.add(entry)
+        return self.currentScope.add(entry)
 
     def createScope(self):
       self.table.insert(0, Scope())

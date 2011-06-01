@@ -1,18 +1,18 @@
 from lepl import *
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 from templates import *
 from symboltable import SymbolTable, Scope, Keyword, Variable, Data, ParallelFunction, SequentialFunction
 
 symbolTable = SymbolTable()
 
 #helpers so that we don't get errors about undefined to_cpp methods
-class str(str): to_cpp = lambda self: self
-class int(int): to_cpp = lambda self: str(self)
-class float(float): to_cpp = lambda self: str(self)
+class str(str): to_cpp = lambda self, env=None: self
+class int(int): to_cpp = lambda self, env=None: str(self)
+class float(float): to_cpp = lambda self, env=None: str(self)
 
 #helper to convert sub-members into strings
-def cpp_tuple(obj):
-  return tuple(map(lambda element: element.to_cpp(), obj))
+def cpp_tuple(obj, env=defaultdict(bool)):
+    return tuple(map(lambda element: element.to_cpp(env), obj))
 
 #helper functions to check for errors and to print them in a nice way
 class CompilerException(Exception): pass
@@ -35,98 +35,119 @@ def check_dimensions_are_equal(leftData, rightData):
 
 # Operators
 class Not(namedtuple('Not', ['value'])):
-  def to_cpp(self):
-    return "!%s" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "!%s" % cpp_tuple(self, env)
 class Neg(namedtuple('Neg', ['value'])):
-  def to_cpp(self):
-    return "-%s" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "-%s" % cpp_tuple(self, env)
 
 class Mul(namedtuple('Mul', ['left', 'right'])):
-  def to_cpp(self):
-    return "(%s * %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s * %s)" % cpp_tuple(self, env)
 class Div(namedtuple('Div', ['numerator', 'divisor'])):
-  def to_cpp(self):
-    return "((float)%s / %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "((float)%s / %s)" % cpp_tuple(self, env)
 class Mod(namedtuple('Mod', ['number', 'modder'])):
-  def to_cpp(self):
-    return "((int)%s %% %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "((int)%s %% %s)" % cpp_tuple(self, env)
 
 class Add(namedtuple('Add', ['left', 'right'])):
-  def to_cpp(self):
-    return "(%s + %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s + %s)" % cpp_tuple(self, env)
 class Sub(namedtuple('Sub', ['left', 'right'])):
-  def to_cpp(self):
-    return "(%s - %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s - %s)" % cpp_tuple(self, env)
 
 class LessThan(namedtuple('LessThan', ['left', 'right'])):
-  def to_cpp(self):
-    return "(%s < %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s < %s)" % cpp_tuple(self, env)
 class LessThanOrEqual(namedtuple('LessThanOrEqual', ['left', 'right'])):
-  def to_cpp(self):
-    return "(%s <= %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s <= %s)" % cpp_tuple(self, env)
 class GreaterThan(namedtuple('GreaterThan', ['left', 'right'])):
-  def to_cpp(self):
-    return "(%s > %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s > %s)" % cpp_tuple(self, env)
 class GreaterThanOrEqual(namedtuple('GreaterThanOrEqual', ['left', 'right'])):
-  def to_cpp(self):
-    return "(%s >= %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s >= %s)" % cpp_tuple(self, env)
 
 class Equal(namedtuple('Equal', ['left', 'right'])):
-  def to_cpp(self):
-    return "(%s == %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s == %s)" % cpp_tuple(self, env)
 class NotEqual(namedtuple('NotEqual', ['left', 'right'])):
-  def to_cpp(self):
-    return "(%s != %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s != %s)" % cpp_tuple(self, env)
 
 class BooleanAnd(List):
-  def to_cpp(self):
-    return "(%s && %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s && %s)" % cpp_tuple(self, env)
 
 class BooleanOr(List):
-  def to_cpp(self):
-    return "(%s || %s)" % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return "(%s || %s)" % cpp_tuple(self, env)
 
 class Assignment(List):
-  def to_cpp(self):
-    return '%s = %s' % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return '%s = %s' % cpp_tuple(self, env)
 # End Operators
 
 # Other structures
 class Program(List): pass
 
 class VariableDeclaration(List):
-  def to_cpp(self):
+  def to_cpp(self, env=defaultdict(bool)):
     type, name = self[0], self[1]
     symbolTable.add(Variable(name, type))
     if len(self) == 3: # we have an initialization
-      return '%s %s = %s;' % cpp_tuple(self)
+      return '%s %s = %s;' % cpp_tuple(self, env)
     else:
-      return '%s %s;' % cpp_tuple(self)
+      return '%s %s;' % cpp_tuple(self, env)
 
 
 class DataDeclaration(List):
-  def to_cpp(self):
+  def to_cpp(self, env=defaultdict(bool)):
     if len(self) == 2: #only name and type, no size or initialization
       type_, name = self
       symbolTable.add(Data(name, type_, 0, 0)) #TODO: fix to not have 0,0 for uninitialized
-      
+
     elif len(self) == 3: # adds a size
       type_, name, size = self
       symbolTable.add(Data(name, type_, size.width, size.height))
       return create_data(type_, name, size)
-    
+
     elif len(self) == 4: # adds an initialization
       type_, name, size, initialization = self
       symbolTable.add(Data(name, type, size.width, size.height))
       return 'thrust::device_vector<%(type)s> %(name)s(%(size)s) = %(init)s;' % { 'type' : type_map[type_],
                                                                                   'name' : name,
                                                                                   'size' : size.width*size.height,
-                                                                                  'init' : initialization.to_cpp() }
+                                                                                  'init' : initialization.to_cpp(env) }
 
+host_function_template = """\
+%(location)s%(type)s %(function_name)s(%(parameters)s) %(block)s
+"""
+class SequentialFunctionDeclaration(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        env = dict(env, sequential=True)
+        type_, name, parameters, block = self
+        symbolTable.add(SequentialFunction(name, type_, parameters, ok_for_device=True))
+        symbolTable.createScope()
+        for parameter in parameters:
+            symbolTable.add(Variable(name=parameter.name, type=parameter.type))
 
-class SequentialFunctionDeclaration(List): pass
+        environment = { 'function_name' : name,
+                        'type' : type_,
+                        'location' : '__host__ __device__\n',
+                        'parameters' : ', '.join(map(lambda param: '%s %s' % param, parameters)),
+                        'block' : block.to_cpp(env) }
+
+        host_function = host_function_template % environment
+
+        symbolTable.removeScope()
+        return host_function
+
 class ParallelFunctionDeclaration(List):
-    def to_cpp(self):
+    def to_cpp(self, env=defaultdict(bool)):
         name, parameters, block = self
         symbolTable.add(ParallelFunction(name, parameters))
         symbolTable.createScope()
@@ -140,28 +161,28 @@ class ParallelFunctionDeclaration(List):
 
 class Parameters(List): pass
 class Block(List):
-  def to_cpp(self):
+  def to_cpp(self, env=defaultdict(bool)):
     symbolTable.createScope()
-    cpp = '{\n' + '\n'.join(cpp_tuple(self)) + '\n}'
+    cpp = '{\n' + '\n'.join(cpp_tuple(self, env)) + '\n}'
     symbolTable.removeScope()
     return cpp
 
 class Initialization(List):
-  def to_cpp(self):
-    return ''.join(cpp_tuple(self))
+  def to_cpp(self, env=defaultdict(bool)):
+    return ''.join(cpp_tuple(self, env))
 
 class SequentialPrint(List):
-    def to_cpp(self):
-        num_format_placeholders = self[0].to_cpp().count('%s')
+    def to_cpp(self, env=defaultdict(bool)):
+        num_format_placeholders = self[0].to_cpp(env).count('%s')
         num_args = len(self)-1
 
         if num_format_placeholders != num_args:
             raise CompilerException("Error, there are %s format specifiers but %s arguments to print()" % \
                     (num_format_placeholders, num_args))
-        format_substrings = self[0].to_cpp().split('%s')
+        format_substrings = self[0].to_cpp(env).split('%s')
 
         code = 'std::cout'
-        for substring, placeholder in zip(format_substrings[:-1], cpp_tuple(self[1:])):
+        for substring, placeholder in zip(format_substrings[:-1], cpp_tuple(self[1:], env)):
             code += ' << "%s"' % substring
             code += ' << %s' % placeholder
         code += ' << "%s" << std::endl' % format_substrings[-1]
@@ -169,17 +190,37 @@ class SequentialPrint(List):
         return code
 
 
-class SequentialFunctionCall(List): pass
+sequential_function_call_template = """\
+%(function_name)s(%(arguments)s)
+"""
+class SequentialFunctionCall(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        function = self[0]
+        arguments = self[1:][0]
+
+        check_is_symbol(function)
+        function = symbolTable.lookup(function)
+        check_type(function, SequentialFunction)
+
+        if not len(arguments) == len(function.parameters):
+            print arguments
+            raise CompilerException("Error, parallel function ':%s' takes %s parameters but %s were given" % \
+                    (function.name, len(function.parameters), len(arguments)))
+
+
+        return sequential_function_call_template % { 'function_name' : function.name,
+                                                     'arguments' : ', '.join(cpp_tuple(arguments, env)) }
+
 
 class Size(namedtuple('Size', ['width', 'height'])): pass
 
 class Parameter(namedtuple('Parameter', ['type', 'name'])): pass
 class Statement(List):
-  def to_cpp(self):
-    return ''.join(cpp_tuple(self)) + ';'
+  def to_cpp(self, env=defaultdict(bool)):
+    return ''.join(cpp_tuple(self, env)) + ';'
 class Expressions(List):
-  def to_cpp(self):
-    return ''.join(cpp_tuple(self))
+  def to_cpp(self, env=defaultdict(bool)):
+    return ''.join(cpp_tuple(self, env))
 
 # int index = thrust::get<2>(t);
 # int paddedWidth = thrust::get<3>(t);
@@ -211,7 +252,7 @@ coordinates = {
                }
 
 class Property(List):
-    def to_cpp(self):
+    def to_cpp(self, env=defaultdict(bool)):
         check_is_symbol(self[0])
         symbol = symbolTable.lookup(self[0])
         check_type(symbol, Variable) #TODO: Support Data properties
@@ -223,23 +264,27 @@ class Property(List):
             raise Exception
 
 class Return(List):
-  def to_cpp(self):
-    return '{ thrust::get<0>(t) = %s;\nreturn; }' % cpp_tuple(self)
+    def to_cpp(self, env=defaultdict(bool)):
+        if env['sequential']:
+            return 'return %s;' % self[0].to_cpp(env)
+        else:
+            return '{ thrust::get<0>(t) = %s;\nreturn; }' % self[0].to_cpp(env)
+
 class Break(List):
-  def to_cpp(self):
+  def to_cpp(self, env=defaultdict(bool)):
     return 'break;'
 class If(List):
-  def to_cpp(self):
+  def to_cpp(self, env=defaultdict(bool)):
     if len(self) == 2: # simple if (condition) {statement}
-      return 'if (%s) %s' % cpp_tuple(self)
+      return 'if (%s) %s' % cpp_tuple(self, env)
     elif len(self) == 3: # full if (condition) {statement} else {statement}
-      return 'if (%s) %s else %s' % cpp_tuple(self)
+      return 'if (%s) %s else %s' % cpp_tuple(self, env)
     else:
       raise Exception("Wrong type of if statement with %s length" % len(self))
 
 class While(List):
-  def to_cpp(self):
-    return 'while (%s) %s' % cpp_tuple(self)
+  def to_cpp(self, env=defaultdict(bool)):
+    return 'while (%s) %s' % cpp_tuple(self, env)
 
 
 class Read(List): pass
@@ -257,7 +302,7 @@ print_template = """
 }
 """
 class Print(List):
-    def to_cpp(self):
+    def to_cpp(self, env=defaultdict(bool)):
         data = self[0]
         check_is_symbol(data)
         data = symbolTable.lookup(data)
@@ -286,7 +331,7 @@ random_template = """
 }
 """
 class ParallelRandom(List):
-    def to_cpp(self):
+    def to_cpp(self, env=defaultdict(bool)):
         input = self[0]
         check_is_symbol(input)
         input = symbolTable.lookup(input)
@@ -308,7 +353,7 @@ reduce_template = """
 }
 """
 class ParallelReduce(List):
-    def to_cpp(self):
+    def to_cpp(self, env=defaultdict(bool)):
         function = None
         if len(self) == 2:
             output, input = self
@@ -353,7 +398,7 @@ sort_template = """
 }
 """
 class ParallelSort(List):
-    def to_cpp(self):
+    def to_cpp(self, env=defaultdict(bool)):
         function = None
 
         if len(self) == 2:
@@ -400,13 +445,12 @@ map_template = """
     thrust::for_each(startIterator, endIterator, %(function)s_functor(%(variable_arguments)s));
 
     if (%(input_data)s == %(output_data)s) {
-        //std::cout << "%(input_data)s == %(output_data)s, swapping" << std::endl;
         %(input_data)s.swap();
     }
 }
 """
 class ParallelFunctionCall(List):
-    def to_cpp(self):
+    def to_cpp(self, env=defaultdict(bool)):
         output, function = self[0:2]
         arguments = self[2:][0]
 
@@ -427,9 +471,9 @@ class ParallelFunctionCall(List):
         data_arguments = []
         for argument, parameter in zip(arguments, function.parameters):
             if not parameter.type == 'window':
-                variable_arguments.append(argument.to_cpp())
+                variable_arguments.append(argument.to_cpp(env))
             else:
-                data_arguments.append(argument.to_cpp())
+                data_arguments.append(argument.to_cpp(env))
 
 
         #TODO: the iterator creation depends on having one input and one output. Not always true, bah.
@@ -441,4 +485,4 @@ class ParallelFunctionCall(List):
                                 'variable_arguments' : ','.join(variable_arguments),
                                 'type' : type_map[output.type],
                                 'function' : function.name }
-      
+

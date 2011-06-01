@@ -112,7 +112,7 @@ initialization = ~symbol('=') & expression > Initialization
 
 variable_declaration = type_ & identifier & Optional(initialization) & ~semi > VariableDeclaration
 data_declaration = data_type & identifier & size & Optional(initialization) & ~semi > DataDeclaration
-sequential_function_declaration = ~Token('sequential') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > SequentialFunctionDeclaration
+sequential_function_declaration = ~Token('sequential') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > SequentialFunctionDeclaration
 parallel_function_declaration = ~Token('parallel') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
 
 #Built-in Sequential functions

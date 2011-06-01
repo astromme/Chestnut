@@ -31,7 +31,7 @@ static void printFullArray2D(const thrust::host_vector<T> &vector, int width, in
   for (int y=0; y<height; y++) {
     for (int x=0; x<width; x++) {
       int i = y*width + x;
-      std::cout << ((vector[i] == 0) ? "." : stringFromInt(vector[i])) << " ";
+      std::cout << ((vector[i] == 0) ? "." : vector[i]) << " ";
     }
     std::cout << std::endl;
   }

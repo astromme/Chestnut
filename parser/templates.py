@@ -59,8 +59,13 @@ def create_device_function(function_node):
   return device_function_template % environment
 
 
-type_map = { 'real2d' : 'float',
-             'int2d' : 'int' }
+
+type_map = { 'real' : 'float',
+             'int' : 'int',
+             'real2d' : 'float',
+             'int2d' : 'int',
+             'void' : 'void' }
+
 data_template = """\
 Chestnut<%(type)s>::DeviceData %(name)s(%(width)s, %(height)s);
 """
