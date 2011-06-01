@@ -1,0 +1,43 @@
+// simple modulus in parallel
+parallel mod_0_2(window element) {
+  return element.center % 2;
+}
+// chestnut game of life implementation
+parallel game_of_life(window element) {
+  int neighbor_count = element.topLeft    + element.top       + element.topRight +
+                       element.left       + 0                 + element.right +
+                       element.bottomLeft + element.bottom    + element.bottomRight;
+  int state;
+  int alive = element.center;
+
+  if (alive) {
+    if (neighbor_count <= 1) {
+      state = 0; // dies from loneliness
+    } else if (neighbor_count >= 4) {
+      state = 0; // dies from overpopulation
+    } else {
+      state = 1; // lives
+    }
+  } else { // if dead
+    if (neighbor_count == 3) {
+      state = 1; // perfect conditions
+    } else {
+      state = 0; // stays dead
+    }
+  }
+  return state;  
+}
+// 2d data array of width 1000, height 1000 for storage
+int2d life_data(1000, 1000);
+
+life_data = :random();           // Initialize to random data
+life_data = :mod_0_2(life_data); // Random 0s and 1s 
+
+int iteration = 0;
+int iterations = 10000;
+// Run 10,000 iterations of this game of life
+while (iteration < iterations) {
+  life_data = :game_of_life(life_data); // Parallel function call
+  iteration = iteration + 1;
+}
+

@@ -1,0 +1,16 @@
+parallel mod_100(window element) {
+  return element.center % 100;
+}
+
+int2d unsorted(10, 10);
+unsorted = :random();
+unsorted = :mod_100(unsorted);
+
+int2d sorted(10, 10);
+sorted = :sort(unsorted);
+
+print('Unsorted Array:');
+:print(unsorted);
+print('Sorted Array:');
+:print(sorted);
+
