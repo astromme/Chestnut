@@ -154,7 +154,7 @@ class SequentialFunctionDeclaration(List):
 class ParallelFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
         name, parameters, block = self
-        symbolTable.add(ParallelFunction(name, parameters))
+        symbolTable.add(ParallelFunction(name, parameters, self))
         symbolTable.createScope()
         for parameter in parameters:
             symbolTable.add(Variable(name=parameter.name, type=parameter.type))

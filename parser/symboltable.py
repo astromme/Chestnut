@@ -1,4 +1,5 @@
 from collections import namedtuple
+import numpy
 
 # Keywords supported by chestnut syntax
 # These are added to the symbol table
@@ -12,13 +13,41 @@ keywords = ['int',
             'break',
             ]
 
+numpy_type_map = { 'int2d' : numpy.int32,
+                   'real2d' : numpy.float32 }
+
 
 Keyword = namedtuple('Keyword', ['name'])
-Variable = namedtuple('Variable', ['name', 'type'])
-Data = namedtuple('Data', ['name', 'type', 'width', 'height'])
-Array = namedtuple('Array', ['name', 'type'])
-SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device'])
-ParallelFunction = namedtuple('ParallelFunction', ['name', 'parameters'])
+SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device', 'node'])
+ParallelFunction = namedtuple('ParallelFunction', ['name', 'parameters', 'node'])
+
+class Variable(namedtuple('Variable', ['name', 'type'])):
+    @property
+    def value(self):
+        try:
+            return _value
+        except AttributeError:
+            raise UninitializedError('Variable %s was accessed before it was initialized')
+    @value.setter
+    def value(self, new_value):
+        _value = new_value
+
+class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
+    def __create(self):
+        _array = numpy.zeros((width, height), dtype=numpy_type_map[self.type])
+    def value(self, x, y):
+        try:
+            return _array[x, y]
+        except AttributeError:
+            __create()
+            return _array[x, y]
+    def setValue(self, x, y, value):
+        try:
+            _array[x, y] = value
+        except AttributeError:
+            __create()
+            _array[x, y] = value
+
 
 class EntryExistsError(Exception):
   def __init__(self, name):
