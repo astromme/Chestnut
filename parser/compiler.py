@@ -160,7 +160,7 @@ struct Chestnut
     }
 
     // A CPU-driven random function that fills the data
-    void randomize(int minValue=0, int maxValue=INT_MAX) {
+    void randomize(int minValue, int maxValue) {
       // Create host vector to hold the random numbers
       thrust::host_vector<T> randoms(width*height);
 
@@ -174,6 +174,11 @@ struct Chestnut
                        mainData->end(),
                        randoms_helper_functor(minValue, maxValue));
     }
+
+    void randomize(int maxValue=INT_MAX) {
+      randomize(0, maxValue);
+    }
+
 
     void maybeWrap() {
       if (!wrap) {

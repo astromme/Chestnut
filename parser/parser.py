@@ -54,6 +54,7 @@ group2, group3, group4, group5, group6, group7, group8 \
 expression = Delayed()
 primary = Delayed()
 parallel_function_call = Delayed()
+parallel_assignment = Delayed()
 host_function_call = Delayed()
 
 # first layer, most tightly grouped, is parens and numbers
@@ -108,7 +109,7 @@ return_ = ~keyword('return') & expression & ~semi > Return
 break_ =  ~keyword('break') & ~semi > Break
 if_ =     ~keyword('if') & ~symbol('(') & expression & ~symbol(')') & statement & Optional(~keyword('else') & statement) > If
 while_ =  ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & statement > While
-statement += ~semi | parallel_function_call | host_function_call | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
+statement += ~semi | parallel_assignment | host_function_call | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
 parameter_declaration = (type_ | keyword('window')) & identifier > Parameter._make
@@ -116,9 +117,10 @@ parameter_declaration = (type_ | keyword('window')) & identifier > Parameter._ma
 parameter_declaration_list = parameter_declaration[0:, ~comma] > Parameters
 
 initialization = ~symbol('=') & expression > VariableInitialization
+data_initialization = ~symbol('=') & parallel_function_call > DataInitialization
 
-variable_declaration = type_ & identifier & Optional(initialization) & ~semi > VariableDeclaration
-data_declaration = data_type & identifier & size & Optional(initialization) & ~semi > DataDeclaration
+variable_declaration = type_ & identifier & Optional(initialization | data_initialization) & ~semi > VariableDeclaration
+data_declaration = data_type & identifier & size & Optional(data_initialization) & ~semi > DataDeclaration
 sequential_function_declaration = ~Token('sequential') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > SequentialFunctionDeclaration
 parallel_function_declaration = ~Token('parallel') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
 
@@ -137,15 +139,16 @@ host_function_call += data_print
 
 ## Parallel functions
 min_value = max_value = integer
-parallel_random = data_identifier & ~symbol('=') & ~symbol(':') & ~keyword('random') & ~symbol('(') & Optional(min_value & ~comma & max_value) & ~symbol(')') & ~semi > ParallelRandom
+parallel_random = ~symbol(':') & ~keyword('random') & ~symbol('(') & Optional(min_value & ~comma & max_value) & ~symbol(')') > ParallelRandom
 
-parallel_reduce = variable_identifier & ~symbol('=') & ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelReduce
+parallel_reduce = ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > ParallelReduce
 
-parallel_sort   = data_identifier & ~symbol('=') & ~symbol(':') & ~keyword('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') & ~semi > ParallelSort
+parallel_sort   =  ~symbol(':') & ~keyword('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > ParallelSort
 
-genric_parallel_function_call = data_identifier & ~symbol('=') & ~symbol(':') & identifier & ~symbol('(') & expression_list & ~symbol(')') & ~semi > ParallelFunctionCall
+genric_parallel_function_call = ~symbol(':') & identifier & ~symbol('(') & expression_list & ~symbol(')') > ParallelFunctionCall
 
 parallel_function_call += parallel_random | parallel_reduce | parallel_sort | genric_parallel_function_call
+parallel_assignment += data_identifier & ~symbol('=') & parallel_function_call & ~semi > ParallelAssignment
 
 ## Now we can define the last bits
 block += ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > Block

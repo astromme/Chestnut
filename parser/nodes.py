@@ -118,11 +118,9 @@ class DataDeclaration(List):
 
     elif len(self) == 4: # adds an initialization
       type_, name, size, initialization = self
-      symbolTable.add(Data(name, type, size.width, size.height))
-      return 'thrust::device_vector<%(type)s> %(name)s(%(size)s) = %(init)s;' % { 'type' : type_map[type_],
-                                                                                  'name' : name,
-                                                                                  'size' : size.width*size.height,
-                                                                                  'init' : initialization.to_cpp(env) }
+      symbolTable.add(Data(name, type_, size.width, size.height))
+      env = dict(env, data_to_assign=name)
+      return '%s\n %s' % (create_data(type_, name, size), initialization.to_cpp(env))
 
 host_function_template = """\
 %(location)s%(type)s %(function_name)s(%(parameters)s) %(block)s
@@ -170,7 +168,11 @@ class Block(List):
 
 class VariableInitialization(List):
   def to_cpp(self, env=defaultdict(bool)):
-    return '%s = %s;' % (env['variable_to_assign'], ''.join(cpp_tuple(self, env)))
+    return '%s = %s;' % (env['variable_to_assign'], self[0].cpp_tuple(env))
+
+class DataInitialization(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        return self[0].to_cpp(env)
 
 class SequentialPrint(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -317,25 +319,31 @@ class Print(List):
 
 
 
+class ParallelAssignment(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        env = dict(env, data_to_assign=self[0])
+        return self[1].to_cpp(env)
 
 random_template = """\
 %(data)s.randomize(%(limits)s);
 """
 class ParallelRandom(List):
     def to_cpp(self, env=defaultdict(bool)):
-        input = self[0]
-        check_is_symbol(input)
-        input = symbolTable.lookup(input)
-        check_type(input, Data)
+        output = env['data_to_assign']
+        if not output:
+            raise InternalException("The environment '%s' doesn't have a 'data_to_assign' variable set" % env)
+        check_is_symbol(output)
+        output = symbolTable.lookup(output)
+        check_type(output, Data)
 
-        if len(self) == 3:
-            limits = ', '.join(cpp_tuple(self[1:3]))
+        if len(self) == 2:
+            limits = ', '.join(cpp_tuple(self[0:2]))
         else:
             limits = ''
 
-        return random_template % { 'data' : input.name,
+        return random_template % { 'data' : output.name,
                                    'limits' : limits,
-                                   'type' : type_map[input.type] }
+                                   'type' : type_map[output.type] }
 
 
 reduce_template = """
@@ -352,10 +360,14 @@ reduce_template = """
 class ParallelReduce(List):
     def to_cpp(self, env=defaultdict(bool)):
         function = None
-        if len(self) == 2:
-            output, input = self
-        elif len(self) == 3:
-            output, input, function = self
+        output = env['variable_to_assign']
+        if not output:
+            raise InternalException("The environment '%s' doesn't have a 'data_to_assign' variable set" % env)
+
+        if len(self) == 1:
+            input = self[0]
+        elif len(self) == 2:
+            input, function = self
         else:
             raise InternalException("Wrong list length to parallel reduce")
 
@@ -397,11 +409,14 @@ sort_template = """
 class ParallelSort(List):
     def to_cpp(self, env=defaultdict(bool)):
         function = None
+        output = env['data_to_assign']
+        if not output:
+            raise InternalException("The environment '%s' doesn't have a 'data_to_assign' variable set" % env)
 
-        if len(self) == 2:
-            output, input = self
-        elif len(self) == 3:
-            output, input, function = self
+        if len(self) == 1:
+            input = self[0]
+        elif len(self) == 2:
+            input, function = self
         else:
             raise InternalException("Wrong list length to parallel sort")
 
@@ -448,8 +463,12 @@ map_template = """
 """
 class ParallelFunctionCall(List):
     def to_cpp(self, env=defaultdict(bool)):
-        output, function = self[0:2]
-        arguments = self[2:][0]
+        output = env['data_to_assign']
+        if not output:
+            raise InternalException("The environment '%s' doesn't have a 'data_to_assign' variable set" % env)
+
+        function = self[0]
+        arguments = self[1:][0]
 
         check_is_symbol(function)
         function = symbolTable.lookup(function)
