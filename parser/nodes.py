@@ -30,6 +30,11 @@ def indent(code, indent_first_line=True):
 class CompilerException(Exception): pass
 class InternalException(Exception): pass
 
+#helper functions to emulate return, break
+class InterpreterException(Exception): pass
+class InterpreterReturn(Exception): pass
+class InterpreterBreak(Exception): pass
+
 def check_is_symbol(name):
     if not symbolTable.lookup(name):
         raise CompilerException("Error, the symbol '%s' was used but it hasn't been declared yet" % name)
@@ -284,6 +289,12 @@ class SequentialFunctionCall(List):
         return sequential_function_call_template % { 'function_name' : function.name,
                                                      'arguments' : ', '.join(cpp_tuple(arguments, env)) }
 
+    def evaluate(self, env):
+        try:
+            pass
+        except InterpreterBreak:
+            raise InterpreterException('Error: caught break statement outside of a loop in function %s', function.name)
+
 
 class Size(namedtuple('Size', ['width', 'height'])): pass
 
@@ -348,21 +359,48 @@ class Return(List):
             return '{ // Returning from device function requires 2 steps\n' + indent('thrust::get<0>(t) = %s;\nreturn;' % self[0].to_cpp(env)) + '\n}'
 
 class Break(List):
-  def to_cpp(self, env=defaultdict(bool)):
-    return 'break;'
+    def to_cpp(self, env=defaultdict(bool)):
+        return 'break;'
+    def evaluate(self, env):
+        raise InterpreterBreak
+
 class If(List):
-  def to_cpp(self, env=defaultdict(bool)):
-    if len(self) == 2: # simple if (condition) {statement}
-      return 'if (%s) %s' % cpp_tuple(self, env)
-    elif len(self) == 3: # full if (condition) {statement} else {statement}
-      return 'if (%s) %s else %s' % cpp_tuple(self, env)
-    else:
-      raise Exception("Wrong type of if statement with %s length" % len(self))
+    def to_cpp(self, env=defaultdict(bool)):
+        if len(self) == 2: # simple if (condition) {statement}
+          return 'if (%s) %s' % cpp_tuple(self, env)
+        elif len(self) == 3: # full if (condition) {statement} else {statement}
+          return 'if (%s) %s else %s' % cpp_tuple(self, env)
+        else:
+          raise InternalException("Wrong type of if statement with %s length" % len(self))
+    def evaluate(self, env):
+        if len(self) == 2: # simple if (condition) {statement}
+            condition, statement = self
+            if condition.evaluate(env):
+                statement.evaluate(env)
+        elif len(self) == 3: # full if (condition) {statement} else {statement}
+            condition, if_statement, else_statement
+            if condition.evaluate(env):
+                if_statement.evaluate(env)
+            else:
+                else_statement.evaluate(env)
+
+        else:
+          raise InternalException("Wrong type of if statement with %s length" % len(self))
+
 
 class While(List):
-  def to_cpp(self, env=defaultdict(bool)):
-    return 'while (%s) %s' % cpp_tuple(self, env)
-
+    def to_cpp(self, env=defaultdict(bool)):
+        return 'while (%s) %s' % cpp_tuple(self, env)
+    def evaluate(self, env):
+        expression, statement = self
+        while (True):
+            result = expression.evaluate(env)
+            if not result:
+                break
+            try:
+                statement.evaluate(env)
+            except InterpreterBreak:
+                break
 
 class Read(List): pass
 class Write(List): pass
