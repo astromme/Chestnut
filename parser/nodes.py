@@ -14,6 +14,12 @@ class float(float): to_cpp = lambda self, env=None: str(self)
 def cpp_tuple(obj, env=defaultdict(bool)):
     return tuple(map(lambda element: element.to_cpp(env), obj))
 
+#helper to do nice code indenting
+def indent(code, indent_first_line=True):
+    if indent_first_line:
+        code = '  ' + code
+    return code.replace('\n', '\n  ')
+
 #helper functions to check for errors and to print them in a nice way
 class CompilerException(Exception): pass
 class InternalException(Exception): pass
@@ -99,7 +105,7 @@ class VariableDeclaration(List):
         type, name = self[0], self[1]
         symbolTable.add(Variable(name, type))
         if len(self) == 3: # we have an initialization
-            env = dict(env, variable_to_assign=name)
+            env = defaultdict(bool, variable_to_assign=name)
             return '%s %s;\n%s' % cpp_tuple(self, env)
         else:
             return '%s %s;' % cpp_tuple(self, env)
@@ -119,7 +125,7 @@ class DataDeclaration(List):
     elif len(self) == 4: # adds an initialization
       type_, name, size, initialization = self
       symbolTable.add(Data(name, type_, size.width, size.height))
-      env = dict(env, data_to_assign=name)
+      env = defaultdict(bool, data_to_assign=name)
       return '%s\n %s' % (create_data(type_, name, size), initialization.to_cpp(env))
 
 host_function_template = """\
@@ -127,7 +133,7 @@ host_function_template = """\
 """
 class SequentialFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
-        env = dict(env, sequential=True)
+        env = defaultdict(bool, sequential=True)
         type_, name, parameters, block = self
         symbolTable.add(SequentialFunction(name, type_, parameters, ok_for_device=True))
         symbolTable.createScope()
@@ -162,13 +168,13 @@ class Parameters(List): pass
 class Block(List):
   def to_cpp(self, env=defaultdict(bool)):
     symbolTable.createScope()
-    cpp = '{\n' + '\n'.join(cpp_tuple(self, env)) + '\n}'
+    cpp = '{\n' + indent('\n'.join(cpp_tuple(self, env))) + '\n}'
     symbolTable.removeScope()
     return cpp
 
 class VariableInitialization(List):
   def to_cpp(self, env=defaultdict(bool)):
-    return '%s = %s;' % (env['variable_to_assign'], self[0].cpp_tuple(env))
+    return '%s = %s;' % (env['variable_to_assign'], self[0].to_cpp(env))
 
 class DataInitialization(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -271,7 +277,7 @@ class Return(List):
         if env['sequential']:
             return 'return %s;' % self[0].to_cpp(env)
         else:
-            return '{ thrust::get<0>(t) = %s;\nreturn; }' % self[0].to_cpp(env)
+            return '{ // Returning from device function requires 2 steps\n' + indent('thrust::get<0>(t) = %s;\nreturn;' % self[0].to_cpp(env)) + '\n}'
 
 class Break(List):
   def to_cpp(self, env=defaultdict(bool)):
@@ -321,7 +327,7 @@ class Print(List):
 
 class ParallelAssignment(List):
     def to_cpp(self, env=defaultdict(bool)):
-        env = dict(env, data_to_assign=self[0])
+        env = defaultdict(bool, data_to_assign=self[0])
         return self[1].to_cpp(env)
 
 random_template = """\

@@ -1,31 +1,20 @@
 def pad(value):
   return value+2
 
+#helper to do nice code indenting.. duplicated in nodes, yuck
+def indent(code, indent_first_line=True):
+    if indent_first_line:
+        code = '  ' + code
+    return code.replace('\n', '\n  ')
+
 device_function_template = """\
 struct %(function_name)s_functor
 {
     %(struct_members)s
-
     %(function_name)s_functor(%(static_variables)s) %(variable_initializations)s {}
-
     template <typename Tuple>
     __host__ __device__
-    void operator()(Tuple t)
-    {
-      /*
-      int index = thrust::get<2>(t);
-      int paddedWidth = thrust::get<3>(t);
-      int paddedHeight = thrust::get<4>(t);
-
-      int x = index %% paddedWidth - 1; // -1 for padding
-      int y = index / paddedWidth - 1;
-
-      int width = paddedWidth - 2;
-      int height = paddedHeight - 2;
-      */
-
-      %(function_body)s
-    }
+    void operator()(Tuple t) %(function_body)s
 };
 """
 def create_device_function(function_node):
@@ -51,7 +40,7 @@ def create_device_function(function_node):
 
 
   environment = { 'function_name' : name,
-                  'function_body' : block.to_cpp(),
+                  'function_body' : indent(block.to_cpp(), indent_first_line=False),
                   'struct_members' : struct_members,
                   'static_variables' : ', '.join(map(lambda tup: "%s %s" % tup, zip(static_types, underscore_vars))),
                   'variable_initializations' : variable_initializations }

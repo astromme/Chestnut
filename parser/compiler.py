@@ -456,7 +456,7 @@ __global__ void copyWrapAroundAreas(T *array, int width, int height) {
 main_template = """\
 int main(void)
 {
-  %(main_code)s
+%(main_code)s
 
   return 0;
 }
@@ -491,7 +491,7 @@ def compile(ast):
     else:
       main_function_statements.append(program_node.to_cpp())
 
-  main_function = main_template % { 'main_code' : '\n'.join(main_function_statements) }
+  main_function = main_template % { 'main_code' : indent('\n'.join(main_function_statements)) }
 
   thrust_code = preamble + '\n'.join(functions) + main_function
   return thrust_code
