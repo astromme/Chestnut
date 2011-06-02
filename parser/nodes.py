@@ -41,60 +41,60 @@ def check_dimensions_are_equal(leftData, rightData):
 
 # Operators
 class Not(namedtuple('Not', ['value'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "!%s" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "!%s" % cpp_tuple(self, env)
 class Neg(namedtuple('Neg', ['value'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "-%s" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "-%s" % cpp_tuple(self, env)
 
 class Mul(namedtuple('Mul', ['left', 'right'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s * %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s * %s)" % cpp_tuple(self, env)
 class Div(namedtuple('Div', ['numerator', 'divisor'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "((float)%s / %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "((float)%s / %s)" % cpp_tuple(self, env)
 class Mod(namedtuple('Mod', ['number', 'modder'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "((int)%s %% %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "((int)%s %% %s)" % cpp_tuple(self, env)
 
 class Add(namedtuple('Add', ['left', 'right'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s + %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s + %s)" % cpp_tuple(self, env)
 class Sub(namedtuple('Sub', ['left', 'right'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s - %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s - %s)" % cpp_tuple(self, env)
 
 class LessThan(namedtuple('LessThan', ['left', 'right'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s < %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s < %s)" % cpp_tuple(self, env)
 class LessThanOrEqual(namedtuple('LessThanOrEqual', ['left', 'right'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s <= %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s <= %s)" % cpp_tuple(self, env)
 class GreaterThan(namedtuple('GreaterThan', ['left', 'right'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s > %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s > %s)" % cpp_tuple(self, env)
 class GreaterThanOrEqual(namedtuple('GreaterThanOrEqual', ['left', 'right'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s >= %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s >= %s)" % cpp_tuple(self, env)
 
 class Equal(namedtuple('Equal', ['left', 'right'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s == %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s == %s)" % cpp_tuple(self, env)
 class NotEqual(namedtuple('NotEqual', ['left', 'right'])):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s != %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s != %s)" % cpp_tuple(self, env)
 
 class BooleanAnd(List):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s && %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s && %s)" % cpp_tuple(self, env)
 
 class BooleanOr(List):
-  def to_cpp(self, env=defaultdict(bool)):
-    return "(%s || %s)" % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s || %s)" % cpp_tuple(self, env)
 
 class Assignment(List):
-  def to_cpp(self, env=defaultdict(bool)):
-    return '%s = %s' % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        return '%s = %s' % cpp_tuple(self, env)
 # End Operators
 
 # Other structures
