@@ -95,13 +95,14 @@ class Assignment(List):
 class Program(List): pass
 
 class VariableDeclaration(List):
-  def to_cpp(self, env=defaultdict(bool)):
-    type, name = self[0], self[1]
-    symbolTable.add(Variable(name, type))
-    if len(self) == 3: # we have an initialization
-      return '%s %s = %s;' % cpp_tuple(self, env)
-    else:
-      return '%s %s;' % cpp_tuple(self, env)
+    def to_cpp(self, env=defaultdict(bool)):
+        type, name = self[0], self[1]
+        symbolTable.add(Variable(name, type))
+        if len(self) == 3: # we have an initialization
+            env = dict(env, variable_to_assign=name)
+            return '%s %s;\n%s' % cpp_tuple(self, env)
+        else:
+            return '%s %s;' % cpp_tuple(self, env)
 
 
 class DataDeclaration(List):
@@ -167,9 +168,9 @@ class Block(List):
     symbolTable.removeScope()
     return cpp
 
-class Initialization(List):
+class VariableInitialization(List):
   def to_cpp(self, env=defaultdict(bool)):
-    return ''.join(cpp_tuple(self, env))
+    return '%s = %s;' % (env['variable_to_assign'], ''.join(cpp_tuple(self, env)))
 
 class SequentialPrint(List):
     def to_cpp(self, env=defaultdict(bool)):

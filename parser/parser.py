@@ -115,7 +115,7 @@ parameter_declaration = (type_ | keyword('window')) & identifier > Parameter._ma
 #parameter_declaration = type_ & identifier > Parameter
 parameter_declaration_list = parameter_declaration[0:, ~comma] > Parameters
 
-initialization = ~symbol('=') & expression > Initialization
+initialization = ~symbol('=') & expression > VariableInitialization
 
 variable_declaration = type_ & identifier & Optional(initialization) & ~semi > VariableDeclaration
 data_declaration = data_type & identifier & size & Optional(initialization) & ~semi > DataDeclaration
