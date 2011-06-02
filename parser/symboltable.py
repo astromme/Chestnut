@@ -16,6 +16,7 @@ keywords = ['int',
 numpy_type_map = { 'int2d' : numpy.int32,
                    'real2d' : numpy.float32 }
 
+class UninitializedException(Exception): pass
 
 Keyword = namedtuple('Keyword', ['name'])
 SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device', 'node'])
@@ -25,28 +26,28 @@ class Variable(namedtuple('Variable', ['name', 'type'])):
     @property
     def value(self):
         try:
-            return _value
+            return self._value
         except AttributeError:
-            raise UninitializedError('Variable %s was accessed before it was initialized')
+            raise UninitializedException('Variable %s was accessed before it was initialized' % self.name)
     @value.setter
     def value(self, new_value):
-        _value = new_value
+        self._value = new_value
 
 class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
     def __create(self):
         _array = numpy.zeros((width, height), dtype=numpy_type_map[self.type])
     def value(self, x, y):
         try:
-            return _array[x, y]
+            return self._array[x, y]
         except AttributeError:
-            __create()
-            return _array[x, y]
+            self.__create()
+            return self._array[x, y]
     def setValue(self, x, y, value):
         try:
-            _array[x, y] = value
+            self._array[x, y] = value
         except AttributeError:
-            __create()
-            _array[x, y] = value
+            self.__create()
+            self._array[x, y] = value
 
 
 class EntryExistsError(Exception):
