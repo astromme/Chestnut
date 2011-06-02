@@ -2,6 +2,7 @@ from lepl import *
 from collections import namedtuple, defaultdict
 from templates import *
 from symboltable import SymbolTable, Scope, Keyword, Variable, Data, ParallelFunction, SequentialFunction
+import random, numpy
 
 symbolTable = SymbolTable()
 
@@ -180,6 +181,21 @@ class DataDeclaration(List):
       env = defaultdict(bool, data_to_assign=name)
       return '%s\n %s' % (create_data(type_, name, size), initialization.to_cpp(env))
 
+  def evaluate(self, env):
+    if len(self) == 2: #only name and type, no size or initialization
+      type_, name = self
+      env.add(Data(name, type_, 0, 0)) #TODO: fix to not have 0,0 for uninitialized
+
+    elif len(self) == 3: # adds a size
+      type_, name, size = self
+      env.add(Data(name, type_, size.width, size.height))
+
+    elif len(self) == 4: # adds an initialization
+      type_, name, size, initialization = self
+      symbol = env.add(Data(name, type_, size.width, size.height))
+
+      symbol.data = initialization.evaluate(env)
+
 host_function_template = """\
 %(location)s%(type)s %(function_name)s(%(parameters)s) %(block)s
 """
@@ -187,7 +203,7 @@ class SequentialFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
         env = defaultdict(bool, sequential=True)
         type_, name, parameters, block = self
-        symbolTable.add(SequentialFunction(name, type_, parameters, ok_for_device=True))
+        symbolTable.add(SequentialFunction(name, type_, parameters, ok_for_device=True, node=self))
         symbolTable.createScope()
         for parameter in parameters:
             symbolTable.add(Variable(name=parameter.name, type=parameter.type))
@@ -202,6 +218,23 @@ class SequentialFunctionDeclaration(List):
 
         symbolTable.removeScope()
         return host_function
+
+    def evaluate(self, env):
+        type_, name, parameters, block = self
+        env.add(SequentialFunction(name, type_, parameters, ok_for_device=True, node=self))
+
+    def run(self, arguments, env):
+        type_, name, parameters, block = self
+        env.createScope()
+
+        for parameter, argument in zip(parameters, arguments):
+            symbol = env.add(Variable(name=parameter.name, type=parameter.type))
+            symbol.value = argument # argument was evaluated before the function call 
+
+        result = block.evaluate(env)
+
+        symbolTable.removeScope()
+        return result
 
 class ParallelFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -242,6 +275,8 @@ class VariableInitialization(List):
 class DataInitialization(List):
     def to_cpp(self, env=defaultdict(bool)):
         return self[0].to_cpp(env)
+    def evaluate(self, env):
+        return self[0].evaluate(env)
 
 class SequentialPrint(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -282,7 +317,7 @@ class SequentialFunctionCall(List):
 
         if not len(arguments) == len(function.parameters):
             print arguments
-            raise CompilerException("Error, parallel function ':%s' takes %s parameters but %s were given" % \
+            raise CompilerException("Error, sequential function ':%s' takes %s parameters but %s were given" % \
                     (function.name, len(function.parameters), len(arguments)))
 
 
@@ -290,10 +325,19 @@ class SequentialFunctionCall(List):
                                                      'arguments' : ', '.join(cpp_tuple(arguments, env)) }
 
     def evaluate(self, env):
+        function = self[0]
+        arguments = map(lambda obj: obj.evaluate(env), self[1:][0])
+
+        #check_is_symbol(function)
+        function = env.lookup(function)
+        #check_type(function, SequentialFunction)
+
         try:
-            pass
+            function.node.run(arguments, env)
         except InterpreterBreak:
             raise InterpreterException('Error: caught break statement outside of a loop in function %s', function.name)
+        except InterpreterReturn as return_value:
+            return return_value[0]
 
 
 class Size(namedtuple('Size', ['width', 'height'])): pass
@@ -357,6 +401,8 @@ class Return(List):
             return 'return %s;' % self[0].to_cpp(env)
         else:
             return '{ // Returning from device function requires 2 steps\n' + indent('thrust::get<0>(t) = %s;\nreturn;' % self[0].to_cpp(env)) + '\n}'
+    def evaluate(self, env):
+        raise InterpreterReturn(self[0].evaluate(env))
 
 class Break(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -428,6 +474,11 @@ class Print(List):
                                   'height' : data.height,
                                   'padding' : 1,
                                   'length' : pad(data.width)*pad(data.height) }
+    def evaluate(self, env):
+        data = self[0]
+        data = env.lookup(data)
+
+        print data.data
 
 
 
@@ -435,6 +486,14 @@ class ParallelAssignment(List):
     def to_cpp(self, env=defaultdict(bool)):
         env = defaultdict(bool, data_to_assign=self[0])
         return self[1].to_cpp(env)
+
+    def evaluate(self, env):
+        name = self[0]
+        data = env.lookup(name)
+
+        return self[1].evaluate(data, env)
+
+
 
 random_template = """\
 %(data)s.randomize(%(limits)s);
@@ -456,7 +515,17 @@ class ParallelRandom(List):
         return random_template % { 'data' : output.name,
                                    'limits' : limits,
                                    'type' : type_map[output.type] }
+    def evaluate(self, output, env):
+        if len(self) == 2:
+            min_limit, max_limit = self
+            max_limit -= 1
+        else:
+            min_limit = 0
+            max_limit = (2**32)/2-1
 
+        for x in xrange(output.height):
+            for y in xrange(output.width):
+                output.setValue(x, y, random.randint(min_limit, max_limit))
 
 reduce_template = """
 // Reducing '%(input_data)s' to the single value '%(output_variable)s'
@@ -504,6 +573,18 @@ class ParallelReduce(List):
             return reduce_template % { 'input_data' : input.name,
                                        'output_variable' : output.name,
                                        'type' : type_map[input.type] }
+
+    def evaluate(self, env):
+        function = None
+        if len(self) == 1:
+            input = self[0]
+        elif len(self) == 2:
+            input, function = self
+        else:
+            raise InternalException("Wrong list length to parallel reduce")
+
+        input = env.lookup(input)
+        return numpy.add.reduce(input.data.reshape(input.width*input.height))
 
 sort_template = """
 // Sorting '%(input_data)s' and placing it into '%(output_data)s'
@@ -553,6 +634,25 @@ class ParallelSort(List):
             return sort_template % { 'input_data' : input.name,
                                      'output_data' : output.name,
                                      'type' : type_map[input.type] }
+
+    def evaluate(self, output, env):
+        if len(self) == 1:
+            input, function = self[0], None
+        elif len(self) == 2:
+            input, function = self
+        else:
+            raise InternalException("Wrong list length to parallel sort")
+
+        input = env.lookup(input)
+
+        #TODO: Actually use function
+        if function:
+            print('Warning: functions in reduce() calls are not implemented yet')
+            return
+
+        temp = input.data.copy().reshape(input.height*input.width)
+        temp.sort()
+        output.data = temp.reshape(input.height, input.width)
 
 
 map_template = """
@@ -613,4 +713,18 @@ class ParallelFunctionCall(List):
                                 'variable_arguments' : ','.join(variable_arguments),
                                 'type' : type_map[output.type],
                                 'function' : function.name }
+
+    def evaluate(self, env):
+        return
+
+        #TODO: Implement
+        name = self[0]
+        data = env.lookup(name)
+
+        return self[1].evaluate(data, env)
+
+
+        #for x in xrange(data.height):
+        #    for y in xrange(data.width):
+        #        data.setValue(x, y, function(x, y, data.width, data.height))
 

@@ -35,7 +35,17 @@ class Variable(namedtuple('Variable', ['name', 'type'])):
 
 class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
     def __create(self):
-        _array = numpy.zeros((width, height), dtype=numpy_type_map[self.type])
+        self._array = numpy.zeros((self.width, self.height), dtype=numpy_type_map[self.type])
+    @property
+    def data(self):
+        try:
+            return self._array
+        except AttributeError:
+            raise UninitializedException('Data %s was accessed before it was initialized' % self.name)
+    @data.setter
+    def data(self, new_data):
+        self._array = new_data
+
     def value(self, x, y):
         try:
             return self._array[x, y]
