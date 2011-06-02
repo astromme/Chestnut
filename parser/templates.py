@@ -12,6 +12,7 @@ struct %(function_name)s_functor
 {
     %(struct_members)s
     %(function_name)s_functor(%(static_variables)s) %(variable_initializations)s {}
+
     template <typename Tuple>
     __host__ __device__
     void operator()(Tuple t) %(function_body)s
@@ -41,7 +42,7 @@ def create_device_function(function_node):
 
   environment = { 'function_name' : name,
                   'function_body' : indent(block.to_cpp(), indent_first_line=False),
-                  'struct_members' : struct_members,
+                  'struct_members' : indent(struct_members, indent_first_line=False),
                   'static_variables' : ', '.join(map(lambda tup: "%s %s" % tup, zip(static_types, underscore_vars))),
                   'variable_initializations' : variable_initializations }
 
