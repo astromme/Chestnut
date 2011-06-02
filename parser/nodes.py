@@ -491,7 +491,10 @@ class ParallelAssignment(List):
         name = self[0]
         data = env.lookup(name)
 
-        return self[1].evaluate(data, env)
+        if type(data) == Data:
+            data.data = self[1].evaluate(env, data)
+        elif type(data) == Variable:
+            data = self[1].evaluate(env, data)
 
 
 
@@ -515,7 +518,7 @@ class ParallelRandom(List):
         return random_template % { 'data' : output.name,
                                    'limits' : limits,
                                    'type' : type_map[output.type] }
-    def evaluate(self, output, env):
+    def evaluate(self, env, output):
         if len(self) == 2:
             min_limit, max_limit = self
             max_limit -= 1
@@ -526,6 +529,8 @@ class ParallelRandom(List):
         for x in xrange(output.height):
             for y in xrange(output.width):
                 output.setValue(x, y, random.randint(min_limit, max_limit))
+
+        return output.data
 
 reduce_template = """
 // Reducing '%(input_data)s' to the single value '%(output_variable)s'
@@ -574,7 +579,7 @@ class ParallelReduce(List):
                                        'output_variable' : output.name,
                                        'type' : type_map[input.type] }
 
-    def evaluate(self, env):
+    def evaluate(self, env, output=None):
         function = None
         if len(self) == 1:
             input = self[0]
@@ -635,7 +640,7 @@ class ParallelSort(List):
                                      'output_data' : output.name,
                                      'type' : type_map[input.type] }
 
-    def evaluate(self, output, env):
+    def evaluate(self, env, output=None):
         if len(self) == 1:
             input, function = self[0], None
         elif len(self) == 2:
@@ -652,7 +657,7 @@ class ParallelSort(List):
 
         temp = input.data.copy().reshape(input.height*input.width)
         temp.sort()
-        output.data = temp.reshape(input.height, input.width)
+        return temp.reshape(input.height, input.width)
 
 
 map_template = """
@@ -721,7 +726,7 @@ class ParallelFunctionCall(List):
         name = self[0]
         data = env.lookup(name)
 
-        return self[1].evaluate(data, env)
+        data.data = self[1].evaluate(env, data)
 
 
         #for x in xrange(data.height):
