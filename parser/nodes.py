@@ -36,6 +36,55 @@ class InterpreterException(Exception): pass
 class InterpreterReturn(Exception): pass
 class InterpreterBreak(Exception): pass
 
+class Window:
+    def __init__(self, data, x, y):
+        self.data = data
+        self.x = x
+        self.y = y
+
+    @property
+    def width(self):
+        return self.data.width
+    @property
+    def height(self):
+        return self.data.height
+
+    @property
+    def topLeft(self):
+        return self.data[(x-1) % self.width, (y-1) % self.height]
+
+    @property
+    def top(self):
+        return self.data[(x) % self.width, (y-1) % self.height]
+
+    @property
+    def topRight(self):
+        return self.data[(x+1) % self.width, (y-1) % self.height]
+
+    @property
+    def left(self):
+        return self.data[(x-1) % self.width, (y) % self.height]
+
+    @property
+    def center(self):
+        return self.data[(x) % self.width, (y) % self.height]
+
+    @property
+    def right(self):
+        return self.data[(x+1) % self.width, (y) % self.height]
+
+    @property
+    def bottomLeft(self):
+        return self.data[(x-1) % self.width, (y+1) % self.height]
+
+    @property
+    def bottom(self):
+        return self.data[(x) % self.width, (y+1) % self.height]
+
+    @property
+    def bottomRight(self):
+        return self.data[(x+1) % self.width, (y+1) % self.height]
+
 def check_is_symbol(name):
     if not symbolTable.lookup(name):
         raise CompilerException("Error, the symbol '%s' was used but it hasn't been declared yet" % name)
@@ -233,13 +282,13 @@ class SequentialFunctionDeclaration(List):
 
         result = block.evaluate(env)
 
-        symbolTable.removeScope()
+        env.removeScope()
         return result
 
 class ParallelFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
         name, parameters, block = self
-        symbolTable.add(ParallelFunction(name, parameters, self))
+        symbolTable.add(ParallelFunction(name, parameters, node=self))
         symbolTable.createScope()
         for parameter in parameters:
             symbolTable.add(Variable(name=parameter.name, type=parameter.type))
@@ -250,7 +299,21 @@ class ParallelFunctionDeclaration(List):
         return device_function
 
     def evaluate(self, env):
-        pass
+        name, parameters, block = self
+        env.add(ParallelFunction(name, parameters, node=self))
+
+    def run(self, arguments, env):
+        name, parameters, block = self
+        env.createScope()
+
+        for parameter, argument in zip(parameters, arguments):
+            symbol = env.add(Variable(name=parameter.name, type=parameter.type))
+            symbol.value = argument # argument was evaluated before the function call 
+
+        result = block.evaluate(env)
+
+        env.removeScope()
+        return result
 
 class Parameters(List): pass
 class Block(List):
@@ -719,17 +782,24 @@ class ParallelFunctionCall(List):
                                 'type' : type_map[output.type],
                                 'function' : function.name }
 
-    def evaluate(self, env):
-        return
-
-        #TODO: Implement
+    def evaluate(self, env, output):
         name = self[0]
-        data = env.lookup(name)
+        function = env.lookup(name)
 
-        data.data = self[1].evaluate(env, data)
+        arguments = map(lambda arg: arg.evaluate(env), self[1])
 
+        for x in xrange(output.height):
+            for y in xrange(output.width):
+                args = map(lambda arg: Window(x, y, arg), arguments)
 
-        #for x in xrange(data.height):
-        #    for y in xrange(data.width):
-        #        data.setValue(x, y, function(x, y, data.width, data.height))
+                try:
+                    value = function.node.run(args, env)
+                except InterpreterBreak:
+                    raise InterpreterException('Error: caught break statement outside of a loop in function %s', function.name)
+                except InterpreterReturn as return_value:
+                    value = return_value[0]
+                finally:
+                    output.setValue(x, y, value)
+
+        return output.data
 
