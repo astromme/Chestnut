@@ -35,7 +35,12 @@ def text_changed():
     old = sys.stdout
     resultsWindow.clear()
     sys.stdout = GuiStream()
-    evaluate(ast)
+    try:
+        evaluate(ast)
+    except CompilerException, e:
+        print e
+        return
+
     sys.stdout = old
 
 def main():

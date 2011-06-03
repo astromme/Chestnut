@@ -35,29 +35,33 @@ class Variable(namedtuple('Variable', ['name', 'type'])):
 
 class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
     def __create(self):
-        self._array = numpy.zeros((self.width, self.height), dtype=numpy_type_map[self.type])
+        self._array = numpy.zeros((self.height, self.width), dtype=numpy_type_map[self.type])
     @property
-    def data(self):
+    def array(self):
+        return self.value
+    @property
+    def value(self):
         try:
             return self._array
         except AttributeError:
-            raise UninitializedException('Data %s was accessed before it was initialized' % self.name)
-    @data.setter
-    def data(self, new_data):
+            self.create()
+            return self._array
+    @value.setter
+    def value(self, new_data):
         self._array = new_data
 
-    def value(self, x, y):
+    def at(self, x, y):
         try:
-            return self._array[x, y]
+            return self._array[y, x]
         except AttributeError:
             self.__create()
-            return self._array[x, y]
-    def setValue(self, x, y, value):
+            return self._array[y, x]
+    def setAt(self, x, y, value):
         try:
-            self._array[x, y] = value
+            self._array[y, x] = value
         except AttributeError:
             self.__create()
-            self._array[x, y] = value
+            self._array[y, x] = value
 
 
 class EntryExistsError(Exception):

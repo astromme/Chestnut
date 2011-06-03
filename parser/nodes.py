@@ -9,7 +9,14 @@ symbolTable = SymbolTable()
 #helpers so that we don't get errors about undefined to_cpp methods
 class str(str):
     to_cpp = lambda self, env=None: self
-    evaluate = lambda self, env: env.lookup(self).value
+    def evaluate(self, env):
+        symbol = env.lookup(self)
+        if type(symbol) == Variable:
+            return symbol.value
+        elif type(symbol) == Data:
+            return symbol
+        else:
+            raise Exception
 class int(int):
     to_cpp = lambda self, env=None: str(self)
     evaluate = lambda self, env: self
@@ -37,10 +44,28 @@ class InterpreterReturn(Exception): pass
 class InterpreterBreak(Exception): pass
 
 class Window:
-    def __init__(self, data, x, y):
+    def __init__(self, x, y, data):
         self.data = data
         self.x = x
         self.y = y
+
+    def prop(self, prop):
+        properties = { 'topLeft' : self.topLeft,
+                    'top' : self.top,
+                    'topRight' : self.topRight,
+                    'left' : self.left,
+                    'center' : self.center,
+                    'bottomLeft' : self.bottomLeft,
+                    'bottom' : self.bottom,
+                    'bottomRight' : self.bottomRight,
+                    'x' : self.x,
+                    'y' : self.y,
+                    'width' : self.width,
+                    'height' : self.height }
+
+        return properties[prop]
+
+
 
     @property
     def width(self):
@@ -51,42 +76,45 @@ class Window:
 
     @property
     def topLeft(self):
-        return self.data[(x-1) % self.width, (y-1) % self.height]
+        return self.data.at((self.x-1) % self.width, (self.y-1) % self.height)
 
     @property
     def top(self):
-        return self.data[(x) % self.width, (y-1) % self.height]
+        return self.data.at((self.x) % self.width, (self.y-1) % self.height)
 
     @property
     def topRight(self):
-        return self.data[(x+1) % self.width, (y-1) % self.height]
+        return self.data.at((self.x+1) % self.width, (self.y-1) % self.height)
 
     @property
     def left(self):
-        return self.data[(x-1) % self.width, (y) % self.height]
+        return self.data.at((self.x-1) % self.width, (self.y) % self.height)
 
     @property
     def center(self):
-        return self.data[(x) % self.width, (y) % self.height]
+        return self.data.at((self.x) % self.width, (self.y) % self.height)
 
     @property
     def right(self):
-        return self.data[(x+1) % self.width, (y) % self.height]
+        return self.data.at((self.x+1) % self.width, (self.y) % self.height)
 
     @property
     def bottomLeft(self):
-        return self.data[(x-1) % self.width, (y+1) % self.height]
+        return self.data.at((self.x-1) % self.width, (self.y+1) % self.height)
 
     @property
     def bottom(self):
-        return self.data[(x) % self.width, (y+1) % self.height]
+        return self.data.at((self.x) % self.width, (self.y+1) % self.height)
 
     @property
     def bottomRight(self):
-        return self.data[(x+1) % self.width, (y+1) % self.height]
+        return self.data.at((self.x+1) % self.width, (self.y+1) % self.height)
 
-def check_is_symbol(name):
-    if not symbolTable.lookup(name):
+
+
+
+def check_is_symbol(name, environment=symbolTable):
+    if not environment.lookup(name):
         raise CompilerException("Error, the symbol '%s' was used but it hasn't been declared yet" % name)
 
 def check_type(symbol, requiredType):
@@ -243,7 +271,7 @@ class DataDeclaration(List):
       type_, name, size, initialization = self
       symbol = env.add(Data(name, type_, size.width, size.height))
 
-      symbol.data = initialization.evaluate(env)
+      symbol.value = initialization.evaluate(env)
 
 host_function_template = """\
 %(location)s%(type)s %(function_name)s(%(parameters)s) %(block)s
@@ -458,6 +486,19 @@ class Property(List):
             print self
             raise Exception
 
+    def evaluate(self, env):
+        check_is_symbol(self[0], env)
+        symbol = env.lookup(self[0])
+        check_type(symbol, Variable)
+
+        if symbol.type == 'window':
+            return symbol.value.prop(self[1])
+
+        else:
+            print self
+            raise Exception
+
+
 class Return(List):
     def to_cpp(self, env=defaultdict(bool)):
         if env['sequential']:
@@ -541,7 +582,7 @@ class Print(List):
         data = self[0]
         data = env.lookup(data)
 
-        print data.data
+        print data.value
 
 
 
@@ -555,7 +596,7 @@ class ParallelAssignment(List):
         data = env.lookup(name)
 
         if type(data) == Data:
-            data.data = self[1].evaluate(env, data)
+            data.value = self[1].evaluate(env, data)
         elif type(data) == Variable:
             data = self[1].evaluate(env, data)
 
@@ -589,11 +630,12 @@ class ParallelRandom(List):
             min_limit = 0
             max_limit = (2**32)/2-1
 
-        for x in xrange(output.height):
-            for y in xrange(output.width):
-                output.setValue(x, y, random.randint(min_limit, max_limit))
 
-        return output.data
+        for y in xrange(output.height):
+            for x in xrange(output.width):
+                output.setAt(x, y, random.randint(min_limit, max_limit))
+
+        return output.value
 
 reduce_template = """
 // Reducing '%(input_data)s' to the single value '%(output_variable)s'
@@ -652,7 +694,7 @@ class ParallelReduce(List):
             raise InternalException("Wrong list length to parallel reduce")
 
         input = env.lookup(input)
-        return numpy.add.reduce(input.data.reshape(input.width*input.height))
+        return numpy.add.reduce(input.value.reshape(input.width*input.height))
 
 sort_template = """
 // Sorting '%(input_data)s' and placing it into '%(output_data)s'
@@ -718,7 +760,7 @@ class ParallelSort(List):
             print('Warning: functions in reduce() calls are not implemented yet')
             return
 
-        temp = input.data.copy().reshape(input.height*input.width)
+        temp = input.value.copy().reshape(input.height*input.width)
         temp.sort()
         return temp.reshape(input.height, input.width)
 
@@ -788,8 +830,10 @@ class ParallelFunctionCall(List):
 
         arguments = map(lambda arg: arg.evaluate(env), self[1])
 
-        for x in xrange(output.height):
-            for y in xrange(output.width):
+        array = output.array.copy()
+
+        for y in xrange(output.height):
+            for x in xrange(output.width):
                 args = map(lambda arg: Window(x, y, arg), arguments)
 
                 try:
@@ -798,8 +842,8 @@ class ParallelFunctionCall(List):
                     raise InterpreterException('Error: caught break statement outside of a loop in function %s', function.name)
                 except InterpreterReturn as return_value:
                     value = return_value[0]
-                finally:
-                    output.setValue(x, y, value)
 
-        return output.data
+                array[y, x] = value
+
+        return array
 
