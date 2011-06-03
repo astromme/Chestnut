@@ -13,7 +13,7 @@
 			<string>QLGenerator</string>
 			<key>LSItemContentTypes</key>
 			<array>
-				<string>SUPPORTED_UTI_TYPE</string>
+				<string>com.chestnutcode.chestnut</string>
 			</array>
 		</dict>
 	</array>
@@ -73,5 +73,24 @@
 	<false/>
 	<key>QLThumbnailMinimumSize</key>
 	<real>17</real>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.text</string>
+			</array>
+			<key>UTTypeIdentifier</key>
+			<string>com.chestnutcode.chestnut</string>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>chestnut</string>
+					<string>ch</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>
