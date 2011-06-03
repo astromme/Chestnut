@@ -30,17 +30,12 @@ syn region  chestnutRegexpString     start=+/[^/*]+me=e-1 skip=+\\\\\|\\/+ end=+
 syn keyword chestnutConditional	        if else
 syn keyword chestnutRepeat		while for
 syn keyword chestnutBranch		break continue
-"syn keyword chestnutOperator		new delete instanceof typeof
 syn keyword chestnutType	       	int real int1d real1d int2d real2d window
 syn keyword chestnutStatement		return
 syn keyword chestnutBoolean		true false
-"syn keyword chestnutNull		null undefined
-"syn keyword chestnutIdentifier	arguments this var
-"syn keyword chestnutLabel		case default
-"syn keyword chestnutException		try catch finally throw
-"syn keyword chestnutMessage		alert confirm prompt status
-"syn keyword chestnutGlobal		self window top parent
-"syn keyword chestnutReserved		abstract boolean byte char class const debugger double enum export extends final float goto implements import int interface long native package private protected public short static super synchronized throws transient volatile 
+
+syn keyword chestnutParallelBuiltin     reduce sort print random
+syn keyword chestnutSequentialBuiltin   print
 
 syn sync fromstart
 syn sync maxlines=100
@@ -74,7 +69,8 @@ if version >= 508 || !exists("did_chestnut_syn_inits")
   HiLink chestnutOperator		Operator
   HiLink chestnutType			Type
   HiLink chestnutStatement		Statement
-  HiLink chestnutFunction		Function
+  HiLink chestnutParallelBuiltin	Function
+  HiLink chestnutSequentialBuiltin	Function
   HiLink chestnutBraces	        	Function
   HiLink chestnutError	        	Error
   HiLink chestnutParenError		chestnutError
