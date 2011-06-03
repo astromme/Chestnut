@@ -1,0 +1,293 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5D312FA113996D2900CC103B /* QuickLook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D312FA013996D2900CC103B /* QuickLook.framework */; };
+		5D312FA313996D2900CC103B /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D312FA213996D2900CC103B /* ApplicationServices.framework */; };
+		5D312FA513996D2900CC103B /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D312FA413996D2900CC103B /* CoreServices.framework */; };
+		5D312FA713996D2900CC103B /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D312FA613996D2900CC103B /* CoreFoundation.framework */; };
+		5D312FAD13996D2900CC103B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5D312FAB13996D2900CC103B /* InfoPlist.strings */; };
+		5D312FB013996D2900CC103B /* GenerateThumbnailForURL.c in Sources */ = {isa = PBXBuildFile; fileRef = 5D312FAF13996D2900CC103B /* GenerateThumbnailForURL.c */; };
+		5D312FB213996D2900CC103B /* GeneratePreviewForURL.m in Sources */ = {isa = PBXBuildFile; fileRef = 5D312FB113996D2900CC103B /* GeneratePreviewForURL.m */; };
+		5D312FB413996D2900CC103B /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 5D312FB313996D2900CC103B /* main.c */; };
+		5D312FC413996ED900CC103B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D312FC313996ED900CC103B /* Foundation.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		5D312F9D13996D2900CC103B /* ChestnutQuicklookPlugin.qlgenerator */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ChestnutQuicklookPlugin.qlgenerator; sourceTree = BUILT_PRODUCTS_DIR; };
+		5D312FA013996D2900CC103B /* QuickLook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLook.framework; path = System/Library/Frameworks/QuickLook.framework; sourceTree = SDKROOT; };
+		5D312FA213996D2900CC103B /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
+		5D312FA413996D2900CC103B /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		5D312FA613996D2900CC103B /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
+		5D312FAA13996D2900CC103B /* ChestnutQuicklookPlugin-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ChestnutQuicklookPlugin-Info.plist"; sourceTree = "<group>"; };
+		5D312FAC13996D2900CC103B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		5D312FAE13996D2900CC103B /* ChestnutQuicklookPlugin-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "ChestnutQuicklookPlugin-Prefix.pch"; sourceTree = "<group>"; };
+		5D312FAF13996D2900CC103B /* GenerateThumbnailForURL.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = GenerateThumbnailForURL.c; sourceTree = "<group>"; };
+		5D312FB113996D2900CC103B /* GeneratePreviewForURL.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GeneratePreviewForURL.m; sourceTree = "<group>"; };
+		5D312FB313996D2900CC103B /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		5D312FC313996ED900CC103B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5D312F9813996D2900CC103B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5D312FC413996ED900CC103B /* Foundation.framework in Frameworks */,
+				5D312FA113996D2900CC103B /* QuickLook.framework in Frameworks */,
+				5D312FA313996D2900CC103B /* ApplicationServices.framework in Frameworks */,
+				5D312FA513996D2900CC103B /* CoreServices.framework in Frameworks */,
+				5D312FA713996D2900CC103B /* CoreFoundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5D312F9013996D2900CC103B = {
+			isa = PBXGroup;
+			children = (
+				5D312FA813996D2900CC103B /* ChestnutQuicklookPlugin */,
+				5D312F9F13996D2900CC103B /* Frameworks */,
+				5D312F9E13996D2900CC103B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5D312F9E13996D2900CC103B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5D312F9D13996D2900CC103B /* ChestnutQuicklookPlugin.qlgenerator */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5D312F9F13996D2900CC103B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5D312FC313996ED900CC103B /* Foundation.framework */,
+				5D312FA013996D2900CC103B /* QuickLook.framework */,
+				5D312FA213996D2900CC103B /* ApplicationServices.framework */,
+				5D312FA413996D2900CC103B /* CoreServices.framework */,
+				5D312FA613996D2900CC103B /* CoreFoundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5D312FA813996D2900CC103B /* ChestnutQuicklookPlugin */ = {
+			isa = PBXGroup;
+			children = (
+				5D312FAF13996D2900CC103B /* GenerateThumbnailForURL.c */,
+				5D312FB113996D2900CC103B /* GeneratePreviewForURL.m */,
+				5D312FB313996D2900CC103B /* main.c */,
+				5D312FA913996D2900CC103B /* Supporting Files */,
+			);
+			path = ChestnutQuicklookPlugin;
+			sourceTree = "<group>";
+		};
+		5D312FA913996D2900CC103B /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				5D312FAA13996D2900CC103B /* ChestnutQuicklookPlugin-Info.plist */,
+				5D312FAB13996D2900CC103B /* InfoPlist.strings */,
+				5D312FAE13996D2900CC103B /* ChestnutQuicklookPlugin-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		5D312F9913996D2900CC103B /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		5D312F9C13996D2900CC103B /* ChestnutQuicklookPlugin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5D312FB713996D2900CC103B /* Build configuration list for PBXNativeTarget "ChestnutQuicklookPlugin" */;
+			buildPhases = (
+				5D312F9713996D2900CC103B /* Sources */,
+				5D312F9813996D2900CC103B /* Frameworks */,
+				5D312F9913996D2900CC103B /* Headers */,
+				5D312F9A13996D2900CC103B /* Resources */,
+				5D312F9B13996D2900CC103B /* Rez */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ChestnutQuicklookPlugin;
+			productName = ChestnutQuicklookPlugin;
+			productReference = 5D312F9D13996D2900CC103B /* ChestnutQuicklookPlugin.qlgenerator */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5D312F9213996D2900CC103B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				ORGANIZATIONNAME = "Swarthmore College";
+			};
+			buildConfigurationList = 5D312F9513996D2900CC103B /* Build configuration list for PBXProject "ChestnutQuicklookPlugin" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 5D312F9013996D2900CC103B;
+			productRefGroup = 5D312F9E13996D2900CC103B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5D312F9C13996D2900CC103B /* ChestnutQuicklookPlugin */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5D312F9A13996D2900CC103B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5D312FAD13996D2900CC103B /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXRezBuildPhase section */
+		5D312F9B13996D2900CC103B /* Rez */ = {
+			isa = PBXRezBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXRezBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5D312F9713996D2900CC103B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5D312FB013996D2900CC103B /* GenerateThumbnailForURL.c in Sources */,
+				5D312FB213996D2900CC103B /* GeneratePreviewForURL.m in Sources */,
+				5D312FB413996D2900CC103B /* main.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		5D312FAB13996D2900CC103B /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5D312FAC13996D2900CC103B /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		5D312FB513996D2900CC103B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		5D312FB613996D2900CC103B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.6;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		5D312FB813996D2900CC103B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "ChestnutQuicklookPlugin/ChestnutQuicklookPlugin-Prefix.pch";
+				INFOPLIST_FILE = "ChestnutQuicklookPlugin/ChestnutQuicklookPlugin-Info.plist";
+				INSTALL_PATH = /Library/QuickLook;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = qlgenerator;
+			};
+			name = Debug;
+		};
+		5D312FB913996D2900CC103B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "ChestnutQuicklookPlugin/ChestnutQuicklookPlugin-Prefix.pch";
+				INFOPLIST_FILE = "ChestnutQuicklookPlugin/ChestnutQuicklookPlugin-Info.plist";
+				INSTALL_PATH = /Library/QuickLook;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = qlgenerator;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5D312F9513996D2900CC103B /* Build configuration list for PBXProject "ChestnutQuicklookPlugin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5D312FB513996D2900CC103B /* Debug */,
+				5D312FB613996D2900CC103B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5D312FB713996D2900CC103B /* Build configuration list for PBXNativeTarget "ChestnutQuicklookPlugin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5D312FB813996D2900CC103B /* Debug */,
+				5D312FB913996D2900CC103B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5D312F9213996D2900CC103B /* Project object */;
+}
