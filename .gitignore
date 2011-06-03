@@ -1,4 +1,4 @@
-/build
+build/
 /latex/proposal.aux
 /latex/proposal.bbl
 /latex/proposal.blg
@@ -11,7 +11,6 @@
 /latex/final-report.log
 /latex/final-report.pdf
 /latex/tex.backup
-/cudalang/cudalang.cpp
 qtcreator-build/
 .DS_Store
 .*.swp
