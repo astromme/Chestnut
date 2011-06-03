@@ -18,3 +18,5 @@ qtcreator-build/
 .*.swo
 *.pyc
 CMakeLists.txt.user
+*.xcworkspace
+xcuserdata/
