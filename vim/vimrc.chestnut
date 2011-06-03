@@ -1,0 +1,55 @@
+" vimrc file for chestnut
+"
+" To use this file, source it in your own personal .vimrc file (``source
+" <filename>``) or, if you don't have a .vimrc file, you can just symlink to it
+" (``ln -s <this file> ~/.vimrc``).  All options are protected by autocmds
+" (read below for an explanation of the command) so blind sourcing of this file
+" is safe and will not affect your settings for non-Chestnut files
+"
+" All setting are protected by 'au' ('autocmd') statements.  Only files ending
+" in .chestnut will trigger the settings
+"
+
+au BufRead,BufNewFile *.chestnut,*.cu set filetype=chestnut
+au! Syntax chestnut source $VIM/syntax/chestnut.vim
+
+" Number of spaces that a pre-existing tab is equal to.
+" For the amount of space used for a new tab use shiftwidth.
+au BufRead,BufNewFile *.chestnut,*.ch set tabstop=4
+
+" What to use for an indent.
+" This will affect Ctrl-T and 'autoindent'.
+" Chestnut: 2 spaces
+au BufRead,BufNewFile *.chestnut,*.ch set shiftwidth=2
+au BufRead,BufNewFile *.chestnut,*.ch set expandtab
+
+" Use the below highlight group when displaying bad whitespace is desired.
+" highlight BadWhitespace ctermbg=red guibg=red
+
+" Display tabs at the beginning of a line in Python mode as bad.
+"au BufRead,BufNewFile *.py,*.pyw match BadWhitespace /^\t\+/
+" Make trailing whitespace be flagged as bad.
+"au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
+
+" Turn off settings in 'formatoptions' relating to comment formatting.
+" - c : do not automatically insert the comment leader when wrapping based on
+"    'textwidth'
+" - o : do not insert the comment leader when using 'o' or 'O' from command mode
+" - r : do not insert the comment leader when hitting <Enter> in insert mode
+" Python: not needed
+" C: prevents insertion of '*' at the beginning of every line in a comment
+au BufRead,BufNewFile *.chestnut,*.ch set formatoptions-=c formatoptions-=o formatoptions-=r
+
+" Use UNIX (\n) line endings.
+" Only used for new files so as to not force existing files to change their
+" line endings.
+au BufNewFile *.chestnut,*.ch set fileformat=unix
+
+" For full syntax highlighting:
+syntax on
+
+" Automatically indent based on file type: ``filetype indent on``
+" Keep indentation level from previous line: ``set autoindent``
+
+" Folding based on indentation: ``set foldmethod=indent``
+

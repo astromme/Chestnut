@@ -1,0 +1,6 @@
+The following files provide syntax highlighting for chestnut (.chestnut, .ch)
+files.  To enable, copy vimrc.chestnut to ~/.vimrc.chestnut and copy
+chestnut.vim to ~/.vim/syntax/chestnut. Then, in your ~/.vimrc add the
+following line:
+
+source ~/.vimrc.chestnut
