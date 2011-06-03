@@ -1,0 +1,28 @@
+int main() {
+    int a1;
+    int a2;
+    int a3;
+    int a4;
+    int a5;
+    int a6;
+    int a7;
+    int a8;
+    int a9;
+    int a10;
+    int a11;
+
+    a1 = a2 = a3 = a4 = a5 = a6 = a7 = a8 = a9 = a10 = a11 = 4 + 6 * 2;
+
+    write a1;
+    write a2;
+    write a3;
+    write a4;
+    write a5;
+    write a6;
+    write a7;
+    write a8;
+    write a9;
+    write a10;
+    write a11;
+    writeln;
+}

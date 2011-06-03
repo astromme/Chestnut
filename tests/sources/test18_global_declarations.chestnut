@@ -1,0 +1,8 @@
+int globalX;
+int globalY;
+
+int main() {
+    globalX = 4;
+    write globalX;
+    writeln;
+}

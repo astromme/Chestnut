@@ -1,0 +1,7 @@
+int a;
+
+int main() {
+  read a;
+  write a*2;
+  writeln;
+}

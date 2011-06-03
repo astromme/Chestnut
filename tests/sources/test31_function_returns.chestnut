@@ -1,0 +1,10 @@
+int a() {
+    return 1;
+    write 4;
+    writeln;
+}
+
+int main() {
+    write a();
+    writeln;
+}

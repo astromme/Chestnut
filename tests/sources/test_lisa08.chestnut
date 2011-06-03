@@ -1,0 +1,6 @@
+int main() {
+  write 3 + (5 * (8 / 2));
+  writeln;
+  write ((3 + 5) * 2) + 4;
+  writeln;
+}

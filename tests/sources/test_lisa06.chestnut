@@ -1,0 +1,7 @@
+int main() {
+  if (5 < 6)
+    write 1;
+  else
+    write -1;
+  writeln;
+}

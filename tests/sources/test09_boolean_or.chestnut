@@ -1,0 +1,11 @@
+int main() {
+  write (4 == 5) || (4 > 5);  //0
+  write 1 || 0;               //1
+  write (1 == 2) || (5 < 6);  //1
+  writeln;
+
+  //tests for OR with negative numbers
+  write -96 || 0 && 30;
+  writeln;
+
+}

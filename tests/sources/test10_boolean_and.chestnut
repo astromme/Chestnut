@@ -1,0 +1,6 @@
+int main() {
+  write (4 != 5) && (5 != 6); //1
+  write 1 && 0;               //0
+  write 0 && 1;               //0
+  writeln;
+}

@@ -1,0 +1,5 @@
+int main() {
+  print('Hello world');
+  print('This is 5: %s', 5);
+  print('%s, %s, %s, %s, %s', 1, 2, 3, 4, 5);
+}

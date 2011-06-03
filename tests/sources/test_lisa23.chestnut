@@ -1,0 +1,44 @@
+
+int b;
+int c;
+
+int main() {
+  int a;
+
+  b = 0;
+  c = 0;
+  a = 1;
+  {
+    int b;
+    b = 2;
+    {
+      int a;
+      a = 3;
+      //320
+      write a;
+      write b;
+      write c;
+      writeln;
+     }
+    {
+      int b;
+      b = 3;
+      //130
+      write a;
+      write b;
+      write c;
+      writeln;
+    }
+    //120
+    write a;
+    write b;
+    write c;
+    writeln;
+  }
+  //100
+  write a;
+  write b;
+  write c;
+  writeln;
+}
+

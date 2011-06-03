@@ -1,0 +1,9 @@
+int main() {
+  write 4 == 5;  //0
+  write 4 >= 5;  //0
+  write 4 > 5;   //0
+  write 4 < 5;   //1
+  write 4 != 5;  //1
+  write 4 <= 5;  //1
+  writeln;
+}

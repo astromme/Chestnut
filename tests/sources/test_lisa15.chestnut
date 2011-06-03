@@ -1,0 +1,8 @@
+int test() {
+  return 4*2+6/3-1;
+}
+
+int main() {
+  write test() - 1;
+  writeln;
+}

@@ -1,0 +1,14 @@
+int x;
+int y;
+
+int main() {
+  int a;
+  
+  x = 1;
+  y = 2;
+  a = x + y;
+  write x;
+  write y;
+  write a;
+  writeln;
+}

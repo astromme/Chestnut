@@ -1,0 +1,14 @@
+
+int printArray(int a[]) {
+  write a[0];
+  writeln;
+  write a[1];
+  writeln;
+}
+
+int main() {
+  int vals[2];
+  vals[0] = 6;
+  vals[1] = 5;
+  printArray(vals);
+}

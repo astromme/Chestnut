@@ -1,0 +1,10 @@
+// This is a comprehensive test of the things that
+// are present in /*** the magical compiler yeah **
+
+int main() {
+  write (-10+2*5) || -1 || 5;
+  writeln;
+  write (14 && 3 && 0) * 4 + 21 - 24 /3 + (6 != 4) * 2;
+  write 1;
+  writeln;
+}

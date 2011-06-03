@@ -1,0 +1,31 @@
+int calculateSum(int size, int nums[]) {
+  int i;
+  int total;
+
+  i = 0;
+  total = 0;
+  while (i < size) {
+    total = total + nums[i];
+    i = i + 1;
+  }
+  return total;
+}
+
+int main() {
+  int values[3];
+  int i;
+  int current;
+  int n;
+
+  i = 0;
+  n = 3;
+  while (i < n) {
+    read current;
+    values[i] = current;
+    i = i + 1;
+  }
+
+  write calculateSum(n, values);
+  writeln;
+}
+

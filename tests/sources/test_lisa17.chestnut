@@ -1,0 +1,8 @@
+int test(int x, int y, int z) {
+  return x*y+z;
+}
+
+int main() {
+  write test(2,3,4);
+  writeln;
+}

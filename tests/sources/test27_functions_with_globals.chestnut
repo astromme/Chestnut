@@ -1,0 +1,24 @@
+int globalA;
+
+int f1() {
+    globalA = globalA + 1;
+}
+
+int f2() {
+    globalA = globalA + 5;
+}
+
+int main() {
+    globalA = 1;
+    write globalA;
+    writeln;
+
+    f1();
+    write globalA;
+    writeln;
+
+    f2();
+    write globalA;
+    writeln;
+}
+

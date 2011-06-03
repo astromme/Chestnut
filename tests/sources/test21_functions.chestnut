@@ -1,0 +1,8 @@
+int print5() {
+    write 5;
+    writeln;
+}
+
+int main() {
+    print5();
+}

@@ -1,0 +1,55 @@
+char globalA;
+char globalB;
+char globalArray[10];
+
+char functionA(char paramA, char paramB, char paramC) {
+    return paramA*2;
+}
+
+char functionB(char arrayLength, char arrayA[]) {
+    char counter;
+    counter = 0;
+
+    while (counter < arrayLength) {
+        write arrayA[counter];
+        writeln;
+        counter = counter + 1;
+    }
+    return arrayA[counter];
+}
+
+char fillArray(char array[], char value, char arrayLength) {
+    char counter;
+    counter = 0;
+
+    while (counter < arrayLength) {
+        array[counter] = value;
+        counter = counter + 1;
+    }
+    return 1;
+}
+
+int main() {
+    char localVar;
+    char localArray[5];
+
+    localArray[0] = 1;
+    localArray[1] = 8;
+    localArray[2] = 4;
+    localArray[3] = 6;
+    localArray[4] = 2;
+
+    localVar = 5;
+    write functionA(1, 4, 6);
+    writeln;
+    localVar = functionA(localVar, localVar, localVar);
+    write localVar;
+    writeln;
+
+
+    fillArray(globalArray, -125, 10);
+    functionB(10, globalArray);
+    writeln;
+    functionB(5, localArray);
+    writeln;
+}

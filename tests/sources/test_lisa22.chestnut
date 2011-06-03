@@ -1,0 +1,6 @@
+int main() {
+  int x;
+  x = (((((6-5)-4)-3)-2)-1); //-9
+  write x;
+  writeln;
+}

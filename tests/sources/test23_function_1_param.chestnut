@@ -1,0 +1,8 @@
+int params(int a) {
+    write a;
+    writeln;
+}
+
+int main() {
+    params(4);
+}

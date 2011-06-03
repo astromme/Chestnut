@@ -1,0 +1,12 @@
+int test2(int a, int b) {
+  return a * b;
+}
+
+int test(int x, int y, int z) {
+  return test2(x-5,y+x) + z;
+}
+
+int main() {
+  write test(10,2,3);
+  writeln;
+}

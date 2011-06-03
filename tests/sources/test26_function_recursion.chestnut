@@ -1,0 +1,14 @@
+int recurse(int a) {
+    write a;
+    writeln;
+    if (a == 0) {
+        return 0;
+    } else {
+        recurse(a-1);
+    }
+}
+
+
+int main() {
+    recurse(5);
+}

@@ -1,0 +1,18 @@
+int x;
+int y;
+
+int test(int x) {
+  x = x + 1; // changes local x
+  y = y - 1; // changes global y
+}
+
+int main() {
+  x = 8;
+  y = 5;
+  test(8);
+  write x; // 8
+  writeln; 
+  write y; // 4
+  writeln;
+}
+

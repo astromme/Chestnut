@@ -1,0 +1,8 @@
+int main() {
+  write 4+3+2;
+  writeln;
+  write 5*2-1;
+  writeln;
+  write -(-3);
+  writeln;
+}

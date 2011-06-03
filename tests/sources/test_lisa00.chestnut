@@ -1,0 +1,5 @@
+// Using write and writeln
+int main() {
+  write 123;
+  writeln;
+}

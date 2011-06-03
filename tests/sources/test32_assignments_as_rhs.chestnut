@@ -1,0 +1,20 @@
+int main() {
+    int a;
+    int b;
+    int c;
+    int d;
+
+    a = (b = 4) + 5;
+    write a;
+    writeln;
+    write b;
+    writeln;
+
+    a = b = c = d = 4;
+    write a;
+    write b;
+    write c; 
+    write d;
+    writeln;
+}
+

@@ -1,0 +1,6 @@
+//SHOULD_HANG
+int main() {
+  while (1) // should be 1 for infinite loop. how to test?
+    write 2;
+    writeln;
+}

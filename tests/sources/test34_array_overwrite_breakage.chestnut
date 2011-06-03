@@ -1,0 +1,38 @@
+
+int setArrayValues() {
+    int array[5];
+    array[0] = 20;
+}
+
+
+int main() {
+    int a;
+    int b;
+    int c;
+    int d;
+    int e;
+    int f;
+    int g;
+    int h;
+    
+    a = 5;
+    b = 5;
+    c = 5;
+    d = 5;
+    e = 5;
+    f = 5;
+    g = 5;
+    h = 5;
+
+    setArrayValues();
+
+    write a;
+    write b;
+    write c;
+    write d;
+    write e;
+    write f;
+    write g;
+    write h;
+    writeln;
+}

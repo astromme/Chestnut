@@ -1,0 +1,5 @@
+// Simple arithmetic expression
+int main() {
+  write 2*4-6/3;  // 6
+  writeln;
+}

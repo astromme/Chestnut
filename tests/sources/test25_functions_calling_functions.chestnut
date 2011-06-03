@@ -1,0 +1,15 @@
+int function1(int a) {
+    write a;
+    writeln;
+}
+
+int function2(int b) {
+    write b;
+    writeln;
+    function1(b+1);
+}
+
+int main() {
+    function2(5);
+    function1(2);
+}

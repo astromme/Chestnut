@@ -1,0 +1,6 @@
+int main() {
+  write 4-2;
+  writeln;
+  write 2-4;
+  writeln;
+}

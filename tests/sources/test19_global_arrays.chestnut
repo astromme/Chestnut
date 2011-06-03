@@ -1,0 +1,14 @@
+int globalArray[4];
+
+int main() {
+    globalArray[0] = 4;
+    globalArray[1] = 6;
+    globalArray[2] = 2;
+    globalArray[3] = 1;
+
+    write globalArray[0];
+    write globalArray[1];
+    write globalArray[2];
+    write globalArray[3];
+    writeln;
+}

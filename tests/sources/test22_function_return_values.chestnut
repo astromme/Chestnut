@@ -1,0 +1,8 @@
+int return4() {
+    return 4;
+}
+
+int main() {
+    write return4();
+    writeln;
+}

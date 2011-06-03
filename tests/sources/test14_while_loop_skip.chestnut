@@ -1,0 +1,16 @@
+/*
+   Should output:
+   1
+   3
+   While loop should never be executed.
+*/
+int main() {
+  write 1;
+  writeln;
+  while (0) {
+    write 2;
+    writeln;
+  }
+  write 3;
+  writeln;
+}
