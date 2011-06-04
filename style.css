@@ -20,9 +20,10 @@ a { color: #043906; }
 .download { float: right; }
 
 pre.BashCode {
-	background: #000;
+	background: #4d4d4d;
 	color: #fff;
 	padding: 15px;
+	border: 1px solid #000;
 }
 
 hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}

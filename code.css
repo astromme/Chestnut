@@ -1,8 +1,9 @@
 pre.ChestnutCode { 
 	font-family: monospace;
 	color: #000000;
-	background-color: #ffffff;
+	background-color: #fffeff;
 	padding: 15px;
+	border: 1px solid #e4e4e4;
 }
 
 .String { color: #4a708b; }
