@@ -1,7 +1,3 @@
-// simple modulus in parallel
-parallel mod_0_2(window element) {
-  return element.center % 2;
-}
 // chestnut game of life implementation
 parallel game_of_life(window element) {
   int neighbor_count = element.topLeft    + element.top       + element.topRight +
@@ -30,8 +26,7 @@ parallel game_of_life(window element) {
 // 2d data array of width 1000, height 1000 for storage
 int2d life_data(1000, 1000);
 
-life_data = :random();           // Initialize to random data
-life_data = :mod_0_2(life_data); // Random 0s and 1s 
+life_data = :random(0, 2); // Initialize to either 0 or 1
 
 int iteration = 0;
 int iterations = 10000;
