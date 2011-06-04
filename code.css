@@ -1,0 +1,10 @@
+pre.ChestnutCode { 
+	font-family: monospace;
+	color: #000000;
+	background-color: #ffffff;
+	padding: 15px;
+}
+
+.String { color: #4a708b; }
+.Identifier { color: #458b74; }
+.Type { color: #008b00; font-weight: bold; }
