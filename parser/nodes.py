@@ -131,71 +131,71 @@ def check_dimensions_are_equal(leftData, rightData):
 
 ### Nodes ###
 # Operators
-class Not(namedtuple('Not', ['value'])):
+class Not(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "!%s" % cpp_tuple(self, env)
     def evaluate(self, env):
         return not self[0].evaluate(env)
-class Neg(namedtuple('Neg', ['value'])):
+class Neg(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "-%s" % cpp_tuple(self, env)
     def evaluate(self, env):
         return -self[0].evaluate(env)
 
-class Mul(namedtuple('Mul', ['left', 'right'])):
+class Mul(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s * %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) * self[1].evaluate(env)
-class Div(namedtuple('Div', ['numerator', 'divisor'])):
+class Div(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "((float)%s / %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) / self[1].evaluate(env)
-class Mod(namedtuple('Mod', ['number', 'modder'])):
+class Mod(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "((int)%s %% %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) % self[1].evaluate(env)
 
-class Add(namedtuple('Add', ['left', 'right'])):
+class Add(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s + %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) + self[1].evaluate(env)
-class Sub(namedtuple('Sub', ['left', 'right'])):
+class Sub(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s - %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) - self[1].evaluate(env)
 
-class LessThan(namedtuple('LessThan', ['left', 'right'])):
+class LessThan(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s < %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) < self[1].evaluate(env)
-class LessThanOrEqual(namedtuple('LessThanOrEqual', ['left', 'right'])):
+class LessThanOrEqual(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s <= %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) <= self[1].evaluate(env)
-class GreaterThan(namedtuple('GreaterThan', ['left', 'right'])):
+class GreaterThan(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s > %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) > self[1].evaluate(env)
-class GreaterThanOrEqual(namedtuple('GreaterThanOrEqual', ['left', 'right'])):
+class GreaterThanOrEqual(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s >= %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) >= self[1].evaluate(env)
 
-class Equal(namedtuple('Equal', ['left', 'right'])):
+class Equal(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s == %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) == self[1].evaluate(env)
-class NotEqual(namedtuple('NotEqual', ['left', 'right'])):
+class NotEqual(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s != %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
@@ -460,9 +460,18 @@ class SequentialFunctionCall(List):
             return return_value[0]
 
 
-class Size(namedtuple('Size', ['width', 'height'])): pass
+class Size(List):
+    @property
+    def width(self): return self[0]
+    @property
+    def height(self): return self[1]
 
-class Parameter(namedtuple('Parameter', ['type', 'name'])): pass
+class Parameter(List):
+    @property
+    def type(self): return self[0]
+    @property
+    def name(self): return self[1]
+
 class Statement(List):
     def to_cpp(self, env=defaultdict(bool)):
         return ''.join(cpp_tuple(self, env)) + ';'

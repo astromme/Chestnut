@@ -39,7 +39,7 @@ unopened_size_block = symbol(']') ** make_error('no [ before {out_rest!s}') & sy
 unclosed_size_block = (symbol('[') & width & comma & height) ** make_error('Datablock size specification is missing a closing ]')
 
 size = Or(
-        ~symbol('[') & width & ~comma & height & ~symbol(']') > Size._make,
+        ~symbol('[') & width & ~comma & height & ~symbol(']') > Size,
         unopened_size_block,
         unclosed_size_block
         )
@@ -68,19 +68,19 @@ host_function_call = Delayed()
 parens = ~symbol('(') & expression & ~symbol(')')
 group1 = parens | number | primary
 
-unary_not = ~symbol('!') & group2 > Not._make
-unary_neg = ~symbol('-') & group2 > Neg._make
+unary_not = ~symbol('!') & group2 > Not
+unary_neg = ~symbol('-') & group2 > Neg
 group2 += unary_not | unary_neg | group1
 
 # third layer, next most tightly grouped, is multiplication
-mul = group2 & ~symbol('*') & group3 > Mul._make
-div = group2 & ~symbol('/') & group3 > Div._make
-mod = group2 & ~symbol('%') & group3 > Mod._make
+mul = group2 & ~symbol('*') & group3 > Mul
+div = group2 & ~symbol('/') & group3 > Div
+mod = group2 & ~symbol('%') & group3 > Mod
 group3 += mul | div | mod | group2
 
 # fourth layer, less tightly grouped, is addition
-add = group3 & ~symbol('+') & group4 > Add._make
-sub = group3 & ~symbol('-') & group4 > Sub._make
+add = group3 & ~symbol('+') & group4 > Add
+sub = group3 & ~symbol('-') & group4 > Sub
 group4 += add | sub | group3
 
 #group4end = Delayed()
@@ -90,14 +90,14 @@ group4 += add | sub | group3
 #group4 += group3 & group4end > List
 
 
-less_than              = group4 & ~symbol('<')   & group5 > LessThan._make
-less_than_or_equal     = group4 & ~symbol('<') & ~symbol('=') & group5 > LessThanOrEqual._make
-greater_than           = group4 & ~symbol('>')   & group5 > GreaterThan._make
-greather_than_or_equal = group4 & ~symbol('>') & ~symbol('=') & group5 > GreaterThanOrEqual._make
+less_than              = group4 & ~symbol('<')   & group5 > LessThan
+less_than_or_equal     = group4 & ~symbol('<') & ~symbol('=') & group5 > LessThanOrEqual
+greater_than           = group4 & ~symbol('>')   & group5 > GreaterThan
+greather_than_or_equal = group4 & ~symbol('>') & ~symbol('=') & group5 > GreaterThanOrEqual
 group5 += less_than | less_than_or_equal | greater_than | greather_than_or_equal | group4
 
-equal     = group5 & ~symbol('=')[2] & group6 > Equal._make
-not_equal = group5 & ~symbol('!') & ~symbol('=') & group6 > NotEqual._make
+equal     = group5 & ~symbol('=')[2] & group6 > Equal
+not_equal = group5 & ~symbol('!') & ~symbol('=') & group6 > NotEqual
 group6 += equal | not_equal | group5
 
 boolean_and = group6 & ~symbol('&')[2] & group7 > BooleanAnd
@@ -119,7 +119,7 @@ while_ =  ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & stateme
 statement += ~semi | parallel_assignment | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
-parameter_declaration = (type_ | keyword('window')) & identifier > Parameter._make
+parameter_declaration = (type_ | keyword('window')) & identifier > Parameter
 #parameter_declaration = type_ & identifier > Parameter
 parameter_declaration_list = parameter_declaration[0:, ~comma] > Parameters
 
