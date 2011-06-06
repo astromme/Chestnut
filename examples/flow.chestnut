@@ -4,7 +4,7 @@ function flow(window) {
   return neighbor_value;
 }
 
-real2d data(20, 40) = random(20, 40);
+real2d data[20, 40] = random(20, 40);
 data = map(game_of_life, data);
 
 

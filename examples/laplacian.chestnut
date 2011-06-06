@@ -14,14 +14,14 @@ parallel laplacian(window) {
          beta * (window.left + window.right + window.top + window.bottom);
 }
 
-real2d dataset(50, 20);
+real2d dataset[50, 20];
 dataset = :by_index(dataset);
 dataset = :mod_20(dataset);
 
 print("Original Array");
-:print(dataset);
+print(dataset);
 
-real2d modified(50, 20);
+real2d modified[50, 20];
 print("Laplacian");
 modified = :laplacian(dataset);
-:print(modified);
+print(modified);

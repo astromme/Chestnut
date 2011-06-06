@@ -89,11 +89,11 @@ raiseToPower();
 //index = :map(index, write_index);
 //:print(index);
 
-int2d life_data(10, 5);
+int2d life_data[10, 5];
 
 life_data = :random();
 life_data = :map(life_data, mod_0_2);
-:print(life_data);
+print(life_data);
 
 int iteration = 0;
 int iterations = 10000;

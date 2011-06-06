@@ -2,9 +2,9 @@ parallel set_to_1(window element) {
   return 1.1;
 }
 
-real2d data(10, 10) = :set_to_1(data);
+real2d data[10, 10] = :set_to_1(data);
 real reduced = :reduce(data);
 
 print("Array of floats was:");
-:print(data);
+print(data);
 print("Reduced value is %s", reduced);

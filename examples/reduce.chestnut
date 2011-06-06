@@ -2,7 +2,7 @@ parallel init_to(window data, int value) {
   return value;
 }
 
-int2d data(10, 10);
+int2d data[10, 10];
 data = :init_to(data, 1);
 
 int reduced;

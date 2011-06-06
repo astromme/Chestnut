@@ -24,7 +24,7 @@ parallel game_of_life(window element) {
   return state;  
 }
 // 2d data array of width 1000, height 1000 for storage
-int2d life_data(1000, 1000);
+int2d life_data[1000, 1000];
 
 life_data = :random(0, 2); // Initialize to either 0 or 1
 

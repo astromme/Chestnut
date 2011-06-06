@@ -11,12 +11,12 @@ parallel divergence(window) {
          window.top - window.bottom;
 }
 
-real2d dataset(50, 20);
+real2d dataset[50, 20];
 dataset = :by_index(dataset);
 dataset = :mod_20(dataset);
 
-:print(dataset);
+print(dataset);
 
-real2d derivative(50, 20);
+real2d derivative[50, 20];
 derivative = :divergence(dataset);
-:print(derivative);
+print(derivative);

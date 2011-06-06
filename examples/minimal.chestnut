@@ -1,8 +1,8 @@
-int2d unsorted(10, 5) = :random(80, 100);
-int2d sorted(10, 5) = :sort(unsorted);
+int2d unsorted[10, 5] = :random(80, 100);
+int2d sorted[10, 5] = :sort(unsorted);
 
 int reduced = :reduce(sorted);
 
-:print(unsorted);
-:print(sorted);
+print(unsorted);
+print(sorted);
 print("Reduced = %s", reduced);

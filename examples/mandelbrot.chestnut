@@ -27,10 +27,10 @@ real right = 1;
 real top = 1;
 real bottom = -1;
 
-int2d display(80, 50);
+int2d display[80, 50];
 
 display = :mandelbrot(display, left, right, top, bottom);
-:print(display);
+print(display);
 
 display = :mandelbrot(display, left/4-1, right/4-1, top/4-0.3, bottom/4-0.3);
-:print(display);
+print(display);
