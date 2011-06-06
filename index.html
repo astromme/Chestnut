@@ -3,7 +3,7 @@
 <head>
   <meta charset='utf-8'>
 
-  <title>astromme/Chestnut @ GitHub</title>
+  <title>Chestnut</title>
 	
 	<link rel="stylesheet" type="text/css" href="style.css" />	
 	<link rel="stylesheet" type="text/css" href="code.css" />	
@@ -29,7 +29,7 @@
     </div>
 
 		<p>
-		Consisting of a language and a graphical environment, Chestnut is an easy-to-learn, easy-to-use graphics card programming tool. Chestnut evolved out of Andrew Stromme Ryan Carlson's final project for CS87 - Parallel and Distributed Computing at Swarthmore College.
+		Consisting of a language and a graphical environment, Chestnut is an easy-to-learn, easy-to-use parallel programming environment. Parallel functions are first class citizens that operate on individual chunks of data. Sequential functions are available and operate exactly as you think they should.
 		</p>
 
 		<h2>Example</h2>
@@ -43,6 +43,7 @@
 <span class="Identifier">print</span>(unsorted);
 <span class="Identifier">print</span>(sorted);
 <span class="Identifier">print</span>(<span class="String">&quot;Reduced = %s&quot;</span>, reduced);</pre>
+		In this example two data blocks are created, both with width 10 and height 5. Unsorted is filled with random numbers between 80 and 100 (not including 100) and is then sorted using the parallel function :<span class="Identifier">sort</span>(). Both are printed, along with a reduction of the data.
 		</p>
 
 		<h2>Contact</h2>
