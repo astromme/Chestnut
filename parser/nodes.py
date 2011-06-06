@@ -369,7 +369,36 @@ class DataInitialization(List):
     def evaluate(self, env):
         return self[0].evaluate(env)
 
-class SequentialPrint(List):
+print_template = """
+{
+  // Create host vector to hold data
+  thrust::host_vector<%(type)s> hostData(%(length)s);
+
+  // transfer data back to host
+  hostData = *%(data)s.mainData;
+
+  printArray2D(hostData, %(width)s, %(height)s, %(padding)s);
+}
+"""
+class DataPrint(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        data = self[0]
+        check_is_symbol(data)
+        data = symbolTable.lookup(data)
+        check_type(data, Data)
+        return print_template % { 'data' : data.name,
+                                  'type' : type_map[data.type],
+                                  'width' : data.width,
+                                  'height' : data.height,
+                                  'padding' : 1,
+                                  'length' : pad(data.width)*pad(data.height) }
+    def evaluate(self, env):
+        data = self[0]
+        data = env.lookup(data)
+
+        print data.value
+
+class Print(List):
     def to_cpp(self, env=defaultdict(bool)):
         num_format_placeholders = self[0].to_cpp(env).count('%s')
         num_args = len(self)-1
@@ -554,36 +583,6 @@ class While(List):
 
 class Read(List): pass
 class Write(List): pass
-
-print_template = """
-{
-  // Create host vector to hold data
-  thrust::host_vector<%(type)s> hostData(%(length)s);
-
-  // transfer data back to host
-  hostData = *%(data)s.mainData;
-
-  printArray2D(hostData, %(width)s, %(height)s, %(padding)s);
-}
-"""
-class Print(List):
-    def to_cpp(self, env=defaultdict(bool)):
-        data = self[0]
-        check_is_symbol(data)
-        data = symbolTable.lookup(data)
-        check_type(data, Data)
-        return print_template % { 'data' : data.name,
-                                  'type' : type_map[data.type],
-                                  'width' : data.width,
-                                  'height' : data.height,
-                                  'padding' : 1,
-                                  'length' : pad(data.width)*pad(data.height) }
-    def evaluate(self, env):
-        data = self[0]
-        data = env.lookup(data)
-
-        print data.value
-
 
 
 class ParallelAssignment(List):

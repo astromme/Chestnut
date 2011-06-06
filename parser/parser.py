@@ -109,7 +109,7 @@ return_ = ~keyword('return') & expression & ~semi > Return
 break_ =  ~keyword('break') & ~semi > Break
 if_ =     ~keyword('if') & ~symbol('(') & expression & ~symbol(')') & statement & Optional(~keyword('else') & statement) > If
 while_ =  ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & statement > While
-statement += ~semi | parallel_assignment | host_function_call | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
+statement += ~semi | parallel_assignment | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
 parameter_declaration = (type_ | keyword('window')) & identifier > Parameter._make
@@ -125,16 +125,16 @@ sequential_function_declaration = ~Token('sequential') & type_ & identifier & ~s
 parallel_function_declaration = ~Token('parallel') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
 
 #Built-in Sequential functions
-sequential_print = ~keyword('print') & ~symbol('(') & string & (~comma & expression)[:] & ~symbol(')') > SequentialPrint
+sequential_print = ~keyword('print') & ~symbol('(') & string & (~comma & expression)[:] & ~symbol(')') > Print
 generic_sequential_function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > SequentialFunctionCall
 
 sequential_function_call = sequential_print | generic_sequential_function_call
-primary += sequential_function_call | identifier | identifier_property
+primary += host_function_call | sequential_function_call | identifier | identifier_property
 
-## Semi-parallel functions
+## Host Data functions
 #data_read  = ~symbol(':') & ~keyword('read') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Read
 #data_write = ~symbol(':') & ~keyword('write') & ~symbol('(') & data_identifier & ~comma & filename & ~symbol(')') & ~semi > Write
-data_print = ~symbol(':') & ~keyword('print') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Print
+data_print = ~keyword('print') & ~symbol('(') & data_identifier & ~symbol(')') > DataPrint
 host_function_call += data_print
 
 ## Parallel functions
