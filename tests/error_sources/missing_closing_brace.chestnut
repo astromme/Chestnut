@@ -1,0 +1,3 @@
+// Block is unclosed
+{
+  int x = 4;

@@ -1,0 +1,5 @@
+int2d data1[10, 10];
+int2d data2[20, 20];
+
+//Mismatched data sizes
+data1 = sorted(data2);
