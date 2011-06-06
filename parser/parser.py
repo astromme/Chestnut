@@ -167,6 +167,15 @@ program = (declaration_list > Program) >> sexpr_throw
 parser = program.get_parse()
 
 
+def maybeWhitespace(text, nonWhitespace):
+    if nonWhitespace:
+        return nonWhitespace
+    else:
+        return whitespace(text)
+
+def whitespace(comment):
+    return ' ' * len(comment)
+
 # Taken from http://www.saltycrane.com/blog/2007/11/remove-c-comments-python/
 def remove_multi_line_comments(text):
     """ remove c-style comments.
@@ -183,7 +192,7 @@ def remove_multi_line_comments(text):
                             ##    but do end with '*'
            /                ##  End of /* ... */ comment
          |                  ##  -OR-  various things which aren't comments:
-           (                ## 
+           (                ##
                             ##  ------ " ... " STRING ------
              "              ##  Start of " ... " string
              (              ##
@@ -210,13 +219,13 @@ def remove_multi_line_comments(text):
            )                ##    or escape
     """
     regex = re.compile(pattern, re.VERBOSE|re.MULTILINE|re.DOTALL)
-    noncomments = [m.group(2) for m in regex.finditer(text) if m.group(2)]
+    whitespace_blanked = [maybeWhitespace(m.group(0), m.group(2)) for m in regex.finditer(text)]
 
-    return "".join(noncomments)
+    return "".join(whitespace_blanked)
 
 # And then my code for removing single line comments. much more consise!
 def remove_single_line_comments(code):
-  comment_remover = (~Regexp(r'//[^\n]*') | Any())[:, ...]
+  comment_remover = (Regexp(r'//[^\n]*') >> whitespace | Any())[:, ...]
   return comment_remover.parse(code)[0]
 
 def parse(code):
