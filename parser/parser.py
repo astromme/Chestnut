@@ -35,7 +35,14 @@ number = integer | real | keyword('true') >> bool | keyword('false') >> bool
 
 width = integer
 height = integer
-size = ~symbol('[') & width & ~comma & height & ~symbol(']') > Size._make
+unopened_size_block = symbol(']') ** make_error('no [ before {out_rest!s}') & symbol(']')
+unclosed_size_block = (symbol('[') & width & comma & height) ** make_error('Datablock size specification is missing a closing ]')
+
+size = Or(
+        ~symbol('[') & width & ~comma & height & ~symbol(']') > Size._make,
+        unopened_size_block,
+        unclosed_size_block
+        )
 
 #### Expression Parsing ####
 # Operator precedence, inside to outside
@@ -155,7 +162,9 @@ block += ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > 
 
 declaration_list = (data_declaration | variable_declaration | sequential_function_declaration | parallel_function_declaration | statement)[0:]
 
-program = declaration_list > Program
+program = (declaration_list > Program) >> sexpr_throw
+
+parser = program.get_parse()
 
 
 # Taken from http://www.saltycrane.com/blog/2007/11/remove-c-comments-python/
@@ -214,7 +223,7 @@ def parse(code):
   code = remove_multi_line_comments(code)
   code = remove_single_line_comments(code)
 
-  return program.parse(code)[0]
+  return parser(code)[0]
 
 def main():
   import sys
@@ -224,7 +233,7 @@ def main():
   code = remove_multi_line_comments(code)
   code = remove_single_line_comments(code)
 
-  print(program.parse(code)[0])
+  print(parser(code)[0])
 
 if __name__ == '__main__':
   main()
