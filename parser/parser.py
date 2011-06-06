@@ -35,7 +35,7 @@ number = integer | real | keyword('true') >> bool | keyword('false') >> bool
 
 width = integer
 height = integer
-size = ~symbol('(') & width & ~comma & height & ~symbol(')') > Size._make
+size = ~symbol('[') & width & ~comma & height & ~symbol(']') > Size._make
 
 #### Expression Parsing ####
 # Operator precedence, inside to outside
