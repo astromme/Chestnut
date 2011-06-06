@@ -70,10 +70,11 @@ template <typename T>
 struct Chestnut
 {
   // our 2d array type mushed into a 1d array
-  typedef typename thrust::device_vector<T> vectorType;
+  typedef typename thrust::device_vector<T> vector;
+
   // Iterators for the above data type
-  typedef typename vectorType::iterator dataIterType;
-  typedef typename vectorType::iterator resultIterType;
+  typedef typename vector::iterator dataIter;
+  typedef typename vector::iterator resultIter;
 
   // constant iterator information for the location in the array + the bounds
   // from these we can compute the x, y, width, height inside of the kernel
@@ -83,21 +84,37 @@ struct Chestnut
   typedef typename thrust::constant_iterator<int> heightIterType;
 
   // Allows for a 2d window of data with a source value and its 8 surrounding neighbors
-  typedef typename thrust::tuple<dataIterType, dataIterType, dataIterType,
-                                 dataIterType, dataIterType, dataIterType,
-                                 dataIterType, dataIterType, dataIterType> windowTupleType;
+  typedef typename thrust::tuple<dataIter, dataIter, dataIter,
+                                  dataIter, dataIter, dataIter,
+                                  dataIter, dataIter, dataIter> windowTuple;
 
   // zipped iterator for the above window tuple
-  typedef typename thrust::zip_iterator<windowTupleType> windowTupleIterType;
+  typedef typename thrust::zip_iterator<windowTuple> windowTupleIter;
+
+
+  // 1, 2, 3 or 4 source windows
+  typedef typename thrust::zip_iterator<thrust::tuple<windowTupleIter> > tuple1window;
+  typedef typename thrust::zip_iterator<thrust::tuple<windowTupleIter,
+                                                      windowTupleIter> > tuple2window;
+  typedef typename thrust::zip_iterator<thrust::tuple<windowTupleIter,
+                                                      windowTupleIter,
+                                                      windowTupleIter> > tuple3window;
+  typedef typename thrust::zip_iterator<thrust::tuple<windowTupleIter,
+                                                      windowTupleIter,
+                                                      windowTupleIter,
+                                                      windowTupleIter> > tuple4window;
 
   // combined tuple for all of the information that we need in our 2d kernels
-  typedef typename thrust::tuple<resultIterType, windowTupleIterType,
-                                 indexIterType,
-                                 widthIterType,
-                                 heightIterType> chestnut2dTuple;
+  typedef typename thrust::tuple<resultIter, tuple1window, indexIterType, widthIterType, heightIterType> Kernel1Window;
+  typedef typename thrust::tuple<resultIter, tuple2window, indexIterType, widthIterType, heightIterType> Kernel2Window;
+  typedef typename thrust::tuple<resultIter, tuple3window, indexIterType, widthIterType, heightIterType> Kernel3Window;
+  typedef typename thrust::tuple<resultIter, tuple4window, indexIterType, widthIterType, heightIterType> Kernel4Window;
 
   // iterator for this information to be sent in correctly
-  typedef typename thrust::zip_iterator<chestnut2dTuple> chestnut2dTupleIterator;
+  typedef typename thrust::zip_iterator<Kernel1Window> Kernel1WindowIter;
+  typedef typename thrust::zip_iterator<Kernel2Window> Kernel2WindowIter;
+  typedef typename thrust::zip_iterator<Kernel3Window> Kernel3WindowIter;
+  typedef typename thrust::zip_iterator<Kernel4Window> Kernel4WindowIter;
 
 
   struct randoms_helper_functor {
@@ -243,14 +260,14 @@ struct Chestnut
 
   // 2d shifted iterator function to compute the correct one-dimensional offset based on
   // the 2d array that the iterator represents.
-  static dataIterType shiftedIterator(dataIterType iterator, int xChange, int yChange, int width) {
+  static dataIter shiftedIterator(dataIter iterator, int xChange, int yChange, int width) {
     iterator += yChange*width;
     iterator += xChange;
 
     return iterator;
   }
 
-  static windowTupleType windowStartTuple(DeviceData &data) {
+  static windowTuple windowStartTuple(DeviceData &data) {
     // Thinking about top left
     // we have a linear array that is has 1 dimension. To convert this to a 2d representation
     // we need to perform some pointer math
@@ -268,80 +285,134 @@ struct Chestnut
     // i, the last point is at array[2*width+2]
     // these values are passed into shiftedIterator
 
-    dataIterType currentBegin = data.mainData->begin();
+    dataIter currentBegin = data.mainData->begin();
     int width = data.width;
 
-    dataIterType topLeft     = shiftedIterator(currentBegin, 0, 0, width);
-    dataIterType top         = shiftedIterator(currentBegin, 1, 0, width);
-    dataIterType topRight    = shiftedIterator(currentBegin, 2, 0, width);
-    dataIterType left        = shiftedIterator(currentBegin, 0, 1, width);
-    dataIterType center      = shiftedIterator(currentBegin, 1, 1, width);
-    dataIterType right       = shiftedIterator(currentBegin, 2, 1, width);
-    dataIterType bottomLeft  = shiftedIterator(currentBegin, 0, 2, width);
-    dataIterType bottom      = shiftedIterator(currentBegin, 1, 2, width);
-    dataIterType bottomRight = shiftedIterator(currentBegin, 2, 2, width);
+    dataIter topLeft     = shiftedIterator(currentBegin, 0, 0, width);
+    dataIter top         = shiftedIterator(currentBegin, 1, 0, width);
+    dataIter topRight    = shiftedIterator(currentBegin, 2, 0, width);
+    dataIter left        = shiftedIterator(currentBegin, 0, 1, width);
+    dataIter center      = shiftedIterator(currentBegin, 1, 1, width);
+    dataIter right       = shiftedIterator(currentBegin, 2, 1, width);
+    dataIter bottomLeft  = shiftedIterator(currentBegin, 0, 2, width);
+    dataIter bottom      = shiftedIterator(currentBegin, 1, 2, width);
+    dataIter bottomRight = shiftedIterator(currentBegin, 2, 2, width);
 
-    windowTupleType begin = thrust::make_tuple(topLeft,    top,    topRight,
-                                               left,       center, right,
-                                               bottomLeft, bottom, bottomRight);
+    windowTuple begin = thrust::make_tuple(topLeft,    top,    topRight,
+                                                 left,       center, right,
+                                                 bottomLeft, bottom, bottomRight);
     return begin;
   }
 
   // End Iterators
-  static windowTupleType windowEndTuple(DeviceData &data) {
-    dataIterType currentEnd = data.mainData->end();
+  static windowTuple windowEndTuple(DeviceData &data) {
+    dataIter currentEnd = data.mainData->end();
     int width = data.width;
 
-    dataIterType topLeft     = shiftedIterator(currentEnd, -2, -2, width);
-    dataIterType top         = shiftedIterator(currentEnd, -1, -2, width);
-    dataIterType topRight    = shiftedIterator(currentEnd, -0, -2, width);
-    dataIterType left        = shiftedIterator(currentEnd, -2, -1, width);
-    dataIterType center      = shiftedIterator(currentEnd, -1, -1, width);
-    dataIterType right       = shiftedIterator(currentEnd, -0, -1, width);
-    dataIterType bottomLeft  = shiftedIterator(currentEnd, -2, -0, width);
-    dataIterType bottom      = shiftedIterator(currentEnd, -1, -0, width);
-    dataIterType bottomRight = shiftedIterator(currentEnd, -0, -0, width);
+    dataIter topLeft     = shiftedIterator(currentEnd, -2, -2, width);
+    dataIter top         = shiftedIterator(currentEnd, -1, -2, width);
+    dataIter topRight    = shiftedIterator(currentEnd, -0, -2, width);
+    dataIter left        = shiftedIterator(currentEnd, -2, -1, width);
+    dataIter center      = shiftedIterator(currentEnd, -1, -1, width);
+    dataIter right       = shiftedIterator(currentEnd, -0, -1, width);
+    dataIter bottomLeft  = shiftedIterator(currentEnd, -2, -0, width);
+    dataIter bottom      = shiftedIterator(currentEnd, -1, -0, width);
+    dataIter bottomRight = shiftedIterator(currentEnd, -0, -0, width);
 
-    windowTupleType end = thrust::make_tuple(topLeft,    top,    topRight,
-                                             left,       center, right,
-                                             bottomLeft, bottom, bottomRight);
+    windowTuple end = thrust::make_tuple(topLeft,    top,    topRight,
+                                               left,       center, right,
+                                               bottomLeft, bottom, bottomRight);
     return end;
   }
 
-  static chestnut2dTupleIterator startIterator(DeviceData &sourceData, DeviceData &destinationData) {
-    dataIterType result;
-    if (sourceData == destinationData) {
-      result = shiftedIterator(sourceData.alternateData->begin(), 1, 1, sourceData.width);
-    } else {
-      result = shiftedIterator(destinationData.mainData->begin(), 1, 1, sourceData.width);
-    }
+  template <typename K>
+  static thrust::zip_iterator<thrust::tuple<resultIter, K, indexIterType, widthIterType, heightIterType> > startIterator(DeviceData &destinationData, K dataWindows) {
+    
+    dataIter result = shiftedIterator(destinationData.alternateData->begin(), 1, 1, destinationData.width);
 
-    windowTupleIterType window = thrust::make_zip_iterator(windowStartTuple(sourceData));
+    indexIterType index = destinationData.indexIter + destinationData.width+1;
+    widthIterType width = destinationData.widthIter;
+    heightIterType height = destinationData.heightIter;
 
-    indexIterType index = sourceData.indexIter + sourceData.width+1;
-    widthIterType width = sourceData.widthIter;
-    heightIterType height = sourceData.heightIter;
-
-    chestnut2dTuple startTuple = thrust::make_tuple(result, window, index, width, height);
-    return thrust::make_zip_iterator(startTuple);
+    return thrust::make_zip_iterator(thrust::make_tuple(result, dataWindows, index, width, height));
   }
 
-  static chestnut2dTupleIterator endIterator(DeviceData &sourceData, DeviceData &destinationData) {
-    dataIterType result;
-    if (sourceData == destinationData) {
-      result = shiftedIterator(sourceData.alternateData->end(), -1, -1, sourceData.width);
-    } else {
-      result = shiftedIterator(destinationData.mainData->end(), -1, -1, sourceData.width);
-    }
+  static Kernel1WindowIter startIterator(DeviceData &destinationData, DeviceData &sourceData1) {
+    windowTupleIter window1 = thrust::make_zip_iterator(windowStartTuple(sourceData1));
 
-    windowTupleIterType window = thrust::make_zip_iterator(windowEndTuple(sourceData));
+    tuple1window windowTupleIterator = thrust::make_zip_iterator(thrust::make_tuple(window1));
+    return startIterator<tuple1window>(destinationData, windowTupleIterator);
+  }
+  static Kernel2WindowIter startIterator(DeviceData &destinationData, DeviceData &sourceData1, DeviceData &sourceData2) {
+    windowTupleIter window1 = thrust::make_zip_iterator(windowStartTuple(sourceData1));
+    windowTupleIter window2 = thrust::make_zip_iterator(windowStartTuple(sourceData2));
 
-    indexIterType index = sourceData.indexIter + sourceData.width*sourceData.height - sourceData.width-1;
-    widthIterType width = sourceData.widthIter;
-    heightIterType height = sourceData.heightIter;
+    
+    tuple2window windowTupleIterator = thrust::make_zip_iterator(thrust::make_tuple(window1, window2));
+    return startIterator<tuple2window>(destinationData, windowTupleIterator);
+  }
+  static Kernel3WindowIter startIterator(DeviceData &destinationData, DeviceData &sourceData1, DeviceData &sourceData2, DeviceData &sourceData3) {
+    windowTupleIter window1 = thrust::make_zip_iterator(windowStartTuple(sourceData1));
+    windowTupleIter window2 = thrust::make_zip_iterator(windowStartTuple(sourceData2));
+    windowTupleIter window3 = thrust::make_zip_iterator(windowStartTuple(sourceData3));
 
-    chestnut2dTuple startTuple = thrust::make_tuple(result, window, index, width, height);
-    return thrust::make_zip_iterator(startTuple);
+    tuple3window windowTupleIterator = thrust::make_zip_iterator(thrust::make_tuple(window1, window2, window3));
+    return startIterator<tuple3window>(destinationData, windowTupleIterator);
+  }
+  static Kernel4WindowIter startIterator(DeviceData &destinationData, DeviceData &sourceData1, DeviceData &sourceData2, DeviceData &sourceData3, DeviceData &sourceData4) {
+    windowTupleIter window1 = thrust::make_zip_iterator(windowStartTuple(sourceData1));
+    windowTupleIter window2 = thrust::make_zip_iterator(windowStartTuple(sourceData2));
+    windowTupleIter window3 = thrust::make_zip_iterator(windowStartTuple(sourceData3));
+    windowTupleIter window4 = thrust::make_zip_iterator(windowStartTuple(sourceData4));
+
+    tuple4window windowTupleIterator = thrust::make_zip_iterator(thrust::make_tuple(window1, window2, window3, window4));
+    return startIterator<tuple4window>(destinationData, windowTupleIterator);
+  }
+
+
+  // End Iterator
+
+  template <typename K>
+  static thrust::zip_iterator<thrust::tuple<resultIter, K, indexIterType, widthIterType, heightIterType> > endIterator(DeviceData &destinationData, K dataWindows) {
+    
+    dataIter result = shiftedIterator(destinationData.alternateData->end(), -1, -1, destinationData.width);
+
+    indexIterType index = destinationData.indexIter + destinationData.width*destinationData.height - destinationData.width-1;
+    widthIterType width = destinationData.widthIter;
+    heightIterType height = destinationData.heightIter;
+
+    return thrust::make_zip_iterator(thrust::make_tuple(result, dataWindows, index, width, height));
+  }
+
+  static Kernel1WindowIter endIterator(DeviceData &destinationData, DeviceData &sourceData1) {
+    windowTupleIter window1 = thrust::make_zip_iterator(windowEndTuple(sourceData1));
+
+    tuple1window windowTupleIterator = thrust::make_zip_iterator(thrust::make_tuple(window1));
+    return endIterator<tuple1window>(destinationData, windowTupleIterator);
+  }
+  static Kernel2WindowIter endIterator(DeviceData &destinationData, DeviceData &sourceData1, DeviceData &sourceData2) {
+    windowTupleIter window1 = thrust::make_zip_iterator(windowEndTuple(sourceData1));
+    windowTupleIter window2 = thrust::make_zip_iterator(windowEndTuple(sourceData2));
+
+    tuple2window windowTupleIterator = thrust::make_zip_iterator(thrust::make_tuple(window1, window2));
+    return endIterator<tuple2window>(destinationData, windowTupleIterator);
+  }
+  static Kernel3WindowIter endIterator(DeviceData &destinationData, DeviceData &sourceData1, DeviceData &sourceData2, DeviceData &sourceData3) {
+    windowTupleIter window1 = thrust::make_zip_iterator(windowEndTuple(sourceData1));
+    windowTupleIter window2 = thrust::make_zip_iterator(windowEndTuple(sourceData2));
+    windowTupleIter window3 = thrust::make_zip_iterator(windowEndTuple(sourceData3));
+
+    tuple3window windowTupleIterator = thrust::make_zip_iterator(thrust::make_tuple(window1, window2, window3));
+    return endIterator<tuple3window>(destinationData, windowTupleIterator);
+  }
+  static Kernel4WindowIter endIterator(DeviceData &destinationData, DeviceData &sourceData1, DeviceData &sourceData2, DeviceData &sourceData3, DeviceData &sourceData4) {
+    windowTupleIter window1 = thrust::make_zip_iterator(windowEndTuple(sourceData1));
+    windowTupleIter window2 = thrust::make_zip_iterator(windowEndTuple(sourceData2));
+    windowTupleIter window3 = thrust::make_zip_iterator(windowEndTuple(sourceData3));
+    windowTupleIter window4 = thrust::make_zip_iterator(windowEndTuple(sourceData4));
+
+    tuple4window windowTupleIterator = thrust::make_zip_iterator(thrust::make_tuple(window1, window2, window3, window4));
+    return endIterator<tuple4window>(destinationData, windowTupleIterator);
   }
 };
 

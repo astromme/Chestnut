@@ -494,22 +494,22 @@ class Expressions(List):
 # int height = paddedHeight - 2;
 
 coordinates = {
-               'topLeft' : r'thrust::get<0>(thrust::get<1>(t))',
-               'top' : r'thrust::get<1>(thrust::get<1>(t))',
-               'topRight' : r'thrust::get<2>(thrust::get<1>(t))',
+        'topLeft' : r'thrust::get<0>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
+        'top' : r'thrust::get<1>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
+        'topRight' : r'thrust::get<2>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
 
-               'left' : r'thrust::get<3>(thrust::get<1>(t))',
-               'center' : r'thrust::get<4>(thrust::get<1>(t))',
-               'right' : r'thrust::get<5>(thrust::get<1>(t))',
+        'left' : r'thrust::get<3>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
+        'center' : r'thrust::get<4>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
+        'right' : r'thrust::get<5>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
 
-               'bottomLeft' : r'thrust::get<6>(thrust::get<1>(t))',
-               'bottom' : r'thrust::get<7>(thrust::get<1>(t))',
-               'bottomRight' : r'thrust::get<8>(thrust::get<1>(t))',
+        'bottomLeft' : r'thrust::get<6>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
+        'bottom' : r'thrust::get<7>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
+        'bottomRight' : r'thrust::get<8>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
 
-               'x' : r'(thrust::get<2>(t) % thrust::get<3>(t) - 1)',
-               'y' : r'(thrust::get<2>(t) / thrust::get<3>(t) - 1)',
-               'width' : r'(thrust::get<3>(t) - 2)',
-               'height' : r'(thrust::get<4>(t) - 2)',
+        'x' : r'(thrust::get<2>(t) %% thrust::get<3>(t) - 1)',
+        'y' : r'(thrust::get<2>(t) / thrust::get<3>(t) - 1)',
+        'width' : r'(thrust::get<3>(t) - 2)',
+        'height' : r'(thrust::get<4>(t) - 2)',
                }
 
 class Property(List):
@@ -518,8 +518,10 @@ class Property(List):
         symbol = symbolTable.lookup(self[0])
         check_type(symbol, Variable) #TODO: Support Data properties
 
+
+        #TODO: Pull in support for window nums other than 0
         if symbol.type == 'window':
-            return coordinates[self[1]]
+            return coordinates[self[1]] % { 'window_num' : 0 }
         else:
             print self
             raise Exception
@@ -777,18 +779,16 @@ map_template = """
 {
     %(maybe_wraps)s
 
-    Chestnut<%(type)s>::chestnut2dTupleIterator startIterator
-        = Chestnut<%(type)s>::startIterator(%(input_data)s, %(output_data)s);
-
-    Chestnut<%(type)s>::chestnut2dTupleIterator endIterator
-        = Chestnut<%(type)s>::endIterator(%(input_data)s, %(output_data)s);
+    Chestnut<%(type)s>::Kernel%(num_inputs)sWindowIter startIterator
+        = Chestnut<%(type)s>::startIterator(%(output_data)s%(input_datas)s);
+    Chestnut<%(type)s>::Kernel%(num_inputs)sWindowIter endIterator
+        = Chestnut<%(type)s>::endIterator(%(output_data)s%(input_datas)s);
 
 
     thrust::for_each(startIterator, endIterator, %(function)s_functor(%(variable_arguments)s));
 
-    if (%(input_data)s == %(output_data)s) {
-        %(input_data)s.swap();
-    }
+    // Always swap the output data b/c we are putting data into the secondary array
+    %(output_data)s.swap();
 }
 """
 class ParallelFunctionCall(List):
@@ -822,11 +822,10 @@ class ParallelFunctionCall(List):
                 data_arguments.append(argument.to_cpp(env))
 
 
-        #TODO: the iterator creation depends on having one input and one output. Not always true, bah.
-        input_expression = data_arguments[0]
 
-        return map_template % { 'input_data' : input_expression,
+        return map_template % { 'input_datas' : ''.join(map(lambda arg: ', ' + arg, data_arguments)),
                                 'output_data' : output.name,
+                                'num_inputs' : len(data_arguments),
                                 'maybe_wraps' : '\n'.join(map(lambda data: '%s.maybeWrap();' % data, data_arguments)),
                                 'variable_arguments' : ','.join(variable_arguments),
                                 'type' : type_map[output.type],
