@@ -33,6 +33,17 @@ class Variable(namedtuple('Variable', ['name', 'type'])):
     def value(self, new_value):
         self._value = new_value
 
+class Window(namedtuple('Window', ['name', 'number'])):
+    @property
+    def value(self):
+        try:
+            return self._value
+        except AttributeError:
+            raise UninitializedException('Window %s was accessed before it was initialized' % self.name)
+    @value.setter
+    def value(self, new_value):
+        self._value = new_value
+
 class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
     def __create(self):
         self._array = numpy.zeros((self.height, self.width), dtype=numpy_type_map[self.type])
@@ -44,7 +55,7 @@ class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
         try:
             return self._array
         except AttributeError:
-            self.create()
+            self.__create()
             return self._array
     @value.setter
     def value(self, new_data):

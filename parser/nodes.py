@@ -1,7 +1,7 @@
 from lepl import *
 from collections import namedtuple, defaultdict
 from templates import *
-from symboltable import SymbolTable, Scope, Keyword, Variable, Data, ParallelFunction, SequentialFunction
+from symboltable import SymbolTable, Scope, Keyword, Variable, Window, Data, ParallelFunction, SequentialFunction
 import random, numpy
 
 symbolTable = SymbolTable()
@@ -43,7 +43,7 @@ class InterpreterException(Exception): pass
 class InterpreterReturn(Exception): pass
 class InterpreterBreak(Exception): pass
 
-class Window:
+class RuntimeWindow:
     def __init__(self, x, y, data):
         self.data = data
         self.x = x
@@ -318,8 +318,14 @@ class ParallelFunctionDeclaration(List):
         name, parameters, block = self
         symbolTable.add(ParallelFunction(name, parameters, node=self))
         symbolTable.createScope()
+
+        windowCount = 0
         for parameter in parameters:
-            symbolTable.add(Variable(name=parameter.name, type=parameter.type))
+            if parameter.type == 'window':
+                symbolTable.add(Window(name=parameter.name, number=windowCount))
+                windowCount += 1
+            else:
+                symbolTable.add(Variable(name=parameter.name, type=parameter.type))
 
         device_function = create_device_function(self)
 
@@ -516,12 +522,14 @@ class Property(List):
     def to_cpp(self, env=defaultdict(bool)):
         check_is_symbol(self[0])
         symbol = symbolTable.lookup(self[0])
-        check_type(symbol, Variable) #TODO: Support Data properties
+
+
+        #check_type(symbol, Variable) #TODO: Support Data properties
 
 
         #TODO: Pull in support for window nums other than 0
-        if symbol.type == 'window':
-            return coordinates[self[1]] % { 'window_num' : 0 }
+        if type(symbol) == Window:
+            return coordinates[self[1]] % { 'window_num' : symbol.number }
         else:
             print self
             raise Exception
@@ -529,9 +537,9 @@ class Property(List):
     def evaluate(self, env):
         check_is_symbol(self[0], env)
         symbol = env.lookup(self[0])
-        check_type(symbol, Variable)
+        #check_type(symbol, Variable)
 
-        if symbol.type == 'window':
+        if type(symbol) == Window:
             return symbol.value.prop(self[1])
 
         else:
@@ -816,12 +824,15 @@ class ParallelFunctionCall(List):
         variable_arguments = []
         data_arguments = []
         for argument, parameter in zip(arguments, function.parameters):
-            if not parameter.type == 'window':
-                variable_arguments.append(argument.to_cpp(env))
-            else:
+            if parameter.type == 'window':
                 data_arguments.append(argument.to_cpp(env))
+            else:
+                variable_arguments.append(argument.to_cpp(env))
 
 
+        supported_window_sizes = [1, 2, 3, 4]
+        if len(data_arguments) not in supported_window_sizes:
+            raise CompilerException('Error, the number of Data Windows is %s but chestnut only supports windows of sizes %s' % (len(data_arguments), supported_window_sizes))
 
         return map_template % { 'input_datas' : ''.join(map(lambda arg: ', ' + arg, data_arguments)),
                                 'output_data' : output.name,
@@ -841,7 +852,7 @@ class ParallelFunctionCall(List):
 
         for y in xrange(output.height):
             for x in xrange(output.width):
-                args = map(lambda arg: Window(x, y, arg), arguments)
+                args = map(lambda arg: RuntimeWindow(x, y, arg), arguments)
 
                 try:
                     value = function.node.run(args, env)

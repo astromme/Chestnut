@@ -13,6 +13,8 @@ preamble = """\
 #include <iostream>
 #include <sstream>
 
+
+
 template <typename T>
 __global__ void copyWrapAroundAreas(T *array, int width, int height);
 
