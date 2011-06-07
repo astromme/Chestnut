@@ -13,8 +13,6 @@ preamble = """\
 #include <iostream>
 #include <sstream>
 
-
-
 template <typename T>
 __global__ void copyWrapAroundAreas(T *array, int width, int height);
 
@@ -94,7 +92,8 @@ struct Chestnut
   typedef typename thrust::zip_iterator<windowTuple> windowTupleIter;
 
 
-  // 1, 2, 3 or 4 source windows
+  // 0, 1, 2, 3 or 4 source windows
+  typedef typename thrust::constant_iterator<int>                        tuple0window;
   typedef typename thrust::zip_iterator<thrust::tuple<windowTupleIter> > tuple1window;
   typedef typename thrust::zip_iterator<thrust::tuple<windowTupleIter,
                                                       windowTupleIter> > tuple2window;
@@ -107,12 +106,14 @@ struct Chestnut
                                                       windowTupleIter> > tuple4window;
 
   // combined tuple for all of the information that we need in our 2d kernels
+  typedef typename thrust::tuple<resultIter, tuple0window, indexIterType, widthIterType, heightIterType> Kernel0Window;
   typedef typename thrust::tuple<resultIter, tuple1window, indexIterType, widthIterType, heightIterType> Kernel1Window;
   typedef typename thrust::tuple<resultIter, tuple2window, indexIterType, widthIterType, heightIterType> Kernel2Window;
   typedef typename thrust::tuple<resultIter, tuple3window, indexIterType, widthIterType, heightIterType> Kernel3Window;
   typedef typename thrust::tuple<resultIter, tuple4window, indexIterType, widthIterType, heightIterType> Kernel4Window;
 
   // iterator for this information to be sent in correctly
+  typedef typename thrust::zip_iterator<Kernel0Window> Kernel0WindowIter;
   typedef typename thrust::zip_iterator<Kernel1Window> Kernel1WindowIter;
   typedef typename thrust::zip_iterator<Kernel2Window> Kernel2WindowIter;
   typedef typename thrust::zip_iterator<Kernel3Window> Kernel3WindowIter;
@@ -339,6 +340,11 @@ struct Chestnut
     return thrust::make_zip_iterator(thrust::make_tuple(result, dataWindows, index, width, height));
   }
 
+  static Kernel0WindowIter startIterator(DeviceData &destinationData) {
+    tuple0window windowTupleIterator = thrust::constant_iterator<int>(0);
+    return startIterator<tuple0window>(destinationData, windowTupleIterator);
+  }
+
   static Kernel1WindowIter startIterator(DeviceData &destinationData, DeviceData &sourceData1) {
     windowTupleIter window1 = thrust::make_zip_iterator(windowStartTuple(sourceData1));
 
@@ -384,6 +390,11 @@ struct Chestnut
     heightIterType height = destinationData.heightIter;
 
     return thrust::make_zip_iterator(thrust::make_tuple(result, dataWindows, index, width, height));
+  }
+
+  static Kernel0WindowIter endIterator(DeviceData &destinationData) {
+    tuple0window windowTupleIterator = thrust::constant_iterator<int>(0);
+    return endIterator<tuple0window>(destinationData, windowTupleIterator);
   }
 
   static Kernel1WindowIter endIterator(DeviceData &destinationData, DeviceData &sourceData1) {
@@ -522,7 +533,6 @@ __global__ void copyWrapAroundAreas(T *array, int width, int height) {
 
   array[destinationIndex] = array[sourceIndex];
 }
-
 """
 
 

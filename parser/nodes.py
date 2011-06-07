@@ -830,7 +830,7 @@ class ParallelFunctionCall(List):
                 variable_arguments.append(argument.to_cpp(env))
 
 
-        supported_window_sizes = [1, 2, 3, 4]
+        supported_window_sizes = [0, 1, 2, 3, 4]
         if len(data_arguments) not in supported_window_sizes:
             raise CompilerException('Error, the number of Data Windows is %s but chestnut only supports windows of sizes %s' % (len(data_arguments), supported_window_sizes))
 
