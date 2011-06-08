@@ -1,11 +1,15 @@
-# make: builds minimal
-# make TARGET=filename  builds another example file
 #
+# make: builds minimal
+# make TARGET=filename:  builds another example file
+# make clean
+# make clean TARGET=filename
+#
+
 CC=nvcc
 
 INCLUDES=-I.
 
-# default TARGET set to build minimal.chestnut
+# default TARGET set to compile minimal.chestnut
 TARGET ?= minimal
 
 all: $(TARGET) 
