@@ -500,22 +500,22 @@ class Expressions(List):
 # int height = paddedHeight - 2;
 
 coordinates = {
-        'topLeft' : r'thrust::get<0>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
-        'top' : r'thrust::get<1>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
-        'topRight' : r'thrust::get<2>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
+        'topLeft' : r'thrust::get<0>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- topLeft */',
+        'top' : r'thrust::get<1>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- top */',
+        'topRight' : r'thrust::get<2>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- topRight */',
 
-        'left' : r'thrust::get<3>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
-        'center' : r'thrust::get<4>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
-        'right' : r'thrust::get<5>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
+        'left' : r'thrust::get<3>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- left */',
+        'center' : r'thrust::get<4>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- center */',
+        'right' : r'thrust::get<5>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- right */',
 
-        'bottomLeft' : r'thrust::get<6>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
-        'bottom' : r'thrust::get<7>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
-        'bottomRight' : r'thrust::get<8>(thrust::get<%(window_num)s>(thrust::get<1>(t)))',
+        'bottomLeft' : r'thrust::get<6>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- bottomLeft */',
+        'bottom' : r'thrust::get<7>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- bottom */',
+        'bottomRight' : r'thrust::get<8>(thrust::get<%(window_num)s>(thrust::get<1>(t)) )/* <- bottomRight */',
 
-        'x' : r'(thrust::get<2>(t) %% thrust::get<3>(t) - 1)',
-        'y' : r'(thrust::get<2>(t) / thrust::get<3>(t) - 1)',
-        'width' : r'(thrust::get<3>(t) - 2)',
-        'height' : r'(thrust::get<4>(t) - 2)',
+        'x' : r'(thrust::get<2>(t) %% thrust::get<3>(t) - 1) /* <- x */',
+        'y' : r'(thrust::get<2>(t) / thrust::get<3>(t) - 1) /* <- y */',
+        'width' : r'(thrust::get<3>(t) - 2) /* <- width */',
+        'height' : r'(thrust::get<4>(t) - 2) /* <- height */',
                }
 
 class Property(List):
