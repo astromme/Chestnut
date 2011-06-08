@@ -1,0 +1,11 @@
+(1) add a symbolic link to thrust include directory:
+
+    ln -s /usr/local/include/thrust/  thrust
+
+(2) run make to build minimal
+
+    or run make TARGET=prog_name  to buld other programs:
+
+    make TARGET=game_of_life        
+
+
