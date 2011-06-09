@@ -4,6 +4,7 @@ import numpy
 # Keywords supported by chestnut syntax
 # These are added to the symbol table
 keywords = ['int',
+            'float',
             'char',
             'if',
             'else',
@@ -17,6 +18,8 @@ numpy_type_map = { 'int2d' : numpy.int32,
                    'real2d' : numpy.float32 }
 
 class UninitializedException(Exception): pass
+
+DisplayWindow = namedtuple('DisplayWindow', ['title', 'width', 'height'])
 
 Keyword = namedtuple('Keyword', ['name'])
 SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device', 'node'])
@@ -47,6 +50,9 @@ class Window(namedtuple('Window', ['name', 'number'])):
 class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
     def __create(self):
         self._array = numpy.zeros((self.height, self.width), dtype=numpy_type_map[self.type])
+    @property
+    def size(self):
+        return self.width * self.height
     @property
     def array(self):
         return self.value
@@ -91,6 +97,7 @@ class Scope(dict):
 class SymbolTable:
     def __init__(self):
         self.table = []
+        self.displayWindows = []
         self.createScope() # global scope
 
         for word in keywords:
@@ -107,7 +114,6 @@ class SymbolTable:
 
     def createScope(self):
       self.table.insert(0, Scope())
-
 
     def removeScope(self):
         self.table.pop(0)

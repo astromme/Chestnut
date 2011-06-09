@@ -19,7 +19,7 @@ struct %(function_name)s_functor
 };
 """
 def create_device_function(function_node):
-  name, parameters, block = function_node
+  type_, name, parameters, block = function_node
   static_variables = []
   static_types = []
 
@@ -57,7 +57,7 @@ type_map = { 'real' : 'float',
              'void' : 'void' }
 
 data_template = """\
-Chestnut<%(type)s>::DeviceData %(name)s(%(width)s, %(height)s);
+ChestnutDetail<%(type)s>::DeviceData %(name)s(%(width)s, %(height)s);
 """
 def create_data(type_, name, size):
   return data_template % { 'type' : type_map[type_],

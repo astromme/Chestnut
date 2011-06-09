@@ -129,7 +129,7 @@ data_initialization = ~symbol('=') & parallel_function_call > DataInitialization
 variable_declaration = type_ & identifier & Optional(initialization | data_initialization) & ~semi > VariableDeclaration
 data_declaration = data_type & identifier & size & Optional(data_initialization) & ~semi > DataDeclaration
 sequential_function_declaration = ~Token('sequential') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > SequentialFunctionDeclaration
-parallel_function_declaration = ~Token('parallel') & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
+parallel_function_declaration = ~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
 
 #Built-in Sequential functions
 sequential_print = ~keyword('print') & ~symbol('(') & string & (~comma & expression)[:] & ~symbol(')') > Print
@@ -142,7 +142,8 @@ primary += host_function_call | sequential_function_call | identifier | identifi
 #data_read  = ~symbol(':') & ~keyword('read') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Read
 #data_write = ~symbol(':') & ~keyword('write') & ~symbol('(') & data_identifier & ~comma & filename & ~symbol(')') & ~semi > Write
 data_print = ~keyword('print') & ~symbol('(') & data_identifier & ~symbol(')') > DataPrint
-host_function_call += data_print
+data_display = ~keyword('display') & ~symbol('(') & data_identifier & ~symbol(')') > DataDisplay
+host_function_call += data_print | data_display
 
 ## Parallel functions
 min_value = max_value = integer

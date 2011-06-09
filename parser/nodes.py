@@ -1,14 +1,32 @@
 from lepl import *
 from collections import namedtuple, defaultdict
 from templates import *
-from symboltable import SymbolTable, Scope, Keyword, Variable, Window, Data, ParallelFunction, SequentialFunction
+from symboltable import SymbolTable, Scope, Keyword, Variable, Window, Data, ParallelFunction, SequentialFunction, DisplayWindow
 import random, numpy
 
 symbolTable = SymbolTable()
 
+def check_is_symbol(name, environment=symbolTable):
+    if not environment.lookup(name):
+        raise CompilerException("Error, the symbol '%s' was used but it hasn't been declared yet" % name)
+
+def check_type(symbol, requiredType):
+    if type(symbol) is not requiredType:
+        raise CompilerException("Error, the symbol '%s' is a %s, but a symbol of type %s was expected" % \
+                (symbol.name, type(symbol), requiredType))
+
+def check_dimensions_are_equal(leftData, rightData):
+    assert type(leftData) == type(rightData) == Data
+    if (not leftData.width == rightData.width) or (not leftData.height == rightData.height):
+        raise CompilerException("Error, '%s' (%s, %s) and '%s' (%s, %s) have different dimensions." % \
+         (rightData.name, rightData.width, rightData.height, leftData.name, leftData.width, leftData.height))
+
+
 #helpers so that we don't get errors about undefined to_cpp methods
 class str(str):
-    to_cpp = lambda self, env=None: self
+    def to_cpp(self, env=None):
+        check_is_symbol(self)
+        return self
     def evaluate(self, env):
         symbol = env.lookup(self)
         if type(symbol) == Variable:
@@ -112,21 +130,6 @@ class RuntimeWindow:
 
 
 
-
-def check_is_symbol(name, environment=symbolTable):
-    if not environment.lookup(name):
-        raise CompilerException("Error, the symbol '%s' was used but it hasn't been declared yet" % name)
-
-def check_type(symbol, requiredType):
-    if type(symbol) is not requiredType:
-        raise CompilerException("Error, the symbol '%s' is a %s, but a symbol of type %s was expected" % \
-                (symbol.name, type(symbol), requiredType))
-
-def check_dimensions_are_equal(leftData, rightData):
-    assert type(leftData) == type(rightData) == Data
-    if (not leftData.width == rightData.width) or (not leftData.height == rightData.height):
-        raise CompilerException("Error, '%s' (%s, %s) and '%s' (%s, %s) have different dimensions." % \
-         (rightData.name, rightData.width, rightData.height, leftData.name, leftData.width, leftData.height))
 
 
 ### Nodes ###
@@ -315,7 +318,7 @@ class SequentialFunctionDeclaration(List):
 
 class ParallelFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
-        name, parameters, block = self
+        type_, name, parameters, block = self
         symbolTable.add(ParallelFunction(name, parameters, node=self))
         symbolTable.createScope()
 
@@ -333,7 +336,7 @@ class ParallelFunctionDeclaration(List):
         return device_function
 
     def evaluate(self, env):
-        name, parameters, block = self
+        type_, name, parameters, block = self
         env.add(ParallelFunction(name, parameters, node=self))
 
     def run(self, arguments, env):
@@ -374,6 +377,31 @@ class DataInitialization(List):
         return self[0].to_cpp(env)
     def evaluate(self, env):
         return self[0].evaluate(env)
+
+
+display_template = """\
+ChestnutCore::DisplayWindow _%(name)s_display(QSize(%(width)s, %(height)s));
+_%(name)s_display.show();
+
+{
+  thrust::device_vector<int> *unpadded = %(name)s.unpadded();
+  thrust::for_each(thrust::make_zip_iterator(thrust::make_tuple(_%(name)s_display.displayData(), unpadded->begin())),
+                   thrust::make_zip_iterator(thrust::make_tuple(_%(name)s_display.displayData()+%(size)s, unpadded->begin()+%(size)s)),
+                  _chestnut_green_color_conversion_functor());
+}
+_%(name)s_display.updateGL();
+"""
+class DataDisplay(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        data = symbolTable.lookup(self[0])
+
+        return display_template % { 'name' : data.name,
+                                    'width' : data.width,
+                                    'height' : data.height,
+                                    'size' : data.size }
+
+    def evaluate(self, env):
+        pass
 
 print_template = """
 {
@@ -787,10 +815,10 @@ map_template = """
 {
     %(maybe_wraps)s
 
-    Chestnut<%(type)s>::Kernel%(num_inputs)sWindowIter startIterator
-        = Chestnut<%(type)s>::startIterator(%(output_data)s%(input_datas)s);
-    Chestnut<%(type)s>::Kernel%(num_inputs)sWindowIter endIterator
-        = Chestnut<%(type)s>::endIterator(%(output_data)s%(input_datas)s);
+    ChestnutDetail<%(type)s>::Kernel%(num_inputs)sWindowIter startIterator
+        = ChestnutDetail<%(type)s>::startIterator(%(output_data)s%(input_datas)s);
+    ChestnutDetail<%(type)s>::Kernel%(num_inputs)sWindowIter endIterator
+        = ChestnutDetail<%(type)s>::endIterator(%(output_data)s%(input_datas)s);
 
 
     thrust::for_each(startIterator, endIterator, %(function)s_functor(%(variable_arguments)s));
