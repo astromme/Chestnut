@@ -554,8 +554,9 @@ coordinates = {
 
 class Property(List):
     def to_cpp(self, env=defaultdict(bool)):
-        check_is_symbol(self[0])
-        symbol = symbolTable.lookup(self[0])
+        name, property_ = self
+        check_is_symbol(name)
+        symbol = symbolTable.lookup(name)
 
 
         #check_type(symbol, Variable) #TODO: Support Data properties
@@ -565,6 +566,7 @@ class Property(List):
         if type(symbol) == Window:
             return coordinates[self[1]] % { 'window_num' : symbol.number }
         else:
+            print symbolTable
             print self
             raise Exception
 

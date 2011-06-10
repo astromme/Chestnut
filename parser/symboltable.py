@@ -11,6 +11,7 @@ keywords = ['int',
             'while',
             'for',
             'return',
+            'window',
             'break',
             ]
 
