@@ -1,3 +1,34 @@
+@article{gpu-optimizations,
+abstract = {Recent years have seen a trend in using graphic pro- cessing units (GPU) as accelerators for general-purpose comput- ing. The inexpensive, single-chip, massively parallel architecture of GPU has evidentially brought factors of speedup to many nu- merical applications. However, the development of a high-quality GPU application is challenging, due to the large optimization space and complex unpredictable effects of optimizations on GPU program performance. Recently, several studies have attempted to use empiri- cal search to help the optimization. Although those studies have shown promising results, one important factorprogram inputsin the optimization has remained unexplored. In this work, we initiate the exploration in this new dimension. By conducting a series of measurement, we find that the ability to adapt to program inputs is important for some applications to achieve their best performance on GPU. In light of the findings, we develop an input-adaptive optimization framework, namely G-ADAPT, to address the influence by constructing cross-input predictive models for automatically predicting the (near-)optimal configurations for an arbitrary input to a GPU program. The results demonstrate the promise of the framework in serving as a tool to alleviate the productivity bottleneck in GPU programming.},
+author = {Liu, Y and Zhang, E Z},
+doi = {10.1109/IPDPS.2009.5160988},
+isbn = {9781424437511},
+journal = {2009 IEEE International Symposium on Parallel Distributed Processing},
+pages = {1--10},
+publisher = {IEEE},
+title = {{A cross-input adaptive framework for GPU program optimizations}},
+url = {http://doi.ieeecomputersociety.org/10.1109/IPDPS.2009.5160988},
+year = {2009}
+}
+
+@inproceedings{openmp-to-cuda,
+abstract = {GPGPUs have recently emerged as powerful vehicles for general-purpose high-performance computing. Although a new Compute Unified Device Architecture (CUDA) programming model from NVIDIA offers improved programmability for general computing, programming GPGPUs is still complex and error-prone. This paper presents a compiler framework for automatic source-to-source translation of standard OpenMP applications into CUDA-based GPGPU applications. The goal of this translation is to further improve programmability and make existing OpenMP applications amenable to execution on GPGPUs. In this paper, we have identified several key transformation techniques, which enable efficient GPU global memory access, to achieve high performance. Experimental results from two important kernels (JACOBI and SPMUL) and two NAS OpenMP Parallel Benchmarks (EP and CG) show that the described translator and compile-time optimizations work well on both regular and irregular applications, leading to performance improvements of up to 50X over the unoptimized translation (up to 328X over serial).},
+author = {Lee, Seyong and Min, Seung-Jai and Eigenmann, Rudolf},
+booktitle = {Proceedings of the 14th ACM SIGPLAN symposium on Principles and practice of parallel programming},
+doi = {10.1145/1504176.1504194},
+isbn = {9781605583976},
+issn = {03621340},
+keywords = {automatic translation,com,cuda,gpu,openmp},
+number = {4},
+organization = {ACM New York, NY, USA},
+pages = {101--110},
+publisher = {ACM},
+series = {SIGPLAN Not. (USA)},
+title = {{OpenMP to GPGPU: a compiler framework for automatic translation and optimization}},
+url = {http://portal.acm.org/citation.cfm?id=1504176.1504194},
+volume = {44},
+year = {2009}
+}
 
 @inproceedings{mint-paper,
   author = {Unat, Didem and Cai, X and Baden, Scott},
