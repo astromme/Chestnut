@@ -1,15 +1,12 @@
-parallel mod_20(window) {
-  return window.center % 10;
+parallel int mod(window data, int mod_val) {
+  return data.center % mod_val;
 }
 
-parallel by_index(window) {
-  return window.width*window.y + window.x;
+parallel int by_index(window data) {
+  return data.width*data.y + data.x;
 }
 
-parallel laplacian(window) {
-  real alpha = 1;
-  real beta = 1;
-
+parallel real laplacian(window data, real alpha, real beta) {
   return alpha * window.center +
          beta * (window.left + window.right + window.top + window.bottom);
 }
@@ -23,5 +20,5 @@ print(dataset);
 
 real2d modified[50, 20];
 print("Laplacian");
-modified = :laplacian(dataset);
+modified = :laplacian(dataset, 1, 1);
 print(modified);

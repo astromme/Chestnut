@@ -19,7 +19,7 @@ parallel int mandelbrot(window data, real xleft, real xright, real ytop, real yb
   if (iteration == max_iteration)
     return 0;         // Failed to diverge -- in the set
   else
-    return iteration*5; // diverged in some number of iterations
+    return iteration; // diverged in some number of iterations
 }
 
 real left = -2.5;
