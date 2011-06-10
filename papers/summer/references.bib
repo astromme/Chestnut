@@ -1,0 +1,70 @@
+@article{han,
+  author = {Tianyi David Han and Tarek S. Abdelrahman},
+  title = {{hiCUDA: A High-level Directive-based Language for GPU Programming}},
+  journal = {Proceedings of 2nd Workshop on General Purpose Processing on Graphics Processing Units},
+  volume = {383},
+  pages = {52--61},
+  month = {March},
+  year = {2009},
+  annote = "
+Converting existing programs from a singly threaded model to the CUDA model can take significant time and experience, partly because of the mechanical conversions needed such as computing array references instead of using loops. hiCUDA is an example of an OpenMP style C preprocessor language that allows the programmer to wrap his singly threaded loops to allow them to be automatically parallelized by CUDA. It was found that examples written with the prototype hiCUDA implementation did not perform significantly worse than the same examples written directly with CUDA. Additionally, the hiCUDA examples were more concise and better fit into existing loop-based computation models that are often present in single threaded programs. \\
+\\
+This research is useful to us because it shows a similar abstraction to what we want to accomplish. We think that ease-of-use enhancements can emerge from hiding certain aspects of writing software for the GPU, such as moving data between the system RAM and the GPU RAM, writing functions to figure out what parts of the data to modify and writing code to physically convert data from its native format to arrays and back again. This is also a good example of showing how pre-existing parallel concepts and frameworks (shared-memory loop-parallelism OpenMP) can be extended to the graphics card.
+"
+}
+
+@article{resnick,
+   author = {Mitchel Resnick and John Maloney and Andr\'{e} Monroy-Hern\'{a}ndez and Natalie Rusk and Evelyn Eastmond and Karen Brennan and Amon Millner and Eric Rosenbaum and Jay Silver and Brian Silverman and Yasmin Kafai},
+   title = {{Scratch: Programming for All}},
+   journal = {Communications of the ACM},
+   volume = {52},
+   number = {11},
+   pages = {60--67},
+   month = {November},
+   year = {2009},
+   annote = "
+     Scratch is a programming language developed at MIT that provides an appealing graphical environment aimed at introducing programming to 8-16 year olds. Familiar programming constructs like conditionals and loops are present, but are presented in an intuitive manner. The authors hold that the ``computational thinking'' that programming affords is a valuable tool that should be encouraged but is currently lacking in non-Computer Science curriculum. Most children's digital fluency is defined by ``reading'' but not ``writing.'' The article discusses some of the design decisions that went into the language. To make the language appeal to their target, the authors wanted Scratch to be more tinkerable, meaningful, and social. Additionally, we can think of any programming language as having a ``low floor'' (easy to begin), ``high ceiling'' (ability to become more complex), and ``wide walls'' (support for a diverse range of projects). Scratch appropriately focuses on the low floor and wide walls, arguing that a higher ceiling is outside the scope of a learning language, and if students are interesting in ``raising the ceiling'' they can and should look to more established languages like C or Python. \\ \\
+
+     This article raises some important questions that we need to consider as we design our own language. What is the level of the floor and ceiling? How wide are the walls to be? Scratch's design is very heavily influenced by a target audience. We need to consider our target audience carefully and make sure that our language is appealing. Our project will not be an introductory language to programming as a whole, but will rather be targeted at people with some programming experience who have never ventured into the world of general purpose graphics processing.
+     "
+}
+
+@article{robertson,
+  author = {Stephanie A. Robertson and Martin P. Lee},
+  title = {{The Application of Second Natural Language Acquisition Pedagogy to the Teaching of Programming Languages -- A Research Agenda}},
+  journal = {SIGCSE Bulletin},
+  volume = {27},
+  number = {4},
+  pages = {9--12},
+  month = {December},
+  year = {1995},
+  annote = "
+    The authors of this paper argue that teaching a second natural language and teaching a first programming language are not as different as one might suspect. While much research has gone into how best to communicate the syntax and semantics contained in a natural language, teaching programming languages is sorely in need of such instruction. Central to that argument is a concentration on writing code over reading it. A large and important part of learning a natural language is an ability to read, digest, and internalize the information being presented. So, the authors write, we must teach our students to read the code as well as write it. \\ \\
+
+    Though we are in the business of {\em writing} a language, we need to place high value on the {\em readability} of our language. This is, after all, intended to be a teaching language and we want it to be accessible to our audience. By reinforcing the message that reading existing code is important we can help train our users to really get a grasp of the concepts at work.
+    "
+}
+
+@article{tran,
+  author = {Quoc-Nam Tran},
+  title = {{Teaching Design \& Analysis of Multi-Core Parallel Algorithms Using CUDA}},
+  journal = {Journal of Computing Sciences in Colleges},
+  volume = {25},
+  number = {4},
+  pages = {7--14},
+  month = {April},
+  year = {2010},
+  annote = "
+    Most of an undergraduate's computer science training is involved with writing single-threaded, sequential code. Since single-core CPUs are reaching limits on a hardware level, a shift is underway towards multi-core machines. This paper describes how to harness a GPU for general purpose computing using CUDA and how one might implement this into a college curriculum. A high-level overview of the CUDA model is presented along with a sample algorithm that illustrates the usefulness of teaching this new paradigm. \\ \\
+
+    The most useful part of this paper was the overview of the process that goes into writing a CUDA program. Given a bird's-eye view of the CUDA model, we can begin to get an idea of how to shape our own language. For example, in CUDA the programmer must decide how many threads will be executed. We would like to hide this detail from the user since it is too low level. Given this kind of big-picture writeup, we can begin to see what may cause problems and what patterns may emerge.
+    "
+}
+
+@MISC{hoberock,
+  author = "Jared Hoberock and Nathan Bell",
+  title = "Thrust: A Parallel Template Library",
+  year = "2009",
+  url = "http://www.meganewtons.com/",
+  note = "Version 1.2"
+}
