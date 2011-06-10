@@ -35,6 +35,10 @@ year = {2009}
   booktitle = {Proceedings of the ACM International Conference on Supercomputing ICS},
   title = {{Mint: Realizing CUDA performance in 3D stencil methods with annotated C}},
   year = {2011}
+  annote = "
+Mint targets the stencil method for memory access, where each element can be computed from a stencil of nearby elements. This allows for efficient parallelization and memory access. Built from openmp style compiler pragmas, the Mint architecture transparently translates normal C source code into cuda code. This paper shows some simple examples of gradient, laplacian and other common functions which can be computed using their framework. Example applications include heat maps and fluid simulations. 2D and 3D support is given.\\
+\\
+Mint shows some promising results where their work is 3 to 6 times faster than the comparison OpenMP code. 3 levels of optimizations are given, including shared memory, loop aggregation and register optimizations.
 }
 
 
