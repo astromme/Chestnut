@@ -19,7 +19,7 @@ numpy_type_map = { 'int2d' : numpy.int32,
 
 class UninitializedException(Exception): pass
 
-DisplayWindow = namedtuple('DisplayWindow', ['title', 'width', 'height'])
+DisplayWindow = namedtuple('DisplayWindow', ['name', 'title', 'width', 'height'])
 
 Keyword = namedtuple('Keyword', ['name'])
 SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device', 'node'])
@@ -48,6 +48,17 @@ class Window(namedtuple('Window', ['name', 'number'])):
         self._value = new_value
 
 class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
+    @property
+    def has_display(self):
+        try:
+            return self._has_display
+        except AttributeError:
+            self._has_display = 0
+            return self._has_display
+    @has_display.setter
+    def has_display(self, value):
+        self._has_display = value
+
     def __create(self):
         self._array = numpy.zeros((self.height, self.width), dtype=numpy_type_map[self.type])
     @property

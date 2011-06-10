@@ -380,8 +380,6 @@ class DataInitialization(List):
 
 
 display_template = """\
-ChestnutCore::DisplayWindow _%(name)s_display(QSize(%(width)s, %(height)s));
-_%(name)s_display.show();
 
 {
   thrust::device_vector<int> *unpadded = %(name)s.unpadded();
@@ -390,15 +388,23 @@ _%(name)s_display.show();
                   _chestnut_green_color_conversion_functor());
 }
 _%(name)s_display.updateGL();
+_app.processEvents();
 """
 class DataDisplay(List):
     def to_cpp(self, env=defaultdict(bool)):
         data = symbolTable.lookup(self[0])
 
-        return display_template % { 'name' : data.name,
-                                    'width' : data.width,
-                                    'height' : data.height,
-                                    'size' : data.size }
+        display_env = { 'name' : data.name,
+                        'width' : data.width,
+                        'height' : data.height,
+                        'size' : data.size }
+
+        code = ""
+        if not data.has_display:
+            data.has_display = True
+            symbolTable.displayWindows.append(DisplayWindow(data.name, 'Chestnut Output [%s]' % data.name, data.width, data.height))
+        code += display_template % display_env
+        return code
 
     def evaluate(self, env):
         pass
