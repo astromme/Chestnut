@@ -83,7 +83,7 @@ def main():
     import shlex, subprocess
 
 
-    if len(sys.argv) < 2:
+    if len(sys.argv) not in [2, 4]:
         print('Usage: %s input [-o output]' % sys.argv[0])
         sys.exit(1)
 
@@ -92,7 +92,10 @@ def main():
     if splits[-1] not in ['chestnut', 'ch']:
         print("Sorry, your input file %s doesn't end with .chestnut or .ch" % input_file)
 
-    output_file = os.path.basename('.'.join(splits[0:-1]))
+    if len(sys.argv) == 2:
+        output_file = os.path.basename('.'.join(splits[0:-1]))
+    else:
+        output_file = sys.argv[3]
 
     with open(input_file, 'r') as f:
       code = ''.join(f.readlines())
