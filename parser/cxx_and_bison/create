@@ -1,8 +1,0 @@
-#!/bin/sh
-# This file creates the executable for the example.
-# To terminate the example press Ctrl-D
-echo Creating the executables ...
-bison grammar.y
-g++ grammar.tab.c -o example
-rm grammar.tab.c
-echo Done
