@@ -1,18 +1,18 @@
-project(Chestnut)
+project(Chestnut_Designer)
 cmake_minimum_required(VERSION 2.8)
 
 SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 find_package(Qt4 REQUIRED)
 include(${QT_USE_FILE})
-include_directories(${Chestnut_SOURCE_DIR} ${Chestnut_BINARY_DIR})
+include_directories(${Chestnut_Designer_SOURCE_DIR} ${Chestnut_Designer_BINARY_DIR})
 
 
-set(chestnut_operators
+set(designer_operators
     standardoperation.cpp
     )
 
-set(chestnut_functions
+set(designer_functions
     map.cpp
     reduce.cpp
     sort.cpp
@@ -20,12 +20,12 @@ set(chestnut_functions
     write.cpp
     )
 
-set(chestnut_datatypes
+set(designer_datatypes
     datablock.cpp
     value.cpp
     )
 
-set(chestnut_sources
+set(designer_sources
     chestnut.cpp
     mainwindow.cpp
     scene.cpp
@@ -41,13 +41,13 @@ set(chestnut_sources
     drawingutils.cpp
     datautils.cpp
     sizes.cpp
-    ${chestnut_functions}
-    ${chestnut_operators}
-    ${chestnut_datatypes}
+    ${designer_functions}
+    ${designer_operators}
+    ${designer_datatypes}
     )
 
 
-set(chestnut_headers
+set(designer_headers
     sink.h
     source.h
     connection.h
@@ -57,7 +57,7 @@ set(chestnut_headers
     mainwindow.h
     )
 
-set(chestnut_ui
+set(designer_ui
     mainwindow.ui
     datablock.ui
     value.ui
@@ -65,15 +65,15 @@ set(chestnut_ui
     runoutput.ui
     )
 
-set(chestnut_resource_files
+set(designer_resource_files
     icons.qrc
     )
 
-qt4_wrap_cpp(chestnut_mocs ${chestnut_headers})
-qt4_wrap_ui(chestnut_ui ${chestnut_ui})
-qt4_add_resources(chestnut_resources ${chestnut_resource_files})
+qt4_wrap_cpp(designer_mocs ${designer_headers})
+qt4_wrap_ui(designer_ui ${designer_ui})
+qt4_add_resources(designer_resources ${designer_resource_files})
 
-add_executable(chestnut ${chestnut_sources} ${chestnut_mocs} ${chestnut_ui} ${chestnut_resources})
-target_link_libraries(chestnut ${QT_LIBRARIES})
+add_executable(chestnut-designer ${designer_sources} ${designer_mocs} ${designer_ui} ${designer_resources})
+target_link_libraries(chestnut-designer ${QT_LIBRARIES})
 
 
