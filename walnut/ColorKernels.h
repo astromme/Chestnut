@@ -1,9 +1,11 @@
 #ifndef COLORKERNELS_H
 #define COLORKERNELS_H
 
+#include "walnut_global.h"
+
 #include <thrust/tuple.h>
 
-struct _chestnut_default_color_conversion_functor {
+struct WALNUT_EXPORT _chestnut_default_color_conversion_functor {
   template <typename Tuple>
   __host__ __device__
   void operator()(Tuple t) {
@@ -16,7 +18,7 @@ struct _chestnut_default_color_conversion_functor {
   }
 };
 
-struct _chestnut_red_color_conversion_functor {
+struct WALNUT_EXPORT _chestnut_red_color_conversion_functor {
   template <typename Tuple>
   __host__ __device__
   void operator()(Tuple t) {
@@ -29,7 +31,7 @@ struct _chestnut_red_color_conversion_functor {
   }
 };
 
-struct _chestnut_green_color_conversion_functor {
+struct WALNUT_EXPORT _chestnut_green_color_conversion_functor {
   template <typename Tuple>
   __host__ __device__
   void operator()(Tuple t) {
@@ -42,7 +44,7 @@ struct _chestnut_green_color_conversion_functor {
   }
 };
 
-struct _chestnut_blue_color_conversion_functor {
+struct WALNUT_EXPORT _chestnut_blue_color_conversion_functor {
   template <typename Tuple>
   __host__ __device__
   void operator()(Tuple t) {

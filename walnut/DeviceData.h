@@ -20,6 +20,8 @@
 #ifndef DEVICEDATA_H
 #define DEVICEDATA_H
 
+#include "walnut_global.h"
+
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/iterator/constant_iterator.h>
@@ -35,33 +37,35 @@
 #include <algorithm>
 #include <sstream>
 
-std::string stringFromInt(int number);
+WALNUT_EXPORT std::string stringFromInt(int number);
 
 /*
   Simple debugging function to print out a 2d array. Does not know about
   padding, so send it the padded width/height rather than the base width/height
 */
-template <typename T>
+WALNUT_EXPORT template <typename T>
 void printFullArray2D(const thrust::host_vector<T> &vector, int width, int height);
 
 /*
    Slightly smarter padding-aware print function. Send it in the width and the
    padding and it will do the dirty work for you.
 */
-template <typename T>
+WALNUT_EXPORT template <typename T>
 void printArray2D(const thrust::host_vector<T> &vector, int width, int height, int padding);
 
 
+WALNUT_EXPORT
 enum WrapAroundCondition { WrapAroundConditionCorners = 0,
                            WrapAroundConditionLeft = 1,
                            WrapAroundConditionRight = 2,
                            WrapAroundConditionTop = 3,
                            WrapAroundConditionBottom = 4 };
 
-template <typename T>
+
+WALNUT_EXPORT template <typename T>
 __global__ void copyWrapAroundAreas(T *array, int width, int height);
 
-struct randoms_helper_functor {
+struct WALNUT_EXPORT randoms_helper_functor {
   int minValue;
   int maxValue;
 
@@ -82,7 +86,7 @@ struct randoms_helper_functor {
    fancy iterators
 */
 template <typename T>
-struct ChestnutDetail {
+struct WALNUT_EXPORT ChestnutDetail {
   // our 2d array type mushed into a 1d array
   typedef typename thrust::device_vector<T> vector;
 

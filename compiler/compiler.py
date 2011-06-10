@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 preamble = """\
-#include "libnuts/DeviceData.h"
-#include "libnuts/DisplayWindow.h"
-#include "libnuts/ColorKernels.h"
+#include "walnut/DeviceData.h"
+#include "walnut/DisplayWindow.h"
+#include "walnut/ColorKernels.h"
 
 #include <QApplication>
 """
@@ -12,17 +12,17 @@ main_template = """\
 
 int main(int argc, char* argv[])
 {
-  QApplication _app(argc, argv);
+  %(app_statement)s
+
 %(declarations)s
 %(main_code)s
 
-  return _app.exec();
+  %(return_statement)s
 }
 """
 
 from parser import parse
 from nodes import *
-
 
 cuda_directory='/usr/local/cuda/'
 cuda_compiler=cuda_directory+'bin/nvcc'
@@ -31,7 +31,7 @@ cuda_compile_pass1 = """%(cuda_compiler)s -M -D__CUDACC__ %(input_file)s -o %(in
 
 cuda_compile_pass2 = """%(cuda_compiler)s %(input_file)s -c -o %(input_file)s.o -m64 -Xcompiler ,\"-g\" -DNVCC -I/usr/local/cuda/include -I/usr/local/cuda/include -I/usr/include -I /Library/Frameworks/QtGui.framework/Versions/4/Headers"""
 
-cuda_compile_pass3 = """/usr/bin/c++ -O2 -g -Wl,-search_paths_first -headerpad_max_install_names  ./%(input_file)s.o -o %(output_file)s /usr/local/cuda/lib/libcudart.dylib -Wl,-rpath -Wl,/usr/local/cuda/lib /usr/local/cuda/lib/libcuda.dylib -L . -lnuts -framework OpenGL -framework QtGui -framework QtOpenGL -framework QtCore"""
+cuda_compile_pass3 = """/usr/bin/c++ -O2 -g -Wl,-search_paths_first -headerpad_max_install_names  ./%(input_file)s.o -o %(output_file)s /usr/local/cuda/lib/libcudart.dylib -Wl,-rpath -Wl,/usr/local/cuda/lib /usr/local/cuda/lib/libcuda.dylib -L . -lwalnut -framework OpenGL -framework QtGui -framework QtOpenGL -framework QtCore"""
 
 
 display_init = """\
@@ -63,8 +63,17 @@ def compile(ast):
                                            'height' : window.height,
                                            'title' : window.title })
 
+  if len(declarations):
+    app_statement = 'QApplication _app(argc, argv);'
+    return_statement = 'return _app.exec();'
+  else:
+    app_statement = ''
+    return_statement = 'return 0;'
+
   main_function = main_template % { 'declarations' : indent('\n'.join(declarations)),
-                                    'main_code' : indent('\n'.join(main_function_statements)) }
+                                    'main_code' : indent('\n'.join(main_function_statements)),
+                                    'app_statement' : app_statement,
+                                    'return_statement' : return_statement }
 
   thrust_code = preamble + '\n'.join(functions) + main_function
   return thrust_code

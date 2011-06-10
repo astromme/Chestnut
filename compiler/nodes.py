@@ -23,7 +23,7 @@ def check_dimensions_are_equal(leftData, rightData):
 
 
 #helpers so that we don't get errors about undefined to_cpp methods
-class str(str):
+class Symbol(str):
     def to_cpp(self, env=None):
         check_is_symbol(self)
         return self
@@ -35,12 +35,26 @@ class str(str):
             return symbol
         else:
             raise Exception
-class int(int):
+class String(str):
+    def to_cpp(self, env=None):
+        return self
+    def evaluate(self, env):
+        return self
+class Integer(int):
     to_cpp = lambda self, env=None: str(self)
     evaluate = lambda self, env: self
-class float(float):
+class Real(float):
     to_cpp = lambda self, env=None: str(self)
     evaluate = lambda self, env: self
+class Bool(object):
+    def __init__(self, value):
+        self._value = bool(value)
+    def __nonzero__(self):
+        return self._value
+    def to_cpp(self, env=None):
+        return str(self._value).lowercase()
+    def evaluate(self, env):
+        return self._value
 
 #helper to convert sub-members into strings
 def cpp_tuple(obj, env=defaultdict(bool)):

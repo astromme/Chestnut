@@ -20,11 +20,14 @@
 #ifndef DISPLAYWINDOW_H
 #define DISPLAYWINDOW_H
 
+#include "walnut_global.h"
+
 #include <QtOpenGL/QGLWidget>
 #include <thrust/device_vector.h>
 
-namespace ChestnutCore {
-class DisplayWindow : public QGLWidget
+namespace WALNUT_EXPORT ChestnutCore {
+
+class WALNUT_EXPORT DisplayWindow : public QGLWidget
 {
 public:
   DisplayWindow(const QSize &windowSize, QWidget *parent=0);

@@ -3,7 +3,7 @@
 import re
 from nodes import *
 
-identifier = Token('[a-zA-Z][a-zA-Z0-9_]*') >> str
+identifier = Token('[a-zA-Z][a-zA-Z0-9_]*') >> Symbol
 variable_identifier = identifier
 data_identifier = identifier
 sequential_identifier = identifier
@@ -16,22 +16,22 @@ semi = symbol(';')
 comma = symbol(',')
 identifier_property = identifier & ~symbol('.') & property > Property
 
-string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'") >> (lambda obj: str(obj[1:-1]))
-string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"') >> (lambda obj: str(obj[1:-1]))
+string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'") >> (lambda obj: String(obj[1:-1]))
+string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"') >> (lambda obj: String(obj[1:-1]))
 string = string_single_quote | string_double_quote
 
 # tokens
-real_declaration = Token('real') >> (lambda real: str('float')) # c++ only has floats, not reals
-integer_declaration = Token('int') >> str
+real_declaration = Token('real') >> (lambda real: Symbol('float')) # c++ only has floats, not reals
+integer_declaration = Token('int') >> Symbol
 type_ = real_declaration | integer_declaration
 
 real2d_declaration = Token('real2d')
 integer2d_declaration = Token('int2d')
 data_type = real2d_declaration | integer2d_declaration
 
-real = Token(UnsignedReal()) >> float
-integer = Token(UnsignedInteger()) >> int
-number = integer | real | keyword('true') >> bool | keyword('false') >> bool
+real = Token(UnsignedReal()) >> Real
+integer = Token(UnsignedInteger()) >> Integer
+number = integer | real | keyword('true') >> Bool | keyword('false') >> Bool
 
 width = integer
 height = integer
