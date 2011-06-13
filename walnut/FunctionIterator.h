@@ -17,16 +17,28 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include <QtCore/QtGlobal>
+#ifndef FUNCTIONITERATOR_H
+#define FUNCTIONITERATOR_H
 
-#if defined(WALNUT_LIBRARY)
-#  define WALNUT_EXPORT Q_DECL_EXPORT
-#else
-#  define WALNUT_EXPORT Q_DECL_IMPORT
-#endif
+#include <thrust/tuple.h>
+#include <thrust/iterator/constant_iterator.h>
+#include <thrust/iterator/counting_iterator.h>
+#include <thrust/iterator/zip_iterator.h>
 
-#define WALNUT_INIT_STRUCT_WITH_TYPE(name, datatype) template struct name<datatype>
-#define WALNUT_INIT_STRUCT(name) WALNUT_INIT_STRUCT_WITH_TYPE(name, int); \
-                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, char); \
-                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, float); \
-                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, uchar4)
+namespace Walnut {
+
+// constant iterator information for the location in the array + the bounds
+// from these we can compute the x, y, width, height inside of the kernel
+typedef thrust::counting_iterator<int> IndexIterator;
+
+typedef thrust::constant_iterator<int> WidthIterator;
+typedef thrust::constant_iterator<int> HeightIterator;
+
+typedef thrust::tuple<IndexIterator, WidthIterator, HeightIterator> FunctionTuple;
+
+// zipped iterator for the above window tuple
+typedef thrust::zip_iterator<FunctionTuple> FunctionIterator;
+
+} // namespace Walnut
+
+#endif // FUNCTIONITERATOR_H

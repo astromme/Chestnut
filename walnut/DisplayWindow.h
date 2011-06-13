@@ -25,7 +25,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <thrust/device_vector.h>
 
-namespace WALNUT_EXPORT ChestnutCore {
+namespace Walnut {
 
 class WALNUT_EXPORT DisplayWindow : public QGLWidget
 {

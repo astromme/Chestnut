@@ -20,14 +20,21 @@ set(CUDA_BUILD_EMULATION OFF)
 
 
 set(walnut_sources
+    UtilityFunctors.cpp
+    FunctionIterator.cpp
+    HostFunctions.cpp
     DisplayWindow.cpp
-    DeviceData.cu
+    Array2d.cu
     )
 
 set(walnut_headers
-    #DisplayWindow.h
-    #DeviceData.h
-    #ColorKernels.h
+    UtilityFunctors.h
+    FunctionIterator.h
+    HostFunctions.h
+    walnut_global.h
+    DisplayWindow.h
+    ColorKernels.h
+    Array2d.h
     )
 
 set(walnut_ui
@@ -40,7 +47,7 @@ qt4_wrap_cpp(walnut_mocs ${walnut_headers})
 qt4_wrap_ui(walnut_ui ${walnut_ui})
 qt4_add_resources(walnut_resources ${walnut_resource_files})
 
-cuda_add_library(walnut SHARED ${walnut_sources} ${walnut_mocs} ${walnut_ui} ${walnut_resources})
+cuda_add_library(walnut SHARED ${walnut_sources} ${walnut_headers} ${walnut_mocs} ${walnut_ui} ${walnut_resources})
 target_link_libraries(walnut ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARY} ${OPENGL_LIBRARIES})
 
 

@@ -23,7 +23,7 @@
 
 #include <cuda_gl_interop.h>
 
-using namespace ChestnutCore;
+using namespace Walnut;
 
 DisplayWindow::DisplayWindow(const QSize &windowSize, QWidget *parent)
  : QGLWidget(parent),
@@ -125,3 +125,4 @@ void DisplayWindow::mouseMoveEvent(QMouseEvent *mouseEvent) {
 void DisplayWindow::wheelEvent(QWheelEvent* ) {
 
 }
+

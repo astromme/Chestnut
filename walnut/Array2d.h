@@ -17,16 +17,31 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include <QtCore/QtGlobal>
+#ifndef ARRAY2D_H
+#define ARRAY2D_H
 
-#if defined(WALNUT_LIBRARY)
-#  define WALNUT_EXPORT Q_DECL_EXPORT
-#else
-#  define WALNUT_EXPORT Q_DECL_IMPORT
-#endif
+#include "walnut_global.h"
+#include <thrust/device_vector.h>
 
-#define WALNUT_INIT_STRUCT_WITH_TYPE(name, datatype) template struct name<datatype>
-#define WALNUT_INIT_STRUCT(name) WALNUT_INIT_STRUCT_WITH_TYPE(name, int); \
-                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, char); \
-                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, float); \
-                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, uchar4)
+namespace Walnut {
+
+template <typename T>
+struct WALNUT_EXPORT Array2d
+{
+  T *data;
+  int width;
+  int height;
+
+  Array2d(T *data, int width, int height);
+  Array2d(thrust::device_vector<T> &vector, int width, int height);
+
+  __host__ __device__
+  int calculateIndex(int x, int y, int x_offset, int y_offset) const;
+
+  __host__ __device__
+  T shiftedData(int x, int y, int x_offset, int y_offset) const;
+};
+
+} // namespace Walnut
+
+#endif // ARRAY2D_H
