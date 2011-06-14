@@ -342,7 +342,7 @@ class SequentialFunctionDeclaration(List):
 class ParallelFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
         type_, name, parameters, block = self
-        symbolTable.add(ParallelFunction(name, parameters, node=self))
+        symbolTable.add(ParallelFunction(name, type_, parameters, node=self))
         symbolTable.createScope()
 
         windowCount = 0
@@ -360,7 +360,7 @@ class ParallelFunctionDeclaration(List):
 
     def evaluate(self, env):
         type_, name, parameters, block = self
-        env.add(ParallelFunction(name, parameters, node=self))
+        env.add(ParallelFunction(name, type_, parameters, node=self))
 
     def run(self, arguments, env):
         name, parameters, block = self
@@ -408,9 +408,8 @@ class DataInitialization(List):
 display_template = """\
 
 {
-  thrust::device_vector<int> *unpadded = %(name)s.unpadded();
-  thrust::for_each(thrust::make_zip_iterator(thrust::make_tuple(_%(name)s_display.displayData(), unpadded->begin())),
-                   thrust::make_zip_iterator(thrust::make_tuple(_%(name)s_display.displayData()+%(size)s, unpadded->begin()+%(size)s)),
+  thrust::for_each(thrust::make_zip_iterator(thrust::make_tuple(_%(name)s_display.displayData(), %(name)s.thrustPointer())),
+                   thrust::make_zip_iterator(thrust::make_tuple(_%(name)s_display.displayData()+%(size)s, %(name)s.thrustEndPointer())),
                   _chestnut_green_color_conversion_functor());
 }
 _%(name)s_display.updateGL();
@@ -441,9 +440,9 @@ print_template = """
   thrust::host_vector<%(type)s> hostData(%(length)s);
 
   // transfer data back to host
-  hostData = *%(data)s.mainData;
+  %(data)s.copyTo(hostData);
 
-  printArray2D(hostData, %(width)s, %(height)s, %(padding)s);
+  printArray2D(hostData, %(width)s, %(height)s);
 }
 """
 class DataPrint(List):
@@ -456,8 +455,7 @@ class DataPrint(List):
                                   'type' : type_map[data.type],
                                   'width' : data.width,
                                   'height' : data.height,
-                                  'padding' : 1,
-                                  'length' : pad(data.width)*pad(data.height) }
+                                  'length' : data.width*data.height }
     def evaluate(self, env):
         data = self[0]
         data = env.lookup(data)
@@ -549,35 +547,16 @@ class Expressions(List):
         return ''.join(cpp_tuple(self, env))
 
 
-# int index = thrust::get<2>(t);
-# int paddedWidth = thrust::get<3>(t);
-# int paddedHeight = thrust::get<4>(t);
-# 
-# int x = index % paddedWidth - 1; // -1 for padding
-# int y = index / paddedWidth - 1;
-# 
-# int width = paddedWidth - 2;
-# int height = paddedHeight - 2;
 
 coordinates = {
-        'topLeft' : r'thrust::get<0>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- topLeft */',
-        'top' : r'thrust::get<1>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- top */',
-        'topRight' : r'thrust::get<2>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- topRight */',
+        'x' : r'(thrust::get<0>(_t) % thrust::get<1>(_t)) /* <- x */',
+        'y' : r'(thrust::get<0>(_t) / thrust::get<1>(_t)) /* <- y */',
+        'width' : r'thrust::get<1>(_t) /* <- width */',
+        'height' : r'thrust::get<2>(_t) /* <- height */' }
 
-        'left' : r'thrust::get<3>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- left */',
-        'center' : r'thrust::get<4>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- center */',
-        'right' : r'thrust::get<5>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- right */',
-
-        'bottomLeft' : r'thrust::get<6>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- bottomLeft */',
-        'bottom' : r'thrust::get<7>(thrust::get<%(window_num)s>(thrust::get<1>(t))) /* <- bottom */',
-        'bottomRight' : r'thrust::get<8>(thrust::get<%(window_num)s>(thrust::get<1>(t)) )/* <- bottomRight */',
-
-        'x' : r'(thrust::get<2>(t) %% thrust::get<3>(t) - 1) /* <- x */',
-        'y' : r'(thrust::get<2>(t) / thrust::get<3>(t) - 1) /* <- y */',
-        'width' : r'(thrust::get<3>(t) - 2) /* <- width */',
-        'height' : r'(thrust::get<4>(t) - 2) /* <- height */',
-               }
-
+property_template = """\
+%(name)s.%(property)s(%(parameters)s)\
+"""
 class Property(List):
     def to_cpp(self, env=defaultdict(bool)):
         name, property_ = self
@@ -590,7 +569,16 @@ class Property(List):
 
         #TODO: Pull in support for window nums other than 0
         if type(symbol) == Window:
-            return coordinates[self[1]] % { 'window_num' : symbol.number }
+            if property_ not in ['topLeft', 'top', 'topRight', 'left', 'center', 'right', 'bottomLeft', 'bottom', 'bottomRight']:
+                raise CompilerException("Error, property '%s' not part of the data window '%s'" % (property_, name))
+            return property_template % { 'name' : name,
+                                         'property' : property_,
+                                         'parameters' : coordinates['x'] + ', ' + coordinates['y'] }
+        elif type(symbol) == ParallelFunction:
+            if property_ in coordinates:
+                return coordinates[property_];
+            else:
+                raise CompilerError('Property %s not found for function %s' % (property_, name))
         else:
             print symbolTable
             print self
@@ -611,10 +599,7 @@ class Property(List):
 
 class Return(List):
     def to_cpp(self, env=defaultdict(bool)):
-        if env['sequential']:
-            return 'return %s;' % self[0].to_cpp(env)
-        else:
-            return '{ // Returning from device function requires 2 steps\n' + indent('thrust::get<0>(t) = %s;\nreturn;' % self[0].to_cpp(env)) + '\n}'
+        return 'return %s;' % self[0].to_cpp(env)
     def evaluate(self, env):
         raise InterpreterReturn(self[0].evaluate(env))
 
@@ -682,8 +667,22 @@ class ParallelAssignment(List):
 
 
 
+#TODO: Fix up for new-style arrays
 random_template = """\
-%(data)s.randomize(%(limits)s);
+{
+  // A CPU-driven random function that fills the data
+  // Create host vector to hold the random numbers
+  thrust::host_vector<%(type)s> randoms(%(data)s.width*%(data)s.height);
+
+  // Generate the random numbers
+  thrust::generate(randoms.begin(), randoms.end(), rand);
+
+  // Copy data from CPU to GPU
+  thrust::copy(randoms.begin(), randoms.end(), %(data)s.thrustPointer());
+
+  // Mod between %(min_value)s and %(max_value)s
+  thrust::for_each(%(data)s.thrustPointer(), %(data)s.thrustEndPointer(), randoms_helper_functor(%(min_value)s, %(max_value)s));
+}
 """
 class ParallelRandom(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -695,12 +694,13 @@ class ParallelRandom(List):
         check_type(output, Data)
 
         if len(self) == 2:
-            limits = ', '.join(cpp_tuple(self[0:2]))
+            min_limit, max_limit = cpp_tuple(self[0:2])
         else:
-            limits = ''
+            min_limit, max_limit = ('0', 'INT_MAX')
 
         return random_template % { 'data' : output.name,
-                                   'limits' : limits,
+                                   'min_value' : min_limit,
+                                   'max_value' : max_limit,
                                    'type' : type_map[output.type] }
     def evaluate(self, env, output):
         if len(self) == 2:
@@ -719,13 +719,8 @@ class ParallelRandom(List):
 
 reduce_template = """
 // Reducing '%(input_data)s' to the single value '%(output_variable)s'
-
-// To do this we first unpad our 2d array, %(input_data)s. Thrust then performs the hard work,
-// and the final output is copied back into the padded array %(output_variable)s.
 {
-  thrust::device_vector<%(type)s> *unpadded = %(input_data)s.unpadded();
-  int length = (%(input_data)s.height-2) * (%(input_data)s.width-2);
-  %(output_variable)s = thrust::reduce(unpadded->begin(), unpadded->begin()+length);
+  %(output_variable)s = thrust::reduce(%(input_data)s.thrustPointer(), %(input_data)s.thrustEndPointer());
 }
 """
 class ParallelReduce(List):
@@ -761,8 +756,7 @@ class ParallelReduce(List):
 
         else:
             return reduce_template % { 'input_data' : input.name,
-                                       'output_variable' : output.name,
-                                       'type' : type_map[input.type] }
+                                       'output_variable' : output.name }
 
     def evaluate(self, env, output=None):
         function = None
@@ -779,14 +773,10 @@ class ParallelReduce(List):
 sort_template = """
 // Sorting '%(input_data)s' and placing it into '%(output_data)s'
 
-// To do this we first unpad our 2d array, %(input_data)s. Thrust then performs the hard work,
-// and the final output is copied back into the padded array %(output_data)s.
+// Thrust then performs the hard work, and we swap pointers at the end if needed
 {
-  thrust::device_vector<%(type)s> *unpadded = %(input_data)s.unpadded();
-  int length = (%(input_data)s.height-2) * (%(input_data)s.width-2);
-  thrust::sort(unpadded->begin(), unpadded->begin()+length);
-
-  %(output_data)s.loadWithUnpaddedData(*unpadded);
+  %(input_data)s.copyTo(%(output_data)s); //TODO: Check if pointers are the same... and don't copy
+  thrust::sort(%(output_data)s.thrustPointer(), %(output_data)s.thrustEndPointer());
 }
 """
 class ParallelSort(List):
@@ -822,8 +812,7 @@ class ParallelSort(List):
 
         else:
             return sort_template % { 'input_data' : input.name,
-                                     'output_data' : output.name,
-                                     'type' : type_map[input.type] }
+                                     'output_data' : output.name }
 
     def evaluate(self, env, output=None):
         if len(self) == 1:
@@ -847,18 +836,12 @@ class ParallelSort(List):
 
 map_template = """
 {
-    %(maybe_wraps)s
+    FunctionIterator startIterator = makeStartIterator(%(width)s, %(height)s);
 
-    ChestnutDetail<%(type)s>::Kernel%(num_inputs)sWindowIter startIterator
-        = ChestnutDetail<%(type)s>::startIterator(%(output_data)s%(input_datas)s);
-    ChestnutDetail<%(type)s>::Kernel%(num_inputs)sWindowIter endIterator
-        = ChestnutDetail<%(type)s>::endIterator(%(output_data)s%(input_datas)s);
+    thrust::transform_iterator<%(function)s_functor<%(input_output_types)s>, FunctionIterator>
+    iterator = thrust::make_transform_iterator(startIterator, %(function)s_functor<%(input_output_types)s>(%(variables)s));
 
-
-    thrust::for_each(startIterator, endIterator, %(function)s_functor(%(variable_arguments)s));
-
-    // Always swap the output data b/c we are putting data into the secondary array
-    %(output_data)s.swap();
+    thrust::copy(iterator, iterator+%(width)s*%(height)s, %(output_data)s.thrustPointer());
 }
 """
 class ParallelFunctionCall(List):
@@ -883,26 +866,22 @@ class ParallelFunctionCall(List):
         output = symbolTable.lookup(output)
         check_type(output, Data)
 
-        variable_arguments = []
-        data_arguments = []
+        variables = []
+        input_output_types = [type_map[function.type]]
+
         for argument, parameter in zip(arguments, function.parameters):
             if parameter.type == 'window':
-                data_arguments.append(argument.to_cpp(env))
-            else:
-                variable_arguments.append(argument.to_cpp(env))
+                input_output_types.append(type_map[symbolTable.lookup(argument.to_cpp(env)).type])
+
+            variables.append(argument.to_cpp(env))
 
 
-        supported_window_sizes = [0, 1, 2, 3, 4]
-        if len(data_arguments) not in supported_window_sizes:
-            raise CompilerException('Error, the number of Data Windows is %s but chestnut only supports windows of sizes %s' % (len(data_arguments), supported_window_sizes))
-
-        return map_template % { 'input_datas' : ''.join(map(lambda arg: ', ' + arg, data_arguments)),
-                                'output_data' : output.name,
-                                'num_inputs' : len(data_arguments),
-                                'maybe_wraps' : '\n'.join(map(lambda data: '%s.maybeWrap();' % data, data_arguments)),
-                                'variable_arguments' : ','.join(variable_arguments),
-                                'type' : type_map[output.type],
-                                'function' : function.name }
+        return map_template % { 'output_data' : output.name,
+                                'variables' : ', '.join(variables),
+                                'input_output_types' : ', '.join(input_output_types),
+                                'function' : function.name,
+                                'width' : output.width,
+                                'height' : output.height }
 
     def evaluate(self, env, output):
         name = self[0]

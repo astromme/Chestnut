@@ -1,6 +1,3 @@
-def pad(value):
-  return value+2
-
 #helper to do nice code indenting.. duplicated in nodes, yuck
 def indent(code, indent_first_line=True):
     if indent_first_line:
@@ -8,43 +5,53 @@ def indent(code, indent_first_line=True):
     return code.replace('\n', '\n  ')
 
 device_function_template = """\
-struct %(function_name)s_functor
-{
+template <%(template_parameters)s>
+struct %(function_name)s_functor : public thrust::unary_function<int, OutputType> {
     %(struct_members)s
     %(function_name)s_functor(%(static_variables)s) %(variable_initializations)s {}
 
     template <typename Tuple>
     __host__ __device__
-    void operator()(Tuple t) %(function_body)s
+    OutputType operator()(Tuple _t) %(function_body)s
 };
 """
 def create_device_function(function_node):
   type_, name, parameters, block = function_node
-  static_variables = []
-  static_types = []
+  template_types = ['OutputType']
+  struct_vars = []
+  parameter_vars = []
+  underscore_vars = []
 
   for parameter in parameters:
-      if not parameter.type == 'window':
-          static_variables.append(parameter.name)
-          static_types.append(parameter.type)
+      if parameter.type == 'window':
+          template_types.append('Input%sType' % len(template_types))
+          struct_vars.append('Array2d<%s> %s;' % (template_types[-1], parameter.name))
+          parameter_vars.append('Array2d<%s> _%s' % (template_types[-1], parameter.name))
+          underscore_vars.append('%(name)s(_%(name)s)' % { 'name' : parameter.name })
+      else:
+          struct_vars.append('%s %s;' % (parameter.type, parameter.name))
+          parameter_vars.append('%s _%s' % (parameter.type, parameter.name))
+          underscore_vars.append('%(name)s(_%(name)s)' % { 'name' : parameter.name})
 
   #if not (len(parameters) == 1 or parameters[0][0] == 'window'):
   #  raise Exception('Error, parameters %s must instead be window')
 
-  underscore_vars = map(lambda var: var + "_", static_variables)
 
-  struct_members = ';\n'.join(map(lambda tup: "%s %s" % tup, zip(static_types, static_variables)))
-  variable_initializations = ', '.join(map(lambda tup: "%s(%s)" % tup, zip(static_variables, underscore_vars)))
-  if len(static_variables) > 0:
-      struct_members += ';'
-      variable_initializations = ": " + variable_initializations
+  if len(parameters) > 0:
+      struct_vars = indent('\n'.join(struct_vars), indent_first_line=False)
+      parameter_vars = ', '.join(parameter_vars)
+      underscore_vars = ": " + ', '.join(underscore_vars)
+  else:
+      struct_vars = parameter_vars = underscore_vars = ''
 
+  template_types = ', '.join(map(lambda type: 'typename %s' % type, template_types))
 
   environment = { 'function_name' : name,
                   'function_body' : indent(block.to_cpp(), indent_first_line=False),
-                  'struct_members' : indent(struct_members, indent_first_line=False),
-                  'static_variables' : ', '.join(map(lambda tup: "%s %s" % tup, zip(static_types, underscore_vars))),
-                  'variable_initializations' : variable_initializations }
+                  'template_parameters' : template_types,
+                  'struct_members' : struct_vars,
+                  'static_variables' : parameter_vars,
+                  'variable_initializations' : underscore_vars }
 
   return device_function_template % environment
 
@@ -56,12 +63,19 @@ type_map = { 'real' : 'float',
              'int2d' : 'int',
              'void' : 'void' }
 
-data_template = """\
-ChestnutDetail<%(type)s>::DeviceData %(name)s(%(width)s, %(height)s);
+data_create_template = """\
+Array2d<%(type)s> %(name)s = _allocator.arrayWithSize<%(type)s>(%(width)s, %(height)s);
 """
 def create_data(type_, name, size):
-  return data_template % { 'type' : type_map[type_],
-                           'name' : name,
-                           'width' : pad(size.width),
-                           'height' : pad(size.height) }
+  return data_create_template % { 'type' : type_map[type_],
+                                  'name' : name,
+                                  'width' : size.width,
+                                  'height' : size.height }
+
+data_release_template = """\
+_allocator.releaseArray(%(name)s);
+"""
+def release_data(type_, name):
+    return data_release_template % { 'type' : type_map[type_],
+                                     'name' : name }
 

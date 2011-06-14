@@ -1,11 +1,21 @@
 #!/usr/bin/env python
 
 preamble = """\
-#include "walnut/DeviceData.h"
-#include "walnut/DisplayWindow.h"
-#include "walnut/ColorKernels.h"
+#include <walnut/ArrayAllocator.h>
+#include <walnut/Array2d.h>
+#include <walnut/HostFunctions.h>
+#include <walnut/UtilityFunctors.h>
+#include <walnut/FunctionIterator.h>
+#include <walnut/DisplayWindow.h>
+#include <walnut/ColorKernels.h>
+
+#include <thrust/sort.h>
+
+#include <limits.h>
 
 #include <QApplication>
+
+using namespace Walnut;
 """
 
 main_template = """\
@@ -13,6 +23,8 @@ main_template = """\
 int main(int argc, char* argv[])
 {
   %(app_statement)s
+  srand(NULL);
+  ArrayAllocator _allocator;
 
 %(declarations)s
 %(main_code)s
@@ -31,15 +43,15 @@ for function in built_in_functions:
 cuda_directory='/usr/local/cuda/'
 cuda_compiler=cuda_directory+'bin/nvcc'
 
-cuda_compile_pass1 = """%(cuda_compiler)s -M -D__CUDACC__ %(input_file)s -o %(input_file)s.o.NVCC-depend -m64 -Xcompiler ,\"-g\" -DNVCC -I/usr/local/cuda/include -I/usr/local/cuda/include -I/usr/include -I /Library/Frameworks/QtGui.framework/Versions/4/Headers"""
+cuda_compile_pass1 = """%(cuda_compiler)s -M -D__CUDACC__ %(input_file)s -o %(input_file)s.o.NVCC-depend -m64 -Xcompiler ,\"-g\" -DNVCC -I/usr/local/cuda/include -I/usr/local/cuda/include -I/usr/include -I /Library/Frameworks/QtGui.framework/Versions/4/Headers -I /Library/Frameworks/QtCore.framework/Versions/4/Headers -I ."""
 
-cuda_compile_pass2 = """%(cuda_compiler)s %(input_file)s -c -o %(input_file)s.o -m64 -Xcompiler ,\"-g\" -DNVCC -I/usr/local/cuda/include -I/usr/local/cuda/include -I/usr/include -I /Library/Frameworks/QtGui.framework/Versions/4/Headers"""
+cuda_compile_pass2 = """%(cuda_compiler)s %(input_file)s -c -o %(input_file)s.o -m64 -Xcompiler ,\"-g\" -DNVCC -I/usr/local/cuda/include -I/usr/local/cuda/include -I/usr/include -I /Library/Frameworks/QtGui.framework/Versions/4/Headers -I /Library/Frameworks/QtCore.framework/Versions/4/Headers -I ."""
 
-cuda_compile_pass3 = """/usr/bin/c++ -O2 -g -Wl,-search_paths_first -headerpad_max_install_names  ./%(input_file)s.o -o %(output_file)s /usr/local/cuda/lib/libcudart.dylib -Wl,-rpath -Wl,/usr/local/cuda/lib /usr/local/cuda/lib/libcuda.dylib -L . -lwalnut -framework OpenGL -framework QtGui -framework QtOpenGL -framework QtCore"""
+cuda_compile_pass3 = """/usr/bin/c++ -O2 -g -Wl,-search_paths_first -headerpad_max_install_names  ./%(input_file)s.o -o %(output_file)s /usr/local/cuda/lib/libcudart.dylib -Wl,-rpath -Wl,/usr/local/cuda/lib /usr/local/cuda/lib/libcuda.dylib -I . -L . -lwalnut -framework OpenGL -framework QtGui -framework QtOpenGL -framework QtCore"""
 
 
 display_init = """\
-ChestnutCore::DisplayWindow _%(name)s_display(QSize(%(width)s, %(height)s));
+DisplayWindow _%(name)s_display(QSize(%(width)s, %(height)s));
 _%(name)s_display.show();
 _%(name)s_display.setWindowTitle("%(title)s");
 """

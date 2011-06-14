@@ -15,6 +15,7 @@ keywords = ['int',
             'break',
             ]
 
+
 numpy_type_map = { 'int2d' : numpy.int32,
                    'real2d' : numpy.float32 }
 
@@ -24,7 +25,7 @@ DisplayWindow = namedtuple('DisplayWindow', ['name', 'title', 'width', 'height']
 
 Keyword = namedtuple('Keyword', ['name'])
 SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device', 'node'])
-ParallelFunction = namedtuple('ParallelFunction', ['name', 'parameters', 'node'])
+ParallelFunction = namedtuple('ParallelFunction', ['name', 'type', 'parameters', 'node'])
 
 class Variable(namedtuple('Variable', ['name', 'type'])):
     @property
@@ -91,7 +92,6 @@ class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
         except AttributeError:
             self.__create()
             self._array[y, x] = value
-
 
 class EntryExistsError(Exception):
   def __init__(self, name):
