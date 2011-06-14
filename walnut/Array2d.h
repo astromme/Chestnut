@@ -38,6 +38,10 @@ struct WALNUT_EXPORT Array2d
   const T* constData() const { return (const T*)data; }
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }
 
+  void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width*height, array); }
+  void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.begin()); }
+  void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.begin()); }
+
   __host__ __device__
   int calculateIndex(int x, int y, int x_offset, int y_offset) const {
     x = ((x + x_offset) + width)  % width;
