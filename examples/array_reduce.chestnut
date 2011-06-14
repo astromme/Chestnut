@@ -1,8 +1,8 @@
-parallel real set_to(window element, real number) {
+parallel real set_to(real number) {
   return number;
 }
 
-real2d data[10, 10] = :set_to(data, 1.1);
+real2d data[10, 10] = :set_to(1.1);
 real reduced = :reduce(data);
 
 print("Array of floats was:");

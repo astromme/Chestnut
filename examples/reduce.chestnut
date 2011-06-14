@@ -1,11 +1,8 @@
-parallel init_to(window data, int value) {
+parallel int init_to(int value) {
   return value;
 }
 
-int2d data[10, 10];
-data = :init_to(data, 1);
-
-int reduced;
-reduced = :reduce(data);
+int2d data[10, 10] = :init_to(1);
+int reduced = :reduce(data);
 
 print("Data reduced to %s", reduced);
