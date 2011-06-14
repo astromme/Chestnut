@@ -35,11 +35,21 @@ struct WALNUT_EXPORT Array2d
   Array2d(T *data, int width, int height);
   Array2d(thrust::device_vector<T> &vector, int width, int height);
 
-  __host__ __device__
-  int calculateIndex(int x, int y, int x_offset, int y_offset) const;
+  const T* constData() const { return (const T*)data; }
+  thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }
 
   __host__ __device__
-  T shiftedData(int x, int y, int x_offset, int y_offset) const;
+  int calculateIndex(int x, int y, int x_offset, int y_offset) const {
+    x = ((x + x_offset) + width)  % width;
+    y = ((y + y_offset) + height) % height;
+
+    return y*width + x;
+  }
+
+  __host__ __device__
+  T shiftedData(int x, int y, int x_offset, int y_offset) const {
+    return data[calculateIndex(x, y, x_offset, y_offset)];
+  }
 };
 
 } // namespace Walnut

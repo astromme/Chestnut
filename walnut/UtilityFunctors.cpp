@@ -17,25 +17,10 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "Array2d.h"
+#include "UtilityFunctors.h"
+
 
 namespace Walnut {
 
-template <typename T>
-Array2d<T>::Array2d(T *data, int width, int height) {
-  this->data = data;
-  this->width = width;
-  this->height = height;
-}
-
-template <typename T>
-Array2d<T>::Array2d(thrust::device_vector<T> &vector, int width, int height) {
-  data = thrust::raw_pointer_cast(&(vector[0]));
-  this->width = width;
-  this->height = height;
-}
-
-WALNUT_INIT_STRUCT(Array2d);
 
 } // namespace Walnut
-

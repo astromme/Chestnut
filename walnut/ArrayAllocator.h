@@ -17,25 +17,37 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "Array2d.h"
+#ifndef ARRAYALLOCATOR_H
+#define ARRAYALLOCATOR_H
+
+#include "walnut_global.h"
+#include "array2d.h"
+
+#include <QMultiMap>
+
+typedef void* DeviceMemoryPointer;
+typedef void* HostMemoryPointer;
+typedef size_t ArrayLengthInBytes;
 
 namespace Walnut {
 
-template <typename T>
-Array2d<T>::Array2d(T *data, int width, int height) {
-  this->data = data;
-  this->width = width;
-  this->height = height;
-}
+class WALNUT_EXPORT ArrayAllocator
+{
+public:
+    ArrayAllocator();
+    virtual ~ArrayAllocator();
 
-template <typename T>
-Array2d<T>::Array2d(thrust::device_vector<T> &vector, int width, int height) {
-  data = thrust::raw_pointer_cast(&(vector[0]));
-  this->width = width;
-  this->height = height;
-}
+    template <typename T>
+    Array2d<T> arrayOfSize(int width, int height);
 
-WALNUT_INIT_STRUCT(Array2d);
+    template <typename T>
+    void releaseArray(const Array2d<T> &array);
+
+private:
+    QMultiMap<ArrayLengthInBytes, DeviceMemoryPointer> m_freeMemory;
+    QMap<DeviceMemoryPointer, ArrayLengthInBytes> m_usedMemory;
+};
 
 } // namespace Walnut
 
+#endif // ARRAYALLOCATOR_H

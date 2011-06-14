@@ -24,6 +24,7 @@ set(walnut_sources
     FunctionIterator.cpp
     HostFunctions.cpp
     DisplayWindow.cpp
+    ArrayAllocator.cu
     Array2d.cu
     )
 
@@ -34,6 +35,7 @@ set(walnut_headers
     walnut_global.h
     DisplayWindow.h
     ColorKernels.h
+    ArrayAllocator.h
     Array2d.h
     )
 
