@@ -22,6 +22,14 @@ def check_dimensions_are_equal(leftData, rightData):
          (rightData.name, rightData.width, rightData.height, leftData.name, leftData.width, leftData.height))
 
 
+def extract_line_info(function):
+    def wrapper(obj, env=defaultdict(bool)):
+        node_info = obj # obj[0:-2]
+        start_line, end_line = (0, 0) #obj[-2:]
+        return function(obj, node_info, start_line, end_line, env)
+    return wrapper
+
+
 #helpers so that we don't get errors about undefined to_cpp methods
 class Symbol(str):
     def to_cpp(self, env=None):
@@ -302,10 +310,11 @@ class SequentialFunctionDeclaration(List):
         for parameter in parameters:
             symbolTable.add(Variable(name=parameter.name, type=parameter.type))
 
+
         environment = { 'function_name' : name,
                         'type' : type_,
                         'location' : '__host__ __device__\n',
-                        'parameters' : ', '.join(map(lambda param: '%s %s' % param, parameters)),
+                        'parameters' : ', '.join(map(lambda param: '%s %s' % param, tuple(parameters))),
                         'block' : block.to_cpp(env) }
 
         host_function = host_function_template % environment
@@ -368,12 +377,15 @@ class ParallelFunctionDeclaration(List):
 
 class Parameters(List): pass
 class Block(List):
-    def to_cpp(self, env=defaultdict(bool)):
+    @extract_line_info
+    def to_cpp(self, block, start_line, end_line, env):
+        print 'start: %s, end: %s' % (start_line, end_line)
         symbolTable.createScope()
-        cpp = '{\n' + indent('\n'.join(cpp_tuple(self, env))) + '\n}'
+        cpp = '{\n' + indent('\n'.join(cpp_tuple(block, env))) + '\n}'
         symbolTable.removeScope()
         return cpp
-    def evaluate(self, env):
+    @extract_line_info
+    def evaluate(self, block, start_line, end_line, env):
         env.createScope()
         for statement in self:
             statement.evaluate(env)

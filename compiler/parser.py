@@ -3,6 +3,12 @@
 import re
 from nodes import *
 
+
+def with_line(node):
+    def wrapper(results, stream_in, stream_out):
+        return node([results, s_delta(stream_in)[1], s_delta(stream_out)[1]])
+    return wrapper
+
 identifier = Token('[a-zA-Z][a-zA-Z0-9_]*') >> Symbol
 variable_identifier = identifier
 data_identifier = identifier
@@ -159,7 +165,7 @@ parallel_function_call += parallel_random | parallel_reduce | parallel_sort | ge
 parallel_assignment += data_identifier & ~symbol('=') & parallel_function_call & ~semi > ParallelAssignment
 
 ## Now we can define the last bits
-block += ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > Block
+block += ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > Block # ** with_line(Block)
 
 declaration_list = (data_declaration | variable_declaration | sequential_function_declaration | parallel_function_declaration | statement)[0:]
 

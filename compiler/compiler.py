@@ -23,6 +23,10 @@ int main(int argc, char* argv[])
 
 from parser import parse
 from nodes import *
+from builtins import built_in_functions
+
+for function in built_in_functions:
+    symbolTable.add(function)
 
 cuda_directory='/usr/local/cuda/'
 cuda_compiler=cuda_directory+'bin/nvcc'
