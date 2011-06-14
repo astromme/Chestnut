@@ -10,7 +10,7 @@
 " in .chestnut will trigger the settings
 "
 
-au BufRead,BufNewFile *.chestnut,*.cu set filetype=chestnut
+au BufRead,BufNewFile *.chestnut,*.ch set filetype=chestnut
 au! Syntax chestnut source $VIM/syntax/chestnut.vim
 
 " Number of spaces that a pre-existing tab is equal to.
