@@ -39,6 +39,9 @@ typedef thrust::tuple<IndexIterator, WidthIterator, HeightIterator> FunctionTupl
 // zipped iterator for the above window tuple
 typedef thrust::zip_iterator<FunctionTuple> FunctionIterator;
 
+FunctionIterator makeStartIterator(int width, int height);
+FunctionIterator makeEndIterator(int width, int height, FunctionIterator startIterator);
+
 } // namespace Walnut
 
 #endif // FUNCTIONITERATOR_H

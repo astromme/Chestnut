@@ -47,6 +47,29 @@ namespace Walnut {
 //  randomize(0, maxValue);
 //}
 
+//struct make_random_float2
+//{
+//};
+//__host__ __device__ float2 operator()(int index) {
+//}
+//default_random_engine rng;
+//// skip past numbers used in previous threads
+//rng.discard(2*index); return make_float2( (float)rng() / default_random_engine::max,
+//(float)rng() / default_random_engine::max);
+//// generate random input directly on the device
+//device_vector<float2> points(N); transform(make_counting_iterator(0), make_counting_iterator(N),
+//points.begin(), make_random_float2());
+
+//On the device with an integer hash: struct make_random_float2
+//{
+//};
+//__host__ __device__ float2 operator()(int index) {
+//return make_float2( (float)hash(2*index + 0) / UINT_MAX, (float)hash(2*index + 1) / UINT_MAX);
+//}
+//// generate random input directly on the device
+//device_vector<float2> points(N); transform(make_counting_iterator(0), make_counting_iterator(N),
+//points.begin(), make_random_float2());
+
 struct WALNUT_EXPORT randoms_helper_functor {
   int minValue;
   int maxValue;

@@ -32,12 +32,16 @@ struct WALNUT_EXPORT Array2d
   int width;
   int height;
 
+  typedef T Type;
+
   Array2d(T *data, int width, int height);
   Array2d(thrust::device_vector<T> &vector, int width, int height);
 
   const T* constData() const { return (const T*)data; }
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }
+  thrust::device_ptr<T> thrustEndPointer() { return thrustPointer() + width*height; }
 
+  void copyTo(Array2d<T> &array)               { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.thrustPointer()); }
   void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width*height, array); }
   void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.begin()); }
   void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.begin()); }
@@ -54,6 +58,17 @@ struct WALNUT_EXPORT Array2d
   T shiftedData(int x, int y, int x_offset, int y_offset) const {
     return data[calculateIndex(x, y, x_offset, y_offset)];
   }
+
+  __host__ __device__ T topLeft(int x, int y) const     { return shiftedData(x, y, -1, -1); }
+  __host__ __device__ T top(int x, int y) const         { return shiftedData(x, y,  0, -1); }
+  __host__ __device__ T topRight(int x, int y) const    { return shiftedData(x, y,  1, -1); }
+  __host__ __device__ T left(int x, int y) const        { return shiftedData(x, y, -1,  0); }
+  __host__ __device__ T center(int x, int y) const      { return shiftedData(x, y,  0,  0); }
+  __host__ __device__ T right(int x, int y) const       { return shiftedData(x, y,  1,  0); }
+  __host__ __device__ T bottomLeft(int x, int y) const  { return shiftedData(x, y, -1,  1); }
+  __host__ __device__ T bottom(int x, int y) const      { return shiftedData(x, y,  0,  1); }
+  __host__ __device__ T bottomRight(int x, int y) const { return shiftedData(x, y,  1,  1); }
+
 };
 
 } // namespace Walnut

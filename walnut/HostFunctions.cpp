@@ -28,12 +28,8 @@ std::string stringFromInt(int number)
    return ss.str();//return a string with the contents of the stream
 }
 
-/*
-  Simple debugging function to print out a 2d array. Does not know about
-  padding, so send it the padded width/height rather than the base width/height
-*/
 template <typename T>
-void printFullArray2D(const thrust::host_vector<T> &vector, int width, int height) {
+void printArray2D(const thrust::host_vector<T> &vector, int width, int height) {
   for (int y=0; y<height; y++) {
     for (int x=0; x<width; x++) {
       int i = y*width + x;
@@ -44,28 +40,9 @@ void printFullArray2D(const thrust::host_vector<T> &vector, int width, int heigh
   std::cout << std::endl;
 }
 
-/*
-   Slightly smarter padding-aware print function. Send it in the width and the
-   padding and it will do the dirty work for you.
-*/
-template <typename T>
-void printArray2D(const thrust::host_vector<T> &vector, int width, int height, int padding) {
-  int paddedWidth = width + 2*padding;
-  //int paddedHeight = height + 2*padding;
-
-  for (int y=padding; y<height+padding; y++) {
-    for (int x=padding; x<width+padding; x++) {
-      int i = y*paddedWidth + x;
-      std::cout << ((vector[i] == 0) ? "." : stringFromInt(vector[i])) << " ";
-    }
-    std::cout << std::endl;
-  }
-  std::cout << std::endl;
-}
 
 #define initPrintFunctionsWithType(T) \
-template void printFullArray2D(const thrust::host_vector<T> &vector, int width, int height); \
-template void printArray2D(const thrust::host_vector<T> &vector, int width, int height, int padding); \
+template void printArray2D(const thrust::host_vector<T> &vector, int width, int height);
 
 initPrintFunctionsWithType(int);
 initPrintFunctionsWithType(char);

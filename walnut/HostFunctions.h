@@ -32,18 +32,10 @@ namespace Walnut {
 WALNUT_EXPORT std::string stringFromInt(int number);
 
 /*
-  Simple debugging function to print out a 2d array. Does not know about
-  padding, so send it the padded width/height rather than the base width/height
+  Simple debugging function to print out a 2d array.
 */
 WALNUT_EXPORT template <typename T>
-void printFullArray2D(const thrust::host_vector<T> &vector, int width, int height);
-
-/*
-   Slightly smarter padding-aware print function. Send it in the width and the
-   padding and it will do the dirty work for you.
-*/
-WALNUT_EXPORT template <typename T>
-void printArray2D(const thrust::host_vector<T> &vector, int width, int height, int padding);
+void printArray2D(const thrust::host_vector<T> &vector, int width, int height);
 
 
 } // namespace Walnut

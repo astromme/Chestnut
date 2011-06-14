@@ -38,7 +38,7 @@ public:
     virtual ~ArrayAllocator();
 
     template <typename T>
-    Array2d<T> arrayOfSize(int width, int height);
+    Array2d<T> arrayWithSize(int width, int height);
 
     template <typename T>
     void releaseArray(const Array2d<T> &array);
