@@ -58,6 +58,7 @@ def create_device_function(function_node):
 
 
 type_map = { 'real' : 'float',
+             'float' : 'float',
              'int' : 'int',
              'real2d' : 'float',
              'int2d' : 'int',

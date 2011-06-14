@@ -25,8 +25,6 @@
 
 namespace Walnut {
 
-
-
 //// A CPU-driven random function that fills the data
 //void randomize(int minValue, int maxValue) {
 //  // Create host vector to hold the random numbers

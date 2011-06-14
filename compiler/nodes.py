@@ -549,10 +549,11 @@ class Expressions(List):
 
 
 coordinates = {
-        'x' : r'(thrust::get<0>(_t) % thrust::get<1>(_t)) /* <- x */',
-        'y' : r'(thrust::get<0>(_t) / thrust::get<1>(_t)) /* <- y */',
-        'width' : r'thrust::get<1>(_t) /* <- width */',
-        'height' : r'thrust::get<2>(_t) /* <- height */' }
+        'x' : '_x',
+        'y' : '_y',
+        'width' : '_width',
+        'height' : '_height' }
+
 
 property_template = """\
 %(name)s.%(property)s(%(parameters)s)\
@@ -841,7 +842,12 @@ map_template = """
     thrust::transform_iterator<%(function)s_functor<%(input_output_types)s>, FunctionIterator>
     iterator = thrust::make_transform_iterator(startIterator, %(function)s_functor<%(input_output_types)s>(%(variables)s));
 
-    thrust::copy(iterator, iterator+%(width)s*%(height)s, %(output_data)s.thrustPointer());
+    Array2d<%(output_type)s> temp_array = _allocator.arrayWithSize<%(output_type)s>(%(width)s, %(height)s);
+
+    thrust::copy(iterator, iterator+%(width)s*%(height)s, temp_array.thrustPointer());
+
+    %(output_data)s.swapDataWith(temp_array);
+    _allocator.releaseArray(temp_array);
 }
 """
 class ParallelFunctionCall(List):
@@ -881,7 +887,8 @@ class ParallelFunctionCall(List):
                                 'input_output_types' : ', '.join(input_output_types),
                                 'function' : function.name,
                                 'width' : output.width,
-                                'height' : output.height }
+                                'height' : output.height,
+                                'output_type' : type_map[function.type] }
 
     def evaluate(self, env, output):
         name = self[0]

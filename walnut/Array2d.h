@@ -25,6 +25,11 @@
 
 namespace Walnut {
 
+#define _x (thrust::get<0>(_t) % thrust::get<1>(_t))
+#define _y (thrust::get<0>(_t) / thrust::get<1>(_t))
+#define _width thrust::get<1>(_t)
+#define _height thrust::get<2>(_t)
+
 template <typename T>
 struct WALNUT_EXPORT Array2d
 {
@@ -45,6 +50,12 @@ struct WALNUT_EXPORT Array2d
   void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width*height, array); }
   void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.begin()); }
   void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.begin()); }
+
+  void swapDataWith(Array2d<T> &other) {
+    T *temp = data;
+    data = other.data;
+    other.data = temp;
+  }
 
   __host__ __device__
   int calculateIndex(int x, int y, int x_offset, int y_offset) const {
