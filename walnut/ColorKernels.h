@@ -5,57 +5,31 @@
 
 #include <thrust/tuple.h>
 
-struct WALNUT_EXPORT _chestnut_default_color_conversion_functor {
-  template <typename Tuple>
+namespace Walnut {
+
+template <typename InputType>
+struct WALNUT_EXPORT _chestnut_default_color_conversion_functor : public thrust::unary_function<InputType, color> {
   __host__ __device__
-  void operator()(Tuple t) {
-    uchar4 color;
-    color.x = thrust::get<1>(t);
-    color.y = thrust::get<1>(t);
-    color.z = thrust::get<1>(t);
-    color.w = 255;
-    thrust::get<0>(t) = color;
+  color operator()(int32 input) {
+    color gray;
+    gray.x = wBound(0, input, 255);
+    gray.y = wBound(0, input, 255);
+    gray.z = wBound(0, input, 255);
+    gray.w = 255;
+    return gray;
+  }
+
+  __host__ __device__
+  color operator()(real32 input) {
+    color gray;
+    gray.x = wBound(0, int(input*255), 255);
+    gray.y = wBound(0, int(input*255), 255);
+    gray.z = wBound(0, int(input*255), 255);
+    gray.w = 255;
+    return gray;
   }
 };
 
-struct WALNUT_EXPORT _chestnut_red_color_conversion_functor {
-  template <typename Tuple>
-  __host__ __device__
-  void operator()(Tuple t) {
-    uchar4 color;
-    color.x = thrust::get<1>(t);
-    color.y = 0;
-    color.z = 0;
-    color.w = 255;
-    thrust::get<0>(t) = color;
-  }
-};
-
-struct WALNUT_EXPORT _chestnut_green_color_conversion_functor {
-  template <typename Tuple>
-  __host__ __device__
-  void operator()(Tuple t) {
-    uchar4 color;
-    color.x = 0;
-    color.y = thrust::get<1>(t);
-    color.z = 0;
-    color.w = 255;
-    thrust::get<0>(t) = color;
-  }
-};
-
-struct WALNUT_EXPORT _chestnut_blue_color_conversion_functor {
-  template <typename Tuple>
-  __host__ __device__
-  void operator()(Tuple t) {
-    uchar4 color;
-    color.x = 0;
-    color.y = 0;
-    color.z = thrust::get<1>(t);
-    color.w = 255;
-    thrust::get<0>(t) = color;
-  }
-};
-
+} // end namespace Walnut
 
 #endif //COLORKERNELS_H

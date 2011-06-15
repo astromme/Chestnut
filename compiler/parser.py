@@ -29,7 +29,8 @@ string = string_single_quote | string_double_quote
 # tokens
 real_declaration = Token('real') >> (lambda real: Symbol('float')) # c++ only has floats, not reals
 integer_declaration = Token('int') >> Symbol
-type_ = real_declaration | integer_declaration
+color_declaration = Token('color') >> Symbol
+type_ = real_declaration | integer_declaration | color_declaration
 
 real2d_declaration = Token('real2d')
 integer2d_declaration = Token('int2d')
@@ -148,7 +149,7 @@ primary += host_function_call | sequential_function_call | identifier | identifi
 #data_read  = ~symbol(':') & ~keyword('read') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Read
 #data_write = ~symbol(':') & ~keyword('write') & ~symbol('(') & data_identifier & ~comma & filename & ~symbol(')') & ~semi > Write
 data_print = ~keyword('print') & ~symbol('(') & data_identifier & ~symbol(')') > DataPrint
-data_display = ~keyword('display') & ~symbol('(') & data_identifier & ~symbol(')') > DataDisplay
+data_display = ~keyword('display') & ~symbol('(') & data_identifier & Optional(parallel_identifier) & ~symbol(')') > DataDisplay
 host_function_call += data_print | data_display
 
 ## Parallel functions

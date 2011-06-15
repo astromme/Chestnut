@@ -406,12 +406,10 @@ class DataInitialization(List):
 
 
 display_template = """\
+thrust::copy(thrust::make_transform_iterator(%(name)s.thrustPointer(),            %(display_function)s_functor<%(type)s>()),
+             thrust::make_transform_iterator(%(name)s.thrustPointer()+%(length)s, %(display_function)s_functor<%(type)s>()),
+             _%(name)s_display.displayData());
 
-{
-  thrust::for_each(thrust::make_zip_iterator(thrust::make_tuple(_%(name)s_display.displayData(), %(name)s.thrustPointer())),
-                   thrust::make_zip_iterator(thrust::make_tuple(_%(name)s_display.displayData()+%(size)s, %(name)s.thrustEndPointer())),
-                  _chestnut_green_color_conversion_functor());
-}
 _%(name)s_display.updateGL();
 _app.processEvents();
 """
@@ -419,10 +417,29 @@ class DataDisplay(List):
     def to_cpp(self, env=defaultdict(bool)):
         data = symbolTable.lookup(self[0])
 
+        print self
+        if len(self) == 2:
+            display_function = symbolTable.lookup(self[1])
+            check_type(display_function, ParallelFunction)
+            if display_function.type != 'color':
+                raise CompilerException("Display function '%s' returns data of type '%s'. Display functions must return 'color'."
+                        % (display_function.name, display_function.type))
+            parameters = display_function.parameters
+            if len(parameters) != 1:
+                raise CompilerException("Display function '%s' takes %d parameters. Display functions must only take 1 parameter"
+                        % (display_function.name, len(parameters)))
+            if data.type != parameters[0].type:
+                raise CompilerException("Display function takes a parameter of type '%s' but the data '%s' is of the type '%s'"
+                        % (parameters[0].type, data.name, data.type))
+
+            display_function = display_function.name
+        else:
+            display_function = '_chestnut_default_color_conversion'
+
         display_env = { 'name' : data.name,
-                        'width' : data.width,
-                        'height' : data.height,
-                        'size' : data.size }
+                        'length' : data.length,
+                        'type' : type_map[data.type],
+                        'display_function' : display_function }
 
         code = ""
         if not data.has_display:

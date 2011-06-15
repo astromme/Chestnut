@@ -5,6 +5,8 @@ import numpy
 # These are added to the symbol table
 keywords = ['int',
             'float',
+            'real',
+            'color',
             'char',
             'if',
             'else',
@@ -65,6 +67,9 @@ class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
         self._array = numpy.zeros((self.height, self.width), dtype=numpy_type_map[self.type])
     @property
     def size(self):
+        return self.length
+    @property
+    def length(self):
         return self.width * self.height
     @property
     def array(self):
