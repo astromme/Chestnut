@@ -1,0 +1,68 @@
+// 
+
+parallel real heat(window data, int timestep) {
+  timestep = timestep / 10;
+  int xmin = timestep % heat.width;
+  int xmax = (timestep + 10) % heat.width;
+  int ymin = timestep % heat.height;
+  int ymax = (timestep + 10) % heat.height;
+
+  if ((heat.x < xmax) && (heat.x > xmin) && (heat.y < ymax) && (heat.y > ymin)) {
+    return 1;
+  }
+  return data.center;
+}
+
+parallel real heat_flow(window data, real c0, real c1) {
+  real new_data = c0*data.center;
+  new_data = new_data + c1*(data.left + data.right + data.top + data.bottom);
+
+
+  if (new_data > 1) {
+    new_data = 1;
+  } if (new_data < 0) {
+    new_data = 0;
+  }
+  return new_data;
+}
+
+//sequential real squared(real value) {
+//  return value*value;
+//}
+
+parallel color convert_color(window array) {
+  color output;
+  output.red = array.center*255;
+  output.green = 0;
+  output.blue = 0;
+  output.alpha = 255;
+  return output;
+}
+
+parallel real set_to(real value) {
+  return value;
+}
+
+real kappa = 0.2;
+real delta_t = 1;
+real delta_x = 1;
+
+real c0 = 1 - 4 * kappa * delta_t / delta_x;
+real c1 = kappa * delta_t / delta_x;
+
+real2d heat_data[1000,500] = :set_to(0);
+int2d heat_display[1000,500];
+
+
+int iteration = 0;
+int iterations = 10000;
+while (iteration < iterations) {
+  heat_data = :heat_flow(heat_data, c0, c1);
+  heat_data = :heat(heat_data, iteration);
+  display(heat_data, convert_color);
+
+  iteration = iteration + 1;
+}
+
+
+
