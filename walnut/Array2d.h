@@ -42,6 +42,8 @@ struct WALNUT_EXPORT Array2d
   Array2d(T *data, int width, int height);
   Array2d(thrust::device_vector<T> &vector, int width, int height);
 
+  int length() const { return width * height; }
+
   const T* constData() const { return (const T*)data; }
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }
   thrust::device_ptr<T> thrustEndPointer() { return thrustPointer() + width*height; }

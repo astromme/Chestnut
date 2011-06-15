@@ -7,24 +7,29 @@
 
 namespace Walnut {
 
-template <typename InputType>
-struct WALNUT_EXPORT _chestnut_default_color_conversion_functor : public thrust::unary_function<InputType, color> {
+template <typename OutputType, typename InputType>
+struct WALNUT_EXPORT _chestnut_default_color_conversion_functor : public thrust::unary_function<InputType, OutputType> {
+
+  Array2d<InputType> input;
+  _chestnut_default_color_conversion_functor(Array2d<InputType> &input_) : input(input_) {}
+
   __host__ __device__
-  color operator()(int32 input) {
-    color gray;
-    gray.x = wBound(0, input, 255);
-    gray.y = wBound(0, input, 255);
-    gray.z = wBound(0, input, 255);
-    gray.w = 255;
-    return gray;
+  int convert(float value) {
+    return wBound(0, int(value * 255), 255);
   }
 
   __host__ __device__
-  color operator()(real32 input) {
+  int convert(int value) {
+    return wBound(0, value, 255);
+  }
+
+  template <typename Tuple>
+  __host__ __device__
+  OutputType operator()(Tuple _t) {
     color gray;
-    gray.x = wBound(0, int(input*255), 255);
-    gray.y = wBound(0, int(input*255), 255);
-    gray.z = wBound(0, int(input*255), 255);
+    gray.x = convert(input.center(_x, _y));
+    gray.y = convert(input.center(_x, _y));
+    gray.z = convert(input.center(_x, _y));
     gray.w = 255;
     return gray;
   }

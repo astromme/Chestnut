@@ -149,7 +149,7 @@ primary += host_function_call | sequential_function_call | identifier | identifi
 #data_read  = ~symbol(':') & ~keyword('read') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Read
 #data_write = ~symbol(':') & ~keyword('write') & ~symbol('(') & data_identifier & ~comma & filename & ~symbol(')') & ~semi > Write
 data_print = ~keyword('print') & ~symbol('(') & data_identifier & ~symbol(')') > DataPrint
-data_display = ~keyword('display') & ~symbol('(') & data_identifier & Optional(parallel_identifier) & ~symbol(')') > DataDisplay
+data_display = ~keyword('display') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > DataDisplay
 host_function_call += data_print | data_display
 
 ## Parallel functions

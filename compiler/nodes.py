@@ -406,11 +406,14 @@ class DataInitialization(List):
 
 
 display_template = """\
-thrust::copy(thrust::make_transform_iterator(%(name)s.thrustPointer(),            %(display_function)s_functor<%(type)s>()),
-             thrust::make_transform_iterator(%(name)s.thrustPointer()+%(length)s, %(display_function)s_functor<%(type)s>()),
-             _%(name)s_display.displayData());
+{
+  FunctionIterator _start = makeStartIterator(%(input)s.width, %(input)s.height);
 
-_%(name)s_display.updateGL();
+  thrust::copy(thrust::make_transform_iterator(_start, %(display_function)s_functor<%(template_types)s>(%(input)s)),
+               thrust::make_transform_iterator(_start+%(input)s.length(), %(display_function)s_functor<%(template_types)s>(%(input)s)),
+               _%(input)s_display.displayData());
+}
+_%(input)s_display.updateGL();
 _app.processEvents();
 """
 class DataDisplay(List):
@@ -428,17 +431,18 @@ class DataDisplay(List):
             if len(parameters) != 1:
                 raise CompilerException("Display function '%s' takes %d parameters. Display functions must only take 1 parameter"
                         % (display_function.name, len(parameters)))
-            if data.type != parameters[0].type:
-                raise CompilerException("Display function takes a parameter of type '%s' but the data '%s' is of the type '%s'"
-                        % (parameters[0].type, data.name, data.type))
+            #if data.type != parameters[0].type:
+            #    raise CompilerException("Display function takes a parameter of type '%s' but the data '%s' is of the type '%s'"
+            #            % (parameters[0].type, data.name, data.type))
 
             display_function = display_function.name
         else:
             display_function = '_chestnut_default_color_conversion'
 
-        display_env = { 'name' : data.name,
-                        'length' : data.length,
-                        'type' : type_map[data.type],
+        template_types = 'color, %s' % type_map[data.type]
+
+        display_env = { 'input' : data.name,
+                        'template_types' : template_types,
                         'display_function' : display_function }
 
         code = ""
@@ -571,6 +575,12 @@ coordinates = {
         'width' : '_width',
         'height' : '_height' }
 
+color_properties = { # Screen is apparently BGR not RGB
+        'red' : 'z',
+        'green' : 'y',
+        'blue' : 'x',
+        'alpha' : 'w' }
+
 
 property_template = """\
 %(name)s.%(property)s(%(parameters)s)\
@@ -597,6 +607,9 @@ class Property(List):
                 return coordinates[property_];
             else:
                 raise CompilerError('Property %s not found for function %s' % (property_, name))
+        elif type(symbol) == Variable:
+            if symbol.type == 'color':
+                return '%s.%s' % (symbol.name, color_properties[property_])
         else:
             print symbolTable
             print self
