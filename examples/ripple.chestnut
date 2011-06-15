@@ -1,0 +1,21 @@
+parallel int ripple(int current_time) {
+  real x_offset = ripple.x - ripple.width/2;
+  real y_offset = ripple.y - ripple.height/2;
+
+  real distance = sqrtf(x_offset * x_offset + y_offset * y_offset);
+
+  int shade = 128+ (127 * cos(distance/10 - current_time/7)) / (distance/10 + 1);
+
+  return shade;
+}
+
+int2d image[500, 500];
+
+int iteration = 0;
+int iterations = 10000;
+
+while (iteration < iterations) {
+  image = :ripple(iteration);
+  display(image);
+  iteration = iteration + 1;
+}
