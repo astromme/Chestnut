@@ -1,5 +1,3 @@
-// 
-
 parallel real heat(window data, int timestep) {
   timestep = timestep / 10;
   int xmin = timestep % heat.width;
@@ -32,10 +30,17 @@ parallel real heat_flow(window data, real c0, real c1) {
 
 parallel color convert_color(window array) {
   color output;
-  output.red = array.center*255;
-  output.green = 0;
-  output.blue = 0;
-  output.alpha = 255;
+
+  if (array.center == 1) {
+    output.red = output.blue = output.green = 255;
+    output.alpha = 255;
+  } else {
+    output.red = array.center*255;
+    output.green = 0;
+    output.blue = 0;
+    output.alpha = 255;
+  }
+
   return output;
 }
 
