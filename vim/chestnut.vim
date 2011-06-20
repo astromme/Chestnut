@@ -20,8 +20,8 @@ syn match   chestnutLineComment      "\/\/.*" contains=@Spell,javaScriptCommentT
 syn match   chestnutCommentSkip      "^[ \t]*\*\($\|[ \t]\+\)"
 syn region  chestnutComment	       start="/\*"  end="\*/" contains=@Spell,javaScriptCommentTodo
 syn match   chestnutSpecial	       "\\\d\d\d\|\\."
-syn region  chestnutStringD	       start=+"+  skip=+\\\\\|\\"+  end=+"\|$+  contains=javaScriptSpecial,@htmlPreproc
-syn region  chestnutStringS	       start=+'+  skip=+\\\\\|\\'+  end=+'\|$+  contains=javaScriptSpecial,@htmlPreproc
+syn region  chestnutStringD	       start=+"+  skip=+\\\\\|\\"+  end=+"\|$+  contains=chestnutSpecial,@htmlPreproc
+syn region  chestnutStringS	       start=+'+  skip=+\\\\\|\\'+  end=+'\|$+  contains=chestnutSpecial,@htmlPreproc
 
 syn match   chestnutSpecialCharacter "'\\.'"
 syn match   chestnutNumber	       "-\=\<\d\+L\=\>\|0[xX][0-9a-fA-F]\+\>"
@@ -30,9 +30,18 @@ syn region  chestnutRegexpString     start=+/[^/*]+me=e-1 skip=+\\\\\|\\/+ end=+
 syn keyword chestnutConditional	        if else
 syn keyword chestnutRepeat		while for
 syn keyword chestnutBranch		break continue
-syn keyword chestnutType	       	int real int1d real1d int2d real2d window
+
+syn keyword chestnutFunctionDecoration  parallel sequential
+
+syn keyword chestnutIntegers	       	Integer Integer1d Integer2d Integer3d
+syn keyword chestnutReals               Real Real1d Real2d Real3d
+syn keyword chestnutColors              Color Color1d Color2d Color3d
+syn keyword chestnutBools               Bool Bool1d Bool2d Bool3d
+syn keyword chestnutSizes               Size1 Size2 Size3
+syn keyword chestnutOtherTypes          Window2d Window3d
+
 syn keyword chestnutStatement		return
-syn keyword chestnutBoolean		true false
+syn keyword chestnutBoolean		yes no
 
 syn keyword chestnutParallelBuiltin     reduce sort print random
 syn keyword chestnutSequentialBuiltin   print
@@ -67,7 +76,6 @@ if version >= 508 || !exists("did_chestnut_syn_inits")
   HiLink chestnutRepeat	        	Repeat
   HiLink chestnutBranch	        	Conditional
   HiLink chestnutOperator		Operator
-  HiLink chestnutType			Type
   HiLink chestnutStatement		Statement
   HiLink chestnutParallelBuiltin	Function
   HiLink chestnutSequentialBuiltin	Function
@@ -77,6 +85,15 @@ if version >= 508 || !exists("did_chestnut_syn_inits")
   HiLink chestnutNull			Keyword
   HiLink chestnutBoolean		Boolean
   HiLink chestnutRegexpString		String
+
+  HiLink chestnutFunctionDecoration     Keyword
+
+  HiLink chestnutIntegers		Type
+  HiLink chestnutReals  		Type
+  HiLink chestnutColors			Type
+  HiLink chestnutBools			Type
+  HiLink chestnutSizes			Type
+  HiLink chestnutOtherTypes		Type
 
   HiLink chestnutIdentifier		Identifier
   HiLink chestnutLabel	        	Label
