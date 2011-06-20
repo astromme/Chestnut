@@ -1,14 +1,14 @@
-parallel int convert_to_0_1(window element) {
+parallel Integer convert_to_0_1(Integer2d element) {
   return element.center == 1;
 }
 
 // chestnut game of life implementation
-parallel int game_of_life(window element) {
-  int neighbor_count = element.topLeft    + element.top       + element.topRight +
-                       element.left       + 0                 + element.right +
-                       element.bottomLeft + element.bottom    + element.bottomRight;
-  int state;
-  int alive = element.center;
+parallel Integer game_of_life(Integer2d element) {
+  Integer neighbor_count = element.topLeft    + element.top       + element.topRight +
+                           element.left       + 0                 + element.right +
+                           element.bottomLeft + element.bottom    + element.bottomRight;
+  Integer state;
+  Integer alive = element.center;
 
   if (alive) {
     if (neighbor_count <= 1) {
@@ -28,25 +28,28 @@ parallel int game_of_life(window element) {
   return state;  
 }
 
-parallel int convert_color(window array) {
-  return array.center * 255;
+parallel Color green_convert(Integer2d array) {
+  Color c;
+  c.red = 0;
+  c.green = array.center * 255;
+  c.blue = 0;
+  c.alpha = 255;
+  return c;
 }
 
 // 2d data array of width 1000, height 500 for storage
-int2d life_data[1000, 500];
-int2d life_display[1000, 500];
+Integer2d life_data[1000, 500];
 
 // Initialize to either 0 or 1
 life_data = :random(0, 20); 
-life_data = :convert_to_0_1(life_data);
+life_data = life_data.each(:convert_to_0_1(life_data));
 
-int iteration = 0;
-int iterations = 10000;
+Integer iteration = 0;
+Integer iterations = 10000;
 // Run 10,000 iterations of this game of life
 while (iteration < iterations) {
-  life_data = :game_of_life(life_data); // Parallel function call
-  life_display = :convert_color(life_data);
-  display(life_display);
+  life_data = life_data.each(:game_of_life(life_data)); // Parallel function call
+  display(life_data, green_convert);
 
   iteration = iteration + 1;
 }

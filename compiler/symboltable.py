@@ -3,19 +3,27 @@ import numpy
 
 # Keywords supported by chestnut syntax
 # These are added to the symbol table
-keywords = ['int',
-            'float',
-            'real',
-            'color',
-            'char',
+scalar_types = ['Integer', 'Real', 'Color', 'Bool']
+data_types = ['Integer1d', 'Integer2d', 'Integer3d',
+              'Real1d', 'Real2d', 'Real3d',
+              'Color1d', 'Color2d', 'Color3d',
+              'Bool1d', 'Bool2d', 'Bool3d']
+structure_types = ['Size1', 'Size2', 'Size3',
+                   'Window']
+
+reserved_words = [
+            'parallel',
+            'sequential',
+
             'if',
             'else',
             'while',
             'for',
-            'return',
-            'window',
             'break',
+            'return',
             ]
+
+keywords = scalar_types + data_types + structure_types + reserved_words
 
 
 numpy_type_map = { 'int2d' : numpy.int32,

@@ -21,6 +21,8 @@
 #define ARRAY2D_H
 
 #include "walnut_global.h"
+#include "Sizes.h"
+
 #include <thrust/device_vector.h>
 
 namespace Walnut {
@@ -40,9 +42,11 @@ struct WALNUT_EXPORT Array2d
   typedef T Type;
 
   Array2d(T *data, int width, int height);
-  Array2d(thrust::device_vector<T> &vector, int width, int height);
+  Array2d(thrust::device_vector<T> &vector, int width, int height); // If vector is deleted,
 
   int length() const { return width * height; }
+
+  Size2 size() const { return Size2(width, height); }
 
   const T* constData() const { return (const T*)data; }
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }

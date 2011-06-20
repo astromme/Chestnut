@@ -19,26 +19,34 @@ property = identifier
 symbol = Token('[^0-9a-zA-Z \t\r\n]')
 keyword = Token('[a-z]+')
 semi = symbol(';')
+colon = symbol(':')
 comma = symbol(',')
-identifier_property = identifier & ~symbol('.') & property > Property
+dot = symbol('.')
+identifier_property = identifier & ~dot & property > Property
 
 string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'") >> (lambda obj: String(obj[1:-1]))
 string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"') >> (lambda obj: String(obj[1:-1]))
 string = string_single_quote | string_double_quote
 
 # tokens
-real_declaration = Token('real') >> (lambda real: Symbol('float')) # c++ only has floats, not reals
-integer_declaration = Token('int') >> Symbol
-color_declaration = Token('color') >> Symbol
-type_ = real_declaration | integer_declaration | color_declaration
+real_declaration = Token('Real') >> Type
+integer_declaration = Token('Integer') >> Type
+color_declaration = Token('Color') >> Type
+bool_declaration = Token('Bool') >> Type
+size1_declaration = Token('Size1') >> Type
+size2_declaration = Token('Size2') >> Type
+size3_declaration = Token('Size3') >> Type
+type_ = real_declaration | integer_declaration | color_declaration | bool_declaration | size1_declaration | size2_declaration | size3_declaration
 
-real2d_declaration = Token('real2d')
-integer2d_declaration = Token('int2d')
-data_type = real2d_declaration | integer2d_declaration
+real2d_declaration = Token('Real2d') >> Type
+integer2d_declaration = Token('Integer2d') >> Type
+color2d_declaration = Token('Color2d') >> Type
+bool2d_declaration = Token('Bool2d') >> Type
+data_type = real2d_declaration | integer2d_declaration | color2d_declaration | bool2d_declaration
 
 real = Token(UnsignedReal()) >> Real
 integer = Token(UnsignedInteger()) >> Integer
-number = integer | real | keyword('true') >> Bool | keyword('false') >> Bool
+number = integer | real | keyword('yes') >> Bool | keyword('no') >> Bool
 
 width = integer
 height = integer
@@ -126,7 +134,7 @@ while_ =  ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & stateme
 statement += ~semi | parallel_assignment | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
-parameter_declaration = (type_ | keyword('window')) & identifier > Parameter
+parameter_declaration = (type_ | data_type ) & identifier > Parameter
 #parameter_declaration = type_ & identifier > Parameter
 parameter_declaration_list = parameter_declaration[0:, ~comma] > Parameters
 
@@ -160,7 +168,9 @@ parallel_reduce = ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identi
 
 parallel_sort   =  ~symbol(':') & ~keyword('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > ParallelSort
 
-genric_parallel_function_call = ~symbol(':') & identifier & ~symbol('(') & expression_list & ~symbol(')') > ParallelFunctionCall
+
+genric_parallel_function_call = identifier & ~dot & ~keyword('each') & ~symbol('(') & ~colon & identifier & ~symbol('(') & expression_list & ~symbol(')') & ~symbol(')') > ParallelFunctionCall
+#genric_parallel_function_call = ~symbol(':') & identifier & ~symbol('(') & expression_list & ~symbol(')') > ParallelFunctionCall
 
 parallel_function_call += parallel_random | parallel_reduce | parallel_sort | genric_parallel_function_call
 parallel_assignment += data_identifier & ~symbol('=') & parallel_function_call & ~semi > ParallelAssignment

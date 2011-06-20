@@ -1,9 +1,9 @@
-parallel real set_to(real number) {
+parallel Real set_to(Real number) {
   return number;
 }
 
-real2d data[10, 10] = :set_to(1.1);
-real reduced = :reduce(data);
+Real2d data[10, 10] = :set_to(1.1);
+Real reduced = :reduce(data);
 
 print("Array of floats was:");
 print(data);

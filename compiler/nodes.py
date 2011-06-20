@@ -1,6 +1,7 @@
 from lepl import *
 from collections import namedtuple, defaultdict
 from templates import *
+from symboltable import scalar_types, data_types
 from symboltable import SymbolTable, Scope, Keyword, Variable, Window, Data, ParallelFunction, SequentialFunction, DisplayWindow
 import random, numpy
 
@@ -10,10 +11,15 @@ def check_is_symbol(name, environment=symbolTable):
     if not environment.lookup(name):
         raise CompilerException("Error, the symbol '%s' was used but it hasn't been declared yet" % name)
 
-def check_type(symbol, requiredType):
-    if type(symbol) is not requiredType:
-        raise CompilerException("Error, the symbol '%s' is a %s, but a symbol of type %s was expected" % \
-                (symbol.name, type(symbol), requiredType))
+def check_type(symbol, *requiredTypes):
+    if type(symbol) not in requiredTypes:
+        if len(requiredTypes) == 1:
+            raise CompilerException("Error, the symbol '%s' is a %s, but a symbol of type %s was expected" % \
+                    (symbol.name, type(symbol), requiredTypes[0]))
+        else:
+            raise CompilerException("Error, the symbol '%s' is a %s, but one of %s was expected" % \
+                    (symbol.name, type(symbol), ','.join(requiredTypes)))
+
 
 def check_dimensions_are_equal(leftData, rightData):
     assert type(leftData) == type(rightData) == Data
@@ -29,6 +35,11 @@ def extract_line_info(function):
         return function(obj, node_info, start_line, end_line, env)
     return wrapper
 
+class Type(str):
+    def to_cpp(self, env=None):
+        return type_map[self]
+    def evaluate(self, env):
+        return
 
 #helpers so that we don't get errors about undefined to_cpp methods
 class Symbol(str):
@@ -43,6 +54,7 @@ class Symbol(str):
             return symbol
         else:
             raise Exception
+
 class String(str):
     def to_cpp(self, env=None):
         return self
@@ -56,7 +68,7 @@ class Real(float):
     evaluate = lambda self, env: self
 class Bool(object):
     def __init__(self, value):
-        self._value = bool(value)
+        self._value = bool(value == 'yes')
     def __nonzero__(self):
         return self._value
     def to_cpp(self, env=None):
@@ -347,7 +359,7 @@ class ParallelFunctionDeclaration(List):
 
         windowCount = 0
         for parameter in parameters:
-            if parameter.type == 'window':
+            if parameter.type in data_types:
                 symbolTable.add(Window(name=parameter.name, number=windowCount))
                 windowCount += 1
             else:
@@ -424,8 +436,8 @@ class DataDisplay(List):
         if len(self) == 2:
             display_function = symbolTable.lookup(self[1])
             check_type(display_function, ParallelFunction)
-            if display_function.type != 'color':
-                raise CompilerException("Display function '%s' returns data of type '%s'. Display functions must return 'color'."
+            if display_function.type != 'Color':
+                raise CompilerException("Display function '%s' returns data of type '%s'. Display functions must return 'Color'."
                         % (display_function.name, display_function.type))
             parameters = display_function.parameters
             if len(parameters) != 1:
@@ -602,13 +614,13 @@ class Property(List):
             return property_template % { 'name' : name,
                                          'property' : property_,
                                          'parameters' : coordinates['x'] + ', ' + coordinates['y'] }
-        elif type(symbol) == ParallelFunction:
+        elif type(symbol) == Keyword and symbol.name == 'parallel':
             if property_ in coordinates:
                 return coordinates[property_];
             else:
                 raise CompilerError('Property %s not found for function %s' % (property_, name))
         elif type(symbol) == Variable:
-            if symbol.type == 'color':
+            if symbol.type == 'Color':
                 return '%s.%s' % (symbol.name, color_properties[property_])
         else:
             print symbolTable
@@ -867,14 +879,14 @@ class ParallelSort(List):
 
 map_template = """
 {
-    FunctionIterator startIterator = makeStartIterator(%(width)s, %(height)s);
+    FunctionIterator startIterator = makeStartIterator(%(size_name)s.width, %(size_name)s.height);
 
     thrust::transform_iterator<%(function)s_functor<%(input_output_types)s>, FunctionIterator>
     iterator = thrust::make_transform_iterator(startIterator, %(function)s_functor<%(input_output_types)s>(%(variables)s));
 
-    Array2d<%(output_type)s> temp_array = _allocator.arrayWithSize<%(output_type)s>(%(width)s, %(height)s);
+    Array2d<%(output_type)s> temp_array = _allocator.arrayWithSize<%(output_type)s>(%(size_name)s.width, %(size_name)s.height);
 
-    thrust::copy(iterator, iterator+%(width)s*%(height)s, temp_array.thrustPointer());
+    thrust::copy(iterator, iterator+%(size_name)s.length(), temp_array.thrustPointer());
 
     %(output_data)s.swapDataWith(temp_array);
     _allocator.releaseArray(temp_array);
@@ -886,8 +898,15 @@ class ParallelFunctionCall(List):
         if not output:
             raise InternalException("The environment '%s' doesn't have a 'data_to_assign' variable set" % env)
 
-        function = self[0]
-        arguments = self[1:][0]
+        container, function, arguments = self
+
+        container = symbolTable.lookup(container)
+        if container.type in ['Size1', 'Size2', 'Size3']:
+            if type(size) is not Size2:
+                return InternalException("Sizes other than Size2 are not supported")
+            size = container
+        elif type(container) == Data:
+            size = container.name + '.size()'
 
         check_is_symbol(function)
         function = symbolTable.lookup(function)
@@ -906,7 +925,7 @@ class ParallelFunctionCall(List):
         input_output_types = [type_map[function.type]]
 
         for argument, parameter in zip(arguments, function.parameters):
-            if parameter.type == 'window':
+            if parameter.type in data_types:
                 input_output_types.append(type_map[symbolTable.lookup(argument.to_cpp(env)).type])
 
             variables.append(argument.to_cpp(env))
@@ -916,8 +935,7 @@ class ParallelFunctionCall(List):
                                 'variables' : ', '.join(variables),
                                 'input_output_types' : ', '.join(input_output_types),
                                 'function' : function.name,
-                                'width' : output.width,
-                                'height' : output.height,
+                                'size_name' : size,
                                 'output_type' : type_map[function.type] }
 
     def evaluate(self, env, output):

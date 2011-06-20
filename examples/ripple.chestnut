@@ -1,21 +1,35 @@
-parallel int ripple(int current_time) {
-  real x_offset = ripple.x - ripple.width/2;
-  real y_offset = ripple.y - ripple.height/2;
+parallel Integer ripple(Integer current_time) {
+  Real x_offset = ripple.x - ripple.width/2;
+  Real y_offset = ripple.y - ripple.height/2;
 
-  real distance = sqrtf(x_offset * x_offset + y_offset * y_offset);
+  Real distance = sqrtf(x_offset * x_offset + y_offset * y_offset);
 
-  int shade = 128+ (127 * cos(distance/10 - current_time/7)) / (distance/10 + 1);
+  Integer shade = 128 + (127 * cos(distance/10 - current_time/7)) / (distance/10 + 1);
 
   return shade;
 }
 
-int2d image[500, 500];
+//Window2d display;
 
-int iteration = 0;
-int iterations = 10000;
+Integer2d image[500, 500];
+//display.size = image.size;
+
+Integer iteration = 0;
+Integer iterations = 10000;
 
 while (iteration < iterations) {
-  image = :ripple(iteration);
+  //image = :ripple(iteration);
+  image = image.each(:ripple(iteration));
+
+  //display.draw(image);
   display(image);
+
   iteration = iteration + 1;
 }
+
+//Size2d size(20, 40);
+//size.each:ripple(a, b, c);
+//image.each:ripple(image);
+//
+//
+//image = image.each(:ripple(iteration))

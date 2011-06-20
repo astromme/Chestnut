@@ -37,6 +37,7 @@ set(walnut_headers
     ColorKernels.h
     ArrayAllocator.h
     Array2d.h
+    Sizes.h
     )
 
 set(walnut_ui

@@ -1,8 +1,11 @@
+from symboltable import scalar_types, data_types
+
 #helper to do nice code indenting.. duplicated in nodes, yuck
 def indent(code, indent_first_line=True):
     if indent_first_line:
         code = '  ' + code
     return code.replace('\n', '\n  ')
+
 
 device_function_template = """\
 template <%(template_parameters)s>
@@ -23,14 +26,14 @@ def create_device_function(function_node):
   underscore_vars = []
 
   for parameter in parameters:
-      if parameter.type == 'window':
+      if parameter.type in data_types:
           template_types.append('Input%sType' % len(template_types))
           struct_vars.append('Array2d<%s> %s;' % (template_types[-1], parameter.name))
           parameter_vars.append('Array2d<%s> _%s' % (template_types[-1], parameter.name))
           underscore_vars.append('%(name)s(_%(name)s)' % { 'name' : parameter.name })
       else:
-          struct_vars.append('%s %s;' % (parameter.type, parameter.name))
-          parameter_vars.append('%s _%s' % (parameter.type, parameter.name))
+          struct_vars.append('%s %s;' % (type_map[parameter.type], parameter.name))
+          parameter_vars.append('%s _%s' % (type_map[parameter.type], parameter.name))
           underscore_vars.append('%(name)s(_%(name)s)' % { 'name' : parameter.name})
 
   #if not (len(parameters) == 1 or parameters[0][0] == 'window'):
@@ -57,12 +60,24 @@ def create_device_function(function_node):
 
 
 
-type_map = { 'real' : 'float',
-             'float' : 'float',
-             'int' : 'int',
-             'real2d' : 'float',
-             'int2d' : 'int',
-             'void' : 'void' }
+type_map = {
+        'Integer' : 'int',
+        'Integer1d' : 'int',
+        'Integer2d' : 'int',
+        'Integer3d' : 'int',
+        'Real' : 'float',
+        'Real1d' : 'float',
+        'Real2d' : 'float',
+        'Real3d' : 'float',
+        'Color' : 'uchar4',
+        'Color1d' : 'uchar4',
+        'Color2d' : 'uchar4',
+        'Color3d' : 'uchar4',
+        'Bool' : 'bool',
+        'Bool1d' : 'bool',
+        'Bool2d' : 'bool',
+        'Bool3d' : 'bool' }
+
 
 data_create_template = """\
 Array2d<%(type)s> %(name)s = _allocator.arrayWithSize<%(type)s>(%(width)s, %(height)s);

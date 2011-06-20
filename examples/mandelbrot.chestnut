@@ -1,15 +1,15 @@
-parallel mandelbrot(window data, real xleft, real xright, real ytop, real ybottom) {
+parallel Integer mandelbrot(Real xleft, Real xright, Real ytop, Real ybottom) {
   // Scale coordinates to be in the given window
-  real x0 = (data.x/data.width) * (xright - xleft) + xleft;
-  real y0 = (data.y/data.height) * (ytop - ybottom) + ybottom;
+  Real x0 = (parallel.x/parallel.width) * (xright - xleft) + xleft;
+  Real y0 = (parallel.y/parallel.height) * (ytop - ybottom) + ybottom;
 
-  real x = 0;
-  real y = 0;
-  int iteration = 0;
-  int max_iteration = 1000;
+  Real x = 0;
+  Real y = 0;
+  Integer iteration = 0;
+  Integer max_iteration = 1000;
 
   while (((x*x + y*y) <= (2*2)) && (iteration < max_iteration)) {
-    real xtemp = (x*x - y*y) + x0;
+    Real xtemp = (x*x - y*y) + x0;
 
     y = 2*x*y + y0;
     x = xtemp;
@@ -22,15 +22,14 @@ parallel mandelbrot(window data, real xleft, real xright, real ytop, real ybotto
     return iteration; // diverged in some number of iterations
 }
 
-real left = -2.5;
-real right = 1;
-real top = 1;
-real bottom = -1;
+Real left = -2.5;
+Real right = 1;
+Real top = 1;
+Real bottom = -1;
 
-int2d display[80, 50];
+Integer2d display_data[875, 500];
 
-display = :mandelbrot(display, left, right, top, bottom);
-print(display);
+display_data = display_data.each(:mandelbrot(left, right, top, bottom));
+display(display_data);
 
-display = :mandelbrot(display, left/4-1, right/4-1, top/4-0.3, bottom/4-0.3);
-print(display);
+
