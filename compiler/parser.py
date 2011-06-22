@@ -50,7 +50,8 @@ number = integer | real | keyword('yes') >> Bool | keyword('no') >> Bool
 
 width = integer
 height = integer
-unopened_size_block = symbol(']') ** make_error('no [ before {out_rest!s}') & symbol(']')
+
+unopened_size_block = (width & comma & height & symbol(']')) ** make_error('no [ before {out_rest!s}') & symbol(']')
 unclosed_size_block = (symbol('[') & width & comma & height) ** make_error('Datablock size specification is missing a closing ]')
 
 size = Or(
@@ -176,7 +177,13 @@ parallel_function_call += parallel_random | parallel_reduce | parallel_sort | ge
 parallel_assignment += data_identifier & ~symbol('=') & parallel_function_call & ~semi > ParallelAssignment
 
 ## Now we can define the last bits
-block += ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > Block # ** with_line(Block)
+unclosed_block = (~symbol('{') & (statement | variable_declaration)[0:]) ** make_error('block is missing a closing }}')
+
+block += Or(
+        ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > Block, # ** with_line(Block)
+        unclosed_block
+        )
+
 
 declaration_list = (data_declaration | variable_declaration | sequential_function_declaration | parallel_function_declaration | statement)[0:]
 
@@ -246,11 +253,34 @@ def remove_single_line_comments(code):
   comment_remover = (Regexp(r'//[^\n]*') >> whitespace | Any())[:, ...]
   return comment_remover.parse(code)[0]
 
-def parse(code):
-  code = remove_multi_line_comments(code)
+def parse(original_code):
+  code = remove_multi_line_comments(original_code)
   code = remove_single_line_comments(code)
 
-  return parser(code)[0]
+  try:
+    parse = parser(code)[0]
+  except SyntaxError, e:
+    e.text = original_code.split('\n')[e.lineno - 1]
+    raise e
+
+  return parse
+
+def parse_file(filename):
+  with open(filename, 'r') as f:
+    original_code = ''.join(f.readlines())
+
+  code = remove_multi_line_comments(original_code)
+  code = remove_single_line_comments(code)
+
+  try:
+    parse = parser(code)[0]
+  except SyntaxError, e:
+    e.filename = filename
+    e.text = original_code.split('\n')[e.lineno - 1]
+    raise e
+
+  return parse
+
 
 def main():
   import sys
@@ -260,12 +290,17 @@ def main():
       sys.exit(1)
 
   with open(sys.argv[1], 'r') as f:
-    code = ''.join(f.readlines())
+    original_code = ''.join(f.readlines())
 
-  code = remove_multi_line_comments(code)
+  code = remove_multi_line_comments(original_code)
   code = remove_single_line_comments(code)
 
-  print(parser(code)[0])
+  try:
+    print(parser(code)[0])
+  except SyntaxError, e:
+    e.filename = sys.argv[1]
+    e.text = original_code.split('\n')[e.lineno - 1]
+    raise e
 
 if __name__ == '__main__':
   main()

@@ -1,4 +1,0 @@
-//Unknown parallel function
-int2d data[10, 10];
-
-data = :undeclaredParallelFunction(data);
