@@ -1,17 +1,17 @@
-parallel int mod(window data, int mod_val) {
+parallel Integer mod(Integer2d data, Integer mod_val) {
   return data.center % mod_val;
 }
 
-parallel int by_index(window data) {
+parallel Integer by_index(Integer2d data) {
   return data.width*data.y + data.x;
 }
 
-parallel real laplacian(window data, real alpha, real beta) {
-  return alpha * window.center +
-         beta * (window.left + window.right + window.top + window.bottom);
+parallel Real laplacian(Integer2d data, Real alpha, Real beta) {
+  return alpha * data.center +
+         beta * (data.left + data.right + data.top + data.bottom);
 }
 
-real2d dataset[50, 20];
+Real2d dataset[50, 20];
 dataset = :by_index(dataset);
 dataset = :mod_20(dataset);
 
@@ -19,7 +19,19 @@ dataset = :mod_20(dataset);
 print("Original Array");
 print(dataset);
 
-real2d modified[50, 20];
+Real2d modified[50, 20];
 print("Laplacian");
 modified = :laplacian(dataset, 1, 1);
 print(modified);
+
+
+parallel Integer function(Integer2d array, Real2d array2, Integer parameter, Real param2) {
+
+  
+
+  return 4;
+}
+
+
+
+

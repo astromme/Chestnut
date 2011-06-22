@@ -1,21 +1,21 @@
-parallel int mod(window data, int mod_val) {
+parallel Integer mod(Integer2d data, Integer mod_val) {
   return data.center % mod_val;
 }
 
-parallel int by_index(window data) {
+parallel Integer by_index(Integer2d data) {
   return data.width*data.y + data.x;
 }
 
-parallel real divergence(window data) {
+parallel Real divergence(Integer2d data) {
   return data.right - data.left +
          data.top - data.bottom;
 }
 
-real2d dataset[50, 20];
+Real2d dataset[50, 20];
 dataset = :by_index(dataset);
 dataset = :mod(dataset, 20);
 print(dataset);
 
-real2d derivative[50, 20];
+Real2d derivative[50, 20];
 derivative = :divergence(dataset);
 print(derivative);

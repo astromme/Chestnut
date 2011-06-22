@@ -1,9 +1,9 @@
-parallel real heat(window data, int timestep) {
+parallel Real heat(Real2d data, Integer timestep) {
   timestep = timestep / 10;
-  int xmin = timestep % heat.width;
-  int xmax = (timestep + 10) % heat.width;
-  int ymin = timestep % heat.height;
-  int ymax = (timestep + 10) % heat.height;
+  Integer xmin = timestep % heat.width;
+  Integer xmax = (timestep + 10) % heat.width;
+  Integer ymin = timestep % heat.height;
+  Integer ymax = (timestep + 10) % heat.height;
 
   if ((heat.x < xmax) && (heat.x > xmin) && (heat.y < ymax) && (heat.y > ymin)) {
     return 1;
@@ -11,8 +11,8 @@ parallel real heat(window data, int timestep) {
   return data.center;
 }
 
-parallel real heat_flow(window data, real c0, real c1) {
-  real new_data = c0*data.center;
+parallel Real heat_flow(Real2d data, Real c0, Real c1) {
+  Real new_data = c0*data.center;
   new_data = new_data + c1*(data.left + data.right + data.top + data.bottom);
 
 
@@ -24,12 +24,12 @@ parallel real heat_flow(window data, real c0, real c1) {
   return new_data;
 }
 
-//sequential real squared(real value) {
+//sequential Real squared(Real value) {
 //  return value*value;
 //}
 
-parallel color convert_color(window array) {
-  color output;
+parallel Color convert_color(Real2d array) {
+  Color output;
 
   if (array.center == 1) {
     output.red = output.blue = output.green = 255;
@@ -44,23 +44,23 @@ parallel color convert_color(window array) {
   return output;
 }
 
-parallel real set_to(real value) {
+parallel Real set_to(Real value) {
   return value;
 }
 
-real kappa = 0.2;
-real delta_t = 1;
-real delta_x = 1;
+Real kappa = 0.2;
+Real delta_t = 1;
+Real delta_x = 1;
 
-real c0 = 1 - 4 * kappa * delta_t / delta_x;
-real c1 = kappa * delta_t / delta_x;
+Real c0 = 1 - 4 * kappa * delta_t / delta_x;
+Real c1 = kappa * delta_t / delta_x;
 
-real2d heat_data[1000,500] = :set_to(0);
-int2d heat_display[1000,500];
+Real2d heat_data[1000,500] = :set_to(0);
+Integer2d heat_display[1000,500];
 
 
-int iteration = 0;
-int iterations = 10000;
+Integer iteration = 0;
+Integer iterations = 10000;
 while (iteration < iterations) {
   heat_data = :heat_flow(heat_data, c0, c1);
   heat_data = :heat(heat_data, iteration);

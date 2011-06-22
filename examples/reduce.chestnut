@@ -1,8 +1,8 @@
-parallel int init_to(int value) {
+parallel Integer init_to(int value) {
   return value;
 }
 
-int2d data[10, 10] = :init_to(1);
-int reduced = :reduce(data);
+Integer2d data[10, 10] = :init_to(1);
+Integer reduced = :reduce(data);
 
 print("Data reduced to %s", reduced);
