@@ -4,8 +4,31 @@ from templates import *
 from symboltable import scalar_types, data_types
 from symboltable import SymbolTable, Scope, Keyword, Variable, Window, Data, ParallelFunction, SequentialFunction, DisplayWindow
 import random, numpy
+import pycuda.gpuarray as DeviceArray
+import codepy.cgen as c
+import operator as op
 
 symbolTable = SymbolTable()
+
+class cuda_context:
+    def __enter__(self):
+        import pycuda.driver
+        from pycuda.tools import make_default_context
+
+        pycuda.driver.init()
+
+        self.context = make_default_context()
+        self.device = self.context.get_device()
+        return self.context
+
+    def __exit__(self, type, value, traceback):
+        self.context.pop()
+        self.context = None # is there a better way to delete in python?
+
+        from pycuda.tools import clear_context_caches
+        clear_context_caches()
+
+
 
 def check_is_symbol(name, environment=symbolTable):
     if not environment.lookup(name):
@@ -179,6 +202,34 @@ class Neg(List):
     def evaluate(self, env):
         return -self[0].evaluate(env)
 
+
+### Products ###
+class Product(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s)" % '*'.join(cpp_tuple(self, env))
+    def evaluate(self, env):
+        return reduce(op.mul, map(lambda obj: obj.evaluate(env), self))
+class Inverse(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(1.0/%s)" % self[0].to_cpp(env)
+    def evaluate(self, env):
+        return op.truediv(1, self[0].evaluate(env))
+
+
+### Sums ###
+class Sum(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(%s)" % '+'.join(cpp_tuple(self, env))
+    def evaluate(self, env):
+        return reduce(op.add, map(lambda obj: obj.evaluate(env), self))
+
+class Negative(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        return "(-%s)" % self[0].to_cpp(env)
+    def evaluate(self, env):
+        return op.neg(self[0].evaluate(env))
+
+### Old Operators ###
 class Mul(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s * %s)" % cpp_tuple(self, env)
@@ -260,7 +311,17 @@ class Assignment(List):
 # End Operators
 
 # Other structures
-class Program(List): pass
+class Program(List):
+    def evaluate(self, env):
+        import pycuda.tools
+
+        with cuda_context() as context:
+            env['@context'] = context
+            env['@device_memory_pool'] = pycuda.tools.DeviceMemoryPool()
+            env['@host_memory_pool'] = pycuda.tools.PageLockedMemoryPool()
+
+            for node in self:
+                node.evaluate(env)
 
 class VariableDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -272,8 +333,9 @@ class VariableDeclaration(List):
         else:
             return '%s %s;' % cpp_tuple(self, env)
     def evaluate(self, env):
-        type, name = self[0], self[1]
+        type, name = self[0:2]
         var = env.add(Variable(name, type))
+
         if len(self) == 3: # we have an initialization
             var.value = self[2].evaluate(env)
 
@@ -340,15 +402,15 @@ class SequentialFunctionDeclaration(List):
 
     def run(self, arguments, env):
         type_, name, parameters, block = self
-        env.createScope()
+
+        function_scope = Scope(env)
 
         for parameter, argument in zip(parameters, arguments):
-            symbol = env.add(Variable(name=parameter.name, type=parameter.type))
+            symbol = function_scope.add(Variable(name=parameter.name, type=parameter.type))
             symbol.value = argument # argument was evaluated before the function call 
 
-        result = block.evaluate(env)
+        result = block.evaluate(function_scope)
 
-        env.removeScope()
         return result
 
 class ParallelFunctionDeclaration(List):
@@ -376,6 +438,9 @@ class ParallelFunctionDeclaration(List):
 
     def run(self, arguments, env):
         name, parameters, block = self
+
+        # TODO: Deal with parallel functions and scope. Minimal env with no global stuff?
+        function_scope = Scope()
         env.createScope()
 
         for parameter, argument in zip(parameters, arguments):
@@ -398,10 +463,9 @@ class Block(List):
         return cpp
     @extract_line_info
     def evaluate(self, block, start_line, end_line, env):
-        env.createScope()
+        block_scope = Scope(env)
         for statement in self:
-            statement.evaluate(env)
-        env.removeScope()
+            statement.evaluate(block_scope)
 
 
 class VariableInitialization(List):
@@ -545,9 +609,7 @@ class SequentialFunctionCall(List):
         function = self[0]
         arguments = map(lambda obj: obj.evaluate(env), self[1:][0])
 
-        #check_is_symbol(function)
         function = env.lookup(function)
-        #check_type(function, SequentialFunction)
 
         try:
             function.node.run(arguments, env)

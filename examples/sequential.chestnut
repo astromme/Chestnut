@@ -1,5 +1,5 @@
-sequential int hello() {
-	return 5;
+sequential Integer hello() {
+	return 5 + 10 / 2 / 3;
 }
 
 print("Hello World says %s", hello());

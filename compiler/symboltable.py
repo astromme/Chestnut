@@ -113,11 +113,30 @@ class EntryExistsError(Exception):
     return "Error, %s already exists in this scope" % self.name
 
 class Scope(dict):
+  def __init__(self, parent=None):
+      self.parent = parent
   def add(self, entry):
     if entry.name in self:
         raise EntryExistsError(entry.name)
     self[entry.name] = entry
     return entry
+
+  def lookup(self, name):
+      """ Chestnut Scope Lookup Function. Not to be used from SymbolTable """
+      if name in self:
+          return self[name]
+      else:
+        if not self.parent:
+            raise Exception("Variable %s not found in the current scope" % name) # TODO: Turn into Chestnut exception
+
+        return self.parent.lookup(name)
+
+  #def __repr__(self):
+  #    if not self.parent:
+  #        return str(super(dict, self))
+
+  #    return self.parent.__repr__(self) + '\n' + str(super(dict, self))
+
 
 class SymbolTable:
     def __init__(self):

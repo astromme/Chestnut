@@ -71,7 +71,7 @@ size = Or(
 #  7 and (&&)
 #  8 or (||)
 #  9 assignment (=)
-group2, group3, group4, group5, group6, group7, group8 \
+group2, group3_product, group4_sum, group5, group6, group7, group8 \
     = Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed()
 
 expression = Delayed()
@@ -86,18 +86,22 @@ group1 = parens | number | primary
 
 unary_not = ~symbol('!') & group2 > Not
 unary_neg = ~symbol('-') & group2 > Neg
-group2 += unary_not | unary_neg | group1
+binary_mod = group1 & ~symbol('%') & group2 > Mod
+group2 += unary_not | unary_neg | binary_mod | group1
 
 # third layer, next most tightly grouped, is multiplication
-mul = group2 & ~symbol('*') & group3 > Mul
-div = group2 & ~symbol('/') & group3 > Div
-mod = group2 & ~symbol('%') & group3 > Mod
-group3 += mul | div | mod | group2
+multiplier = ~symbol('*') & group2
+inverse    = ~symbol('/') & group2 > Inverse
+group3_pass_on  = group2
+group3_include  = group2 & (multiplier | inverse)[1:] > Product
+group3_product += group3_pass_on | group3_include
 
 # fourth layer, less tightly grouped, is addition
-add = group3 & ~symbol('+') & group4 > Add
-sub = group3 & ~symbol('-') & group4 > Sub
-group4 += add | sub | group3
+addend   = ~symbol('+') & group3_product
+negative = ~symbol('-') & group3_product > Negative
+group4_pass_on = group3_product
+group4_include = group3_product & (addend | negative)[1:] > Sum
+group4_sum    += group4_pass_on | group4_include
 
 #group4end = Delayed()
 #add = ~symbol('+') & group3 & group4end > List
@@ -106,11 +110,11 @@ group4 += add | sub | group3
 #group4 += group3 & group4end > List
 
 
-less_than              = group4 & ~symbol('<')   & group5 > LessThan
-less_than_or_equal     = group4 & ~symbol('<') & ~symbol('=') & group5 > LessThanOrEqual
-greater_than           = group4 & ~symbol('>')   & group5 > GreaterThan
-greather_than_or_equal = group4 & ~symbol('>') & ~symbol('=') & group5 > GreaterThanOrEqual
-group5 += less_than | less_than_or_equal | greater_than | greather_than_or_equal | group4
+less_than              = group4_sum & ~symbol('<')   & group5 > LessThan
+less_than_or_equal     = group4_sum & ~symbol('<') & ~symbol('=') & group5 > LessThanOrEqual
+greater_than           = group4_sum & ~symbol('>')   & group5 > GreaterThan
+greather_than_or_equal = group4_sum & ~symbol('>') & ~symbol('=') & group5 > GreaterThanOrEqual
+group5 += less_than | less_than_or_equal | greater_than | greather_than_or_equal | group4_sum
 
 equal     = group5 & ~symbol('=')[2] & group6 > Equal
 not_equal = group5 & ~symbol('!') & ~symbol('=') & group6 > NotEqual

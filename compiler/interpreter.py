@@ -7,9 +7,8 @@ from nodes import *
 def evaluate(ast):
   print ast
 
-  global_env = SymbolTable()
-  for program_node in ast:
-    program_node.evaluate(global_env)
+  global_env = Scope()
+  return ast.evaluate(global_env)
 
 def main():
   import sys, os
