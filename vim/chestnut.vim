@@ -16,34 +16,31 @@ endif
 syn case match
 
 syn keyword chestnutCommentTodo      TODO FIXME XXX TBD contained
-syn match   chestnutLineComment      "\/\/.*" contains=@Spell,javaScriptCommentTodo
+syn match   chestnutLineComment      "\/\/.*" contains=@Spell,chestnutCommentTodo
 syn match   chestnutCommentSkip      "^[ \t]*\*\($\|[ \t]\+\)"
-syn region  chestnutComment	       start="/\*"  end="\*/" contains=@Spell,javaScriptCommentTodo
+syn region  chestnutComment	       start="/\*"  end="\*/" contains=@Spell,chestnutCommentTodo
 syn match   chestnutSpecial	       "\\\d\d\d\|\\."
 syn region  chestnutStringD	       start=+"+  skip=+\\\\\|\\"+  end=+"\|$+  contains=chestnutSpecial,@htmlPreproc
 syn region  chestnutStringS	       start=+'+  skip=+\\\\\|\\'+  end=+'\|$+  contains=chestnutSpecial,@htmlPreproc
 
 syn match   chestnutSpecialCharacter "'\\.'"
 syn match   chestnutNumber	       "-\=\<\d\+L\=\>\|0[xX][0-9a-fA-F]\+\>"
-syn region  chestnutRegexpString     start=+/[^/*]+me=e-1 skip=+\\\\\|\\/+ end=+/[gi]\{0,2\}\s*$+ end=+/[gi]\{0,2\}\s*[;.,)\]}]+me=e-1 contains=@htmlPreproc oneline
 
 syn keyword chestnutConditional	        if else
-syn keyword chestnutRepeat		while for
+syn keyword chestnutRepeat		while for foreach in
 syn keyword chestnutBranch		break continue
 
 syn keyword chestnutFunctionDecoration  parallel sequential
 
-syn keyword chestnutIntegers	       	Integer Integer1d Integer2d Integer3d
-syn keyword chestnutReals               Real Real1d Real2d Real3d
-syn keyword chestnutColors              Color Color1d Color2d Color3d
-syn keyword chestnutBools               Bool Bool1d Bool2d Bool3d
-syn keyword chestnutSizes               Size1 Size2 Size3
-syn keyword chestnutOtherTypes          Window2d Window3d
+syn keyword chestnutInts	       	Int   IntArray1d   IntArray2d   IntArray3d   IntWindow1d   IntWindow2d   IntWindow3d
+syn keyword chestnutReals               Real  RealArray1d  RealArray2d  RealArray3d  RealWindow1d  RealWindow2d  RealWindow3d
+syn keyword chestnutColors              Color ColorArray1d ColorArray2d ColorArray3d ColorWindow1d ColorWindow2d ColorWindow3d
+syn keyword chestnutOtherTypes          Bool
 
 syn keyword chestnutStatement		return
-syn keyword chestnutBoolean		yes no
+syn keyword chestnutBoolean		yes no true false
 
-syn keyword chestnutParallelBuiltin     reduce sort print random
+syn keyword chestnutParallelBuiltin     reduce sort randomInts randomReals
 syn keyword chestnutSequentialBuiltin   print
 
 syn sync fromstart
@@ -84,14 +81,12 @@ if version >= 508 || !exists("did_chestnut_syn_inits")
   HiLink chestnutParenError		chestnutError
   HiLink chestnutNull			Keyword
   HiLink chestnutBoolean		Boolean
-  HiLink chestnutRegexpString		String
 
   HiLink chestnutFunctionDecoration     Keyword
 
-  HiLink chestnutIntegers		Type
+  HiLink chestnutInts		Type
   HiLink chestnutReals  		Type
   HiLink chestnutColors			Type
-  HiLink chestnutBools			Type
   HiLink chestnutSizes			Type
   HiLink chestnutOtherTypes		Type
 
