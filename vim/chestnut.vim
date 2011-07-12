@@ -27,7 +27,8 @@ syn match   chestnutSpecialCharacter "'\\.'"
 syn match   chestnutNumber	       "-\=\<\d\+L\=\>\|0[xX][0-9a-fA-F]\+\>"
 
 syn keyword chestnutConditional	        if else
-syn keyword chestnutRepeat		while for foreach in
+syn keyword chestnutOperators           and or not
+syn keyword chestnutRepeat		while for foreach in end
 syn keyword chestnutBranch		break continue
 
 syn keyword chestnutFunctionDecoration  parallel sequential
@@ -72,7 +73,7 @@ if version >= 508 || !exists("did_chestnut_syn_inits")
   HiLink chestnutConditional		Conditional
   HiLink chestnutRepeat	        	Repeat
   HiLink chestnutBranch	        	Conditional
-  HiLink chestnutOperator		Operator
+  HiLink chestnutOperators		Operator
   HiLink chestnutStatement		Statement
   HiLink chestnutParallelBuiltin	Function
   HiLink chestnutSequentialBuiltin	Function
