@@ -43,6 +43,7 @@ struct WALNUT_EXPORT Array2d
 
   Array2d(T *data, int width, int height);
   Array2d(thrust::device_vector<T> &vector, int width, int height); // If vector is deleted,
+  Array2d(const Array2d &other) : data(other.data), width(other.width), height(other.height) {}
 
   int length() const { return width * height; }
 
@@ -72,19 +73,19 @@ struct WALNUT_EXPORT Array2d
   }
 
   __host__ __device__
-  T shiftedData(int x, int y, int x_offset, int y_offset) const {
+  T& shiftedData(int x, int y, int x_offset, int y_offset) {
     return data[calculateIndex(x, y, x_offset, y_offset)];
   }
 
-  __host__ __device__ T topLeft(int x, int y) const     { return shiftedData(x, y, -1, -1); }
-  __host__ __device__ T top(int x, int y) const         { return shiftedData(x, y,  0, -1); }
-  __host__ __device__ T topRight(int x, int y) const    { return shiftedData(x, y,  1, -1); }
-  __host__ __device__ T left(int x, int y) const        { return shiftedData(x, y, -1,  0); }
-  __host__ __device__ T center(int x, int y) const      { return shiftedData(x, y,  0,  0); }
-  __host__ __device__ T right(int x, int y) const       { return shiftedData(x, y,  1,  0); }
-  __host__ __device__ T bottomLeft(int x, int y) const  { return shiftedData(x, y, -1,  1); }
-  __host__ __device__ T bottom(int x, int y) const      { return shiftedData(x, y,  0,  1); }
-  __host__ __device__ T bottomRight(int x, int y) const { return shiftedData(x, y,  1,  1); }
+  __host__ __device__ T& topLeft(int x, int y)     { return shiftedData(x, y, -1, -1); }
+  __host__ __device__ T& top(int x, int y)         { return shiftedData(x, y,  0, -1); }
+  __host__ __device__ T& topRight(int x, int y)    { return shiftedData(x, y,  1, -1); }
+  __host__ __device__ T& left(int x, int y)        { return shiftedData(x, y, -1,  0); }
+  __host__ __device__ T& center(int x, int y)      { return shiftedData(x, y,  0,  0); }
+  __host__ __device__ T& right(int x, int y)       { return shiftedData(x, y,  1,  0); }
+  __host__ __device__ T& bottomLeft(int x, int y)  { return shiftedData(x, y, -1,  1); }
+  __host__ __device__ T& bottom(int x, int y)      { return shiftedData(x, y,  0,  1); }
+  __host__ __device__ T& bottomRight(int x, int y) { return shiftedData(x, y,  1,  1); }
 
 };
 
