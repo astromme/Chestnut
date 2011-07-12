@@ -61,22 +61,24 @@ def create_device_function(function_node):
 
 
 type_map = {
-        'Integer' : 'int',
-        'Integer1d' : 'int',
-        'Integer2d' : 'int',
-        'Integer3d' : 'int',
+        'Int' : 'int',
+        'IntArray1d' : 'int',
+        'IntArray2d' : 'int',
+        'IntArray3d' : 'int',
         'Real' : 'float',
-        'Real1d' : 'float',
-        'Real2d' : 'float',
-        'Real3d' : 'float',
+        'RealArray1d' : 'float',
+        'RealArray2d' : 'float',
+        'RealArray3d' : 'float',
         'Color' : 'uchar4',
-        'Color1d' : 'uchar4',
-        'Color2d' : 'uchar4',
-        'Color3d' : 'uchar4',
+        'ColorArray1d' : 'uchar4',
+        'ColorArray2d' : 'uchar4',
+        'ColorArray3d' : 'uchar4',
         'Bool' : 'bool',
-        'Bool1d' : 'bool',
-        'Bool2d' : 'bool',
-        'Bool3d' : 'bool' }
+        'BoolArray1d' : 'bool',
+        'BoolArray2d' : 'bool',
+        'BoolArray3d' : 'bool' }
+
+data_to_scalar = type_map
 
 
 data_create_template = """\

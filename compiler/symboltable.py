@@ -4,10 +4,9 @@ import numpy
 # Keywords supported by chestnut syntax
 # These are added to the symbol table
 scalar_types = ['Integer', 'Real', 'Color', 'Bool']
-data_types = ['Integer1d', 'Integer2d', 'Integer3d',
-              'Real1d', 'Real2d', 'Real3d',
-              'Color1d', 'Color2d', 'Color3d',
-              'Bool1d', 'Bool2d', 'Bool3d']
+data_types = ['IntArray1d', 'IntArray2d', 'IntArray3d',
+              'RealArray1d', 'RealArray2d', 'RealArray3d',
+              'ColorArray1d', 'ColorArray2d', 'ColorArray3d']
 structure_types = ['Size1', 'Size2', 'Size3',
                    'Window']
 
