@@ -5,4 +5,6 @@ from nodes import SequentialFunction, Parameter
 built_in_functions = [SequentialFunction('sqrt',  'float', [Parameter(['float', 'value'])], True, None),
                       SequentialFunction('sqrtf', 'float', [Parameter(['float', 'value'])], True, None),
                       SequentialFunction('cos',   'float', [Parameter(['float', 'value'])], True, None),
-                      SequentialFunction('sin',   'float', [Parameter(['float', 'value'])], True, None)]
+                      SequentialFunction('sin',   'float', [Parameter(['float', 'value'])], True, None),
+                      SequentialFunction('min',   'float', [Parameter(['float', 'value']), Parameter(['float', 'value'])], True, None),
+                      SequentialFunction('max',   'float', [Parameter(['float', 'value']), Parameter(['float', 'value'])], True, None)]
