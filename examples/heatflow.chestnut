@@ -1,34 +1,44 @@
-parallel Real heat(Real2d data, Integer timestep) {
-  timestep = timestep / 10;
-  Integer xmin = timestep % heat.width;
-  Integer xmax = (timestep + 10) % heat.width;
-  Integer ymin = timestep % heat.height;
-  Integer ymax = (timestep + 10) % heat.height;
+parallel Real heat(RealArray2d data, Int timestep) {
+  //timestep = timestep / 10;
+  //Int xmin = timestep % parallel.width;
+  //Int xmax = (timestep + 10) % parallel.width;
+  //Int ymin = timestep % parallel.height;
+  //Int ymax = (timestep + 10) % parallel.height;
 
-  if ((heat.x < xmax) && (heat.x > xmin) && (heat.y < ymax) && (heat.y > ymin)) {
+  Int xmin = 50;
+  Int xmax = 150;
+  Int ymin = 50;
+  Int ymax = 60;
+
+  if ((parallel.x < xmax) && (parallel.x > xmin) && (parallel.y < ymax) && (parallel.y > ymin)) {
     return 1;
   }
+  
+  xmin = 65;
+  xmax = 70;
+  ymin = 65;
+  ymax = 70;
+
+  if ((parallel.x < xmax) && (parallel.x > xmin) && (parallel.y < ymax) && (parallel.y > ymin)) {
+    return 0;
+  }
+
   return data.center;
 }
 
-parallel Real heat_flow(Real2d data, Real c0, Real c1) {
+parallel Real heat_flow(RealArray2d data, Real c0, Real c1) {
   Real new_data = c0*data.center;
   new_data = new_data + c1*(data.left + data.right + data.top + data.bottom);
 
-
-  if (new_data > 1) {
-    new_data = 1;
-  } if (new_data < 0) {
-    new_data = 0;
-  }
-  return new_data;
+  new_data = min(1.0, new_data);
+  return max(0.0, new_data);
 }
 
 //sequential Real squared(Real value) {
 //  return value*value;
 //}
 
-parallel Color convert_color(Real2d array) {
+parallel Color convert_color(RealArray2d array) {
   Color output;
 
   if (array.center == 1) {
@@ -55,13 +65,25 @@ Real delta_x = 1;
 Real c0 = 1 - 4 * kappa * delta_t / delta_x;
 Real c1 = kappa * delta_t / delta_x;
 
-Real2d heat_data[1000,500] = :set_to(0);
-Integer2d heat_display[1000,500];
+RealArray2d heat_data[500, 250] = :set_to(0);
+IntArray2d heat_display[500, 250];
 
 
-Integer iteration = 0;
-Integer iterations = 10000;
+Int iteration = 0;
+Int iterations = 10000;
 while (iteration < iterations) {
+  heat_data = :heat_flow(heat_data, c0, c1);
+  heat_data = :heat(heat_data, iteration);
+
+  heat_data = :heat_flow(heat_data, c0, c1);
+  heat_data = :heat(heat_data, iteration);
+
+  heat_data = :heat_flow(heat_data, c0, c1);
+  heat_data = :heat(heat_data, iteration);
+
+  heat_data = :heat_flow(heat_data, c0, c1);
+  heat_data = :heat(heat_data, iteration);
+
   heat_data = :heat_flow(heat_data, c0, c1);
   heat_data = :heat(heat_data, iteration);
   display(heat_data, convert_color);

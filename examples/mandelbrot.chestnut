@@ -1,12 +1,12 @@
-parallel Integer mandelbrot(Real xleft, Real xright, Real ytop, Real ybottom) {
+parallel Int mandelbrot(Real xleft, Real xright, Real ytop, Real ybottom) {
   // Scale coordinates to be in the given window
   Real x0 = (parallel.x/parallel.width) * (xright - xleft) + xleft;
   Real y0 = (parallel.y/parallel.height) * (ytop - ybottom) + ybottom;
 
   Real x = 0;
   Real y = 0;
-  Integer iteration = 0;
-  Integer max_iteration = 1000;
+  Int iteration = 0;
+  Int max_iteration = 1000;
 
   while (((x*x + y*y) <= (2*2)) && (iteration < max_iteration)) {
     Real xtemp = (x*x - y*y) + x0;
@@ -22,14 +22,23 @@ parallel Integer mandelbrot(Real xleft, Real xright, Real ytop, Real ybottom) {
     return iteration; // diverged in some number of iterations
 }
 
+parallel Color orange_convert(IntArray2d array) {
+  Color c;
+  c.red = min(255, 15*array.center);
+  c.green = c.red / 2;
+  c.blue = 0;
+  c.alpha = 255;
+  return c;
+}
+
 Real left = -2.5;
 Real right = 1;
 Real top = 1;
 Real bottom = -1;
 
-Integer2d display_data[875, 500];
+IntArray2d mandelbrot_display[875, 500];
 
-display_data = display_data.each(:mandelbrot(left, right, top, bottom));
-display(display_data);
+mandelbrot_display = :mandelbrot(left, right, top, bottom);
+display(mandelbrot_display, orange_convert);
 
 

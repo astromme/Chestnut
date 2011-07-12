@@ -1,7 +1,12 @@
-Integer2d unsorted[10, 5] = :random(80, 100);
-Integer2d sorted[10, 5] = :sort(unsorted);
+IntArray2d unsorted[10, 5]; 
 
-Integer reduced = :reduce(sorted);
+foreach element! in unsorted
+  element = random();
+end
+
+IntArray2d sorted[10, 5] = sort(unsorted);
+
+Int reduced = reduce(unsorted);
 
 print(unsorted);
 print(sorted);

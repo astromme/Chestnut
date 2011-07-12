@@ -2,4 +2,8 @@ sequential Integer hello() {
 	return 5 + 10 / 2 / 3;
 }
 
-print("Hello World says %s", hello());
+
+Integer x = 6;
+
+
+print("Hello World says %s and %s", hello(), x);
