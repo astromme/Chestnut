@@ -1,5 +1,6 @@
 from collections import namedtuple
 import numpy
+from pycuda import gpuarray
 
 # Keywords supported by chestnut syntax
 # These are added to the symbol table
@@ -18,6 +19,8 @@ reserved_words = [
             'else',
             'while',
             'for',
+            'foreach',
+            'end',
             'break',
             'return',
             ]
@@ -36,7 +39,14 @@ Keyword = namedtuple('Keyword', ['name'])
 SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device', 'node'])
 ParallelFunction = namedtuple('ParallelFunction', ['name', 'type', 'parameters', 'node'])
 
+class StreamVariable(namedtuple('StreamVariable', ['name', 'type', 'array', 'cpp_name'])): pass
+
+
 class Variable(namedtuple('Variable', ['name', 'type'])):
+    @property
+    def cpp_name(self):
+        return self.name
+
     @property
     def value(self):
         try:
@@ -74,7 +84,8 @@ class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
         self._array = numpy.zeros((self.height, self.width), dtype=numpy_type_map[self.type])
     @property
     def size(self):
-        return self.length
+        Size = namedtuple('Size', ['width', 'height'])
+        return Size(self.width, self.height)
     @property
     def length(self):
         return self.width * self.height
@@ -111,36 +122,37 @@ class EntryExistsError(Exception):
   def __str__(self):
     return "Error, %s already exists in this scope" % self.name
 
-class Scope(dict):
-  def __init__(self, parent=None):
-      self.parent = parent
+class CompileTimeScope(dict):
   def add(self, entry):
     if entry.name in self:
         raise EntryExistsError(entry.name)
     self[entry.name] = entry
     return entry
 
-  def lookup(self, name):
-      """ Chestnut Scope Lookup Function. Not to be used from SymbolTable """
-      if name in self:
-          return self[name]
-      else:
-        if not self.parent:
-            raise Exception("Variable %s not found in the current scope" % name) # TODO: Turn into Chestnut exception
+class Scope(dict):
+    def __init__(self, parent=None):
+        self.parent = parent
 
-        return self.parent.lookup(name)
+    def __setitem__(self, name, value):
+        if name in self:
+            raise EntryExistsError(entry.name)
+        dict.__setitem__(self, name, value)
+        return value
 
-  #def __repr__(self):
-  #    if not self.parent:
-  #        return str(super(dict, self))
+    def __getitem__(self, name):
+        if name in self:
+            return dict.__getitem__(self, name)
+        else:
+            if not self.parent:
+                raise Exception("Variable %s not found in the current scope" % name) # TODO: Turn into Chestnut exception
 
-  #    return self.parent.__repr__(self) + '\n' + str(super(dict, self))
-
+            return self.parent[name]
 
 class SymbolTable:
     def __init__(self):
         self.table = []
         self.displayWindows = []
+        self.parallelContexts = []
         self.createScope() # global scope
 
         for word in keywords:
@@ -156,7 +168,7 @@ class SymbolTable:
         return self.currentScope.add(entry)
 
     def createScope(self):
-      self.table.insert(0, Scope())
+      self.table.insert(0, CompileTimeScope())
 
     def removeScope(self):
         self.table.pop(0)

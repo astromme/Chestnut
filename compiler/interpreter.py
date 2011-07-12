@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 from parser import parse
-from symboltable import SymbolTable
+from symboltable import Scope
 from nodes import *
+
+import pycuda.autoinit
 
 def evaluate(ast):
   print ast
@@ -22,5 +24,10 @@ def main():
 
 if __name__ == '__main__':
   main()
+
+  # Seems to prevent crashes at the end of execution where
+  # gpu objects haven't been cleaned up before autoinit finishes
+  import gc
+  gc.collect()
 
 

@@ -2,31 +2,79 @@ from lepl import *
 from collections import namedtuple, defaultdict
 from templates import *
 from symboltable import scalar_types, data_types
-from symboltable import SymbolTable, Scope, Keyword, Variable, Window, Data, ParallelFunction, SequentialFunction, DisplayWindow
+from symboltable import SymbolTable, Scope, Keyword, StreamVariable, Variable, Window, Data, ParallelFunction, SequentialFunction, DisplayWindow
 import random, numpy
-import pycuda.gpuarray as DeviceArray
+from pycuda.gpuarray import GPUArray as DeviceArray
 import codepy.cgen as c
 import operator as op
 
+import pycuda.curandom
+from pycuda.elementwise import ElementwiseKernel
+from pycuda.reduction import ReductionKernel
+
 symbolTable = SymbolTable()
+global current_name_number
+current_name_number = 0
 
-class cuda_context:
-    def __enter__(self):
-        import pycuda.driver
-        from pycuda.tools import make_default_context
+def list_contains(variable, deep_list):
+    if len(deep_list) == 0:
+        return False
+    if deep_list[0] == variable:
+        return True
 
-        pycuda.driver.init()
+    if isinstance(deep_list[0], list):
+        in_subtree = list_contains(variable, deep_list[0])
+    else:
+        in_subtree = False
 
-        self.context = make_default_context()
-        self.device = self.context.get_device()
-        return self.context
+    return in_subtree or list_contains(variable, deep_list[1:])
 
-    def __exit__(self, type, value, traceback):
-        self.context.pop()
-        self.context = None # is there a better way to delete in python?
+def list_contains_type(deep_list, variable_type):
+    for element in deep_list:
+        if type(element) == variable_type:
+            return True
+        elif isinstance(element, list):
+            if list_contains_type(element, variable_type):
+                return True
 
-        from pycuda.tools import clear_context_caches
-        clear_context_caches()
+    return False
+
+def collect_elements_from_list(deep_list, element_type):
+    collection = []
+    for element in deep_list:
+        if type(element) == element_type:
+            collection.append(element)
+        elif isinstance(element, List):
+            collection.extend(collect_elements_from_list(element, element_type))
+
+    return collection
+
+def next_open_name():
+    global current_name_number
+    current_name_number += 1
+    return str(current_name_number)
+
+#class cuda_context:
+#    def __enter__(self):
+#        import pycuda.driver
+#        from pycuda.tools import make_default_context
+#
+#        pycuda.driver.init()
+#
+#        self.context = make_default_context()
+#        self.device = self.context.get_device()
+#        return self.context
+#
+#    def __exit__(self, type, value, traceback):
+#        print "context pop"
+#        self.context.pop()
+#        print "context nulling"
+#        del self.context
+#
+#        from pycuda.tools import clear_context_caches
+#        print "cache clearing"
+#        clear_context_caches()
+#        print "done"
 
 
 
@@ -58,6 +106,8 @@ def extract_line_info(function):
         return function(obj, node_info, start_line, end_line, env)
     return wrapper
 
+
+
 class Type(str):
     def to_cpp(self, env=None):
         return type_map[self]
@@ -70,7 +120,7 @@ class Symbol(str):
         check_is_symbol(self)
         return self
     def evaluate(self, env):
-        symbol = env.lookup(self)
+        symbol = env[self]
         if type(symbol) == Variable:
             return symbol.value
         elif type(symbol) == Data:
@@ -91,7 +141,7 @@ class Real(float):
     evaluate = lambda self, env: self
 class Bool(object):
     def __init__(self, value):
-        self._value = bool(value == 'yes')
+        self._value = bool(value == 'yes' or value == 'true')
     def __nonzero__(self):
         return self._value
     def to_cpp(self, env=None):
@@ -303,9 +353,12 @@ class BooleanOr(List):
 
 class Assignment(List):
     def to_cpp(self, env=defaultdict(bool)):
-        return '%s = %s' % cpp_tuple(self, env)
+        output, expression = self
+        output = symbolTable.lookup(output)
+
+        return '%s = %s' % (output.cpp_name, expression.to_cpp())
     def evaluate(self, env):
-        symbol = env.lookup(self[0])
+        symbol = env[self[0]]
         symbol.value = self[1].evaluate(env)
         return symbol.value
 # End Operators
@@ -315,13 +368,15 @@ class Program(List):
     def evaluate(self, env):
         import pycuda.tools
 
-        with cuda_context() as context:
-            env['@context'] = context
-            env['@device_memory_pool'] = pycuda.tools.DeviceMemoryPool()
-            env['@host_memory_pool'] = pycuda.tools.PageLockedMemoryPool()
+        # effing stupid pycuda context crashes with abort() on deletion
+        # so we can't use the nice with blah() as blah: syntax
+        #with cuda_context() as context:
+        #env['@context'] = context
+        device_pool = env['@device_memory_pool'] = pycuda.tools.DeviceMemoryPool()
+        host_pool = env['@host_memory_pool'] = pycuda.tools.PageLockedMemoryPool()
 
-            for node in self:
-                node.evaluate(env)
+        for node in self:
+            node.evaluate(env)
 
 class VariableDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -334,7 +389,7 @@ class VariableDeclaration(List):
             return '%s %s;' % cpp_tuple(self, env)
     def evaluate(self, env):
         type, name = self[0:2]
-        var = env.add(Variable(name, type))
+        var = env[name] = Variable(name, type)
 
         if len(self) == 3: # we have an initialization
             var.value = self[2].evaluate(env)
@@ -360,17 +415,20 @@ class DataDeclaration(List):
   def evaluate(self, env):
     if len(self) == 2: #only name and type, no size or initialization
       type_, name = self
-      env.add(Data(name, type_, 0, 0)) #TODO: fix to not have 0,0 for uninitialized
+      env[name] = DeviceArray((0, 0, 0), dtype=numpy_type_map[type_], allocator=dev_pool.allocate)
 
     elif len(self) == 3: # adds a size
       type_, name, size = self
-      env.add(Data(name, type_, size.width, size.height))
+      (size.width, size.height)
+      numpy_type_map[type_]
+      env['@device_memory_pool'].allocate
+      env[name] = DeviceArray((size.width, size.height), dtype=numpy_type_map[type_], allocator=env['@device_memory_pool'].allocate)
 
     elif len(self) == 4: # adds an initialization
       type_, name, size, initialization = self
-      symbol = env.add(Data(name, type_, size.width, size.height))
-
-      symbol.value = initialization.evaluate(env)
+      env[name] = DeviceArray((size.width, size.height), dtype=numpy_type_map[type_], allocator=env['@device_memory_pool'].allocate)
+      env['@output'] = env[name]
+      symbol = initialization.evaluate(env)
 
 host_function_template = """\
 %(location)s%(type)s %(function_name)s(%(parameters)s) %(block)s
@@ -398,7 +456,7 @@ class SequentialFunctionDeclaration(List):
 
     def evaluate(self, env):
         type_, name, parameters, block = self
-        env.add(SequentialFunction(name, type_, parameters, ok_for_device=True, node=self))
+        env[name] = SequentialFunction(name, type_, parameters, ok_for_device=True, node=self)
 
     def run(self, arguments, env):
         type_, name, parameters, block = self
@@ -415,6 +473,7 @@ class SequentialFunctionDeclaration(List):
 
 class ParallelFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
+        #todo: make sure no parallel contexts live inside of here
         type_, name, parameters, block = self
         symbolTable.add(ParallelFunction(name, type_, parameters, node=self))
         symbolTable.createScope()
@@ -434,7 +493,7 @@ class ParallelFunctionDeclaration(List):
 
     def evaluate(self, env):
         type_, name, parameters, block = self
-        env.add(ParallelFunction(name, type_, parameters, node=self))
+        env[name] = ParallelFunction(name, type_, parameters, node=self)
 
     def run(self, arguments, env):
         name, parameters, block = self
@@ -444,7 +503,7 @@ class ParallelFunctionDeclaration(List):
         env.createScope()
 
         for parameter, argument in zip(parameters, arguments):
-            symbol = env.add(Variable(name=parameter.name, type=parameter.type))
+            symbol = env[name] = Variable(name=parameter.name, type=parameter.type)
             symbol.value = argument # argument was evaluated before the function call 
 
         result = block.evaluate(env)
@@ -554,10 +613,7 @@ class DataPrint(List):
                                   'height' : data.height,
                                   'length' : data.width*data.height }
     def evaluate(self, env):
-        data = self[0]
-        data = env.lookup(data)
-
-        print data.value
+        print env[self[0]]
 
 class Print(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -609,7 +665,7 @@ class SequentialFunctionCall(List):
         function = self[0]
         arguments = map(lambda obj: obj.evaluate(env), self[1:][0])
 
-        function = env.lookup(function)
+        function = env[function]
 
         try:
             function.node.run(arguments, env)
@@ -666,10 +722,6 @@ class Property(List):
         symbol = symbolTable.lookup(name)
 
 
-        #check_type(symbol, Variable) #TODO: Support Data properties
-
-
-        #TODO: Pull in support for window nums other than 0
         if type(symbol) == Window:
             if property_ not in ['topLeft', 'top', 'topRight', 'left', 'center', 'right', 'bottomLeft', 'bottom', 'bottomRight']:
                 raise CompilerException("Error, property '%s' not part of the data window '%s'" % (property_, name))
@@ -680,18 +732,20 @@ class Property(List):
             if property_ in coordinates:
                 return coordinates[property_];
             else:
-                raise CompilerError('Property %s not found for function %s' % (property_, name))
+                raise CompilerException('Property %s not found for function %s' % (property_, name))
         elif type(symbol) == Variable:
             if symbol.type == 'Color':
                 return '%s.%s' % (symbol.name, color_properties[property_])
+            else:
+                raise Exception('unknown property variable type')
         else:
             print symbolTable
             print self
-            raise Exception
+            raise Exception('unknown property type')
 
     def evaluate(self, env):
         check_is_symbol(self[0], env)
-        symbol = env.lookup(self[0])
+        symbol = env[self[0]]
         #check_type(symbol, Variable)
 
         if type(symbol) == Window:
@@ -756,71 +810,40 @@ class Read(List): pass
 class Write(List): pass
 
 
-class ParallelAssignment(List):
+class Random(List):
     def to_cpp(self, env=defaultdict(bool)):
-        env = defaultdict(bool, data_to_assign=self[0])
-        return self[1].to_cpp(env)
-
-    def evaluate(self, env):
-        name = self[0]
-        data = env.lookup(name)
-
-        if type(data) == Data:
-            data.value = self[1].evaluate(env, data)
-        elif type(data) == Variable:
-            data = self[1].evaluate(env, data)
-
-
-
-#TODO: Fix up for new-style arrays
-random_template = """\
-{
-  // A CPU-driven random function that fills the data
-  // Create host vector to hold the random numbers
-  thrust::host_vector<%(type)s> randoms(%(data)s.width*%(data)s.height);
-
-  // Generate the random numbers
-  thrust::generate(randoms.begin(), randoms.end(), rand);
-
-  // Copy data from CPU to GPU
-  thrust::copy(randoms.begin(), randoms.end(), %(data)s.thrustPointer());
-
-  // Mod between %(min_value)s and %(max_value)s
-  thrust::for_each(%(data)s.thrustPointer(), %(data)s.thrustEndPointer(), randoms_helper_functor(%(min_value)s, %(max_value)s));
-}
-"""
-class ParallelRandom(List):
-    def to_cpp(self, env=defaultdict(bool)):
-        output = env['data_to_assign']
-        if not output:
-            raise InternalException("The environment '%s' doesn't have a 'data_to_assign' variable set" % env)
-        check_is_symbol(output)
-        output = symbolTable.lookup(output)
-        check_type(output, Data)
-
         if len(self) == 2:
             min_limit, max_limit = cpp_tuple(self[0:2])
         else:
             min_limit, max_limit = ('0', 'INT_MAX')
 
-        return random_template % { 'data' : output.name,
-                                   'min_value' : min_limit,
-                                   'max_value' : max_limit,
-                                   'type' : type_map[output.type] }
-    def evaluate(self, env, output):
+        return '0 /* Random not implemented yet */'
+        raise CompilerException('Random not implemented yet')
+        #if env['@in_parallel_context']:
+        #    return random_template % { 'min_value' : min_limit,
+        #                               'max_value' : max_limit }
+    def evaluate(self, env):
         if len(self) == 2:
             min_limit, max_limit = self
-            max_limit -= 1
         else:
             min_limit = 0
             max_limit = (2**32)/2-1
 
 
-        for y in xrange(output.height):
-            for x in xrange(output.width):
-                output.setAt(x, y, random.randint(min_limit, max_limit))
+        if not '@output' in env:
+            print 'Warning, no output variable, can\'t perform rand()'
+            return
 
-        return output.value
+        output = env['@output']
+
+        expand_to_range = ElementwiseKernel(
+                arguments="float min, float max, {output_type} *output, float *input".format(output_type=dtype_to_ctype[output.dtype]),
+                operation="output[i] = input[i]*(max-min)+min",
+                name="expand_to_range")
+
+        expand_to_range(min_limit, max_limit, output, pycuda.curandom.rand(output.shape))
+
+        return output
 
 reduce_template = """
 // Reducing '%(input_data)s' to the single value '%(output_variable)s'
@@ -872,8 +895,14 @@ class ParallelReduce(List):
         else:
             raise InternalException("Wrong list length to parallel reduce")
 
-        input = env.lookup(input)
-        return numpy.add.reduce(input.value.reshape(input.width*input.height))
+
+        input = env[input]
+        reduction = ReductionKernel(input.dtype, neutral='0',
+                                    reduce_expr='a+b', map_expr='in[i]',
+                                    arguments='{type} *in'.format(type=dtype_to_ctype[input.dtype]))
+
+        #return numpy.add.reduce(input.value.reshape(input.width*input.height))
+        return reduction(input).get()
 
 sort_template = """
 // Sorting '%(input_data)s' and placing it into '%(output_data)s'
@@ -927,7 +956,7 @@ class ParallelSort(List):
         else:
             raise InternalException("Wrong list length to parallel sort")
 
-        input = env.lookup(input)
+        input = env[input]
 
         #TODO: Actually use function
         if function:
@@ -939,70 +968,154 @@ class ParallelSort(List):
         return temp.reshape(input.height, input.width)
 
 
-map_template = """
+class ForeachParameter(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        print self
+
+class ForeachInputParameter(ForeachParameter): pass
+class ForeachOutputParameter(ForeachParameter): pass
+
+parallel_context_declaration = """\
+struct %(function_name)s {
+    %(struct_members)s
+    %(function_name)s(%(function_parameters)s) %(struct_member_initializations)s {}
+
+    template <typename Tuple>
+    __host__ __device__
+    void operator()(Tuple _t) %(function_body)s
+};
+"""
+parallel_context_call = """\
 {
-    FunctionIterator startIterator = makeStartIterator(%(size_name)s.width, %(size_name)s.height);
+    FunctionIterator iterator = makeStartIterator(%(size_name)s.width, %(size_name)s.height);
 
-    thrust::transform_iterator<%(function)s_functor<%(input_output_types)s>, FunctionIterator>
-    iterator = thrust::make_transform_iterator(startIterator, %(function)s_functor<%(input_output_types)s>(%(variables)s));
+    %(temp_arrays)s
 
-    Array2d<%(output_type)s> temp_array = _allocator.arrayWithSize<%(output_type)s>(%(size_name)s.width, %(size_name)s.height);
+    thrust::for_each(iterator, iterator+%(size_name)s.length(), %(function)s(%(variables)s));
 
-    thrust::copy(iterator, iterator+%(size_name)s.length(), temp_array.thrustPointer());
-
-    %(output_data)s.swapDataWith(temp_array);
-    _allocator.releaseArray(temp_array);
+    %(swaps)s
+    %(releases)s
 }
 """
-class ParallelFunctionCall(List):
+class ParallelContext(List):
     def to_cpp(self, env=defaultdict(bool)):
-        output = env['data_to_assign']
-        if not output:
-            raise InternalException("The environment '%s' doesn't have a 'data_to_assign' variable set" % env)
+        parameters, statements = self
+        context_name = '_foreach_context_' + next_open_name()
+        arrays = [] # allows us to check if we're already using this array under another alias
+        outputs = []
+        requested_variables = [] # Allows for function calling
 
-        container, function, arguments = self
+        struct_member_variables = []
+        function_parameters = []
+        struct_member_initializations = []
 
-        container = symbolTable.lookup(container)
-        if container.type in ['Size1', 'Size2', 'Size3']:
-            if type(size) is not Size2:
-                return InternalException("Sizes other than Size2 are not supported")
-            size = container
-        elif type(container) == Data:
-            size = container.name + '.size()'
+        symbolTable.createScope()
+        for parameter in parameters:
+            piece, data = parameter
+            if type(parameter) == ForeachOutputParameter:
+                outputs.append(piece)
 
-        check_is_symbol(function)
-        function = symbolTable.lookup(function)
-        check_type(function, ParallelFunction)
+            if data not in arrays:
+                arrays.append(data)
+            else:
+                raise CompilerException("{name} already used in this foreach loop".format(name=data))
 
-        if not len(arguments) == len(function.parameters):
-            print arguments
-            raise CompilerException("Error, parallel function ':%s' takes %s parameters but %s were given" % \
-                    (function.name, len(function.parameters), len(arguments)))
+            data = symbolTable.lookup(data)
+            if data.type not in data_types:
+                raise CompilerException("%s %s should be an array" % (data.type, data.name))
 
-        check_is_symbol(output)
-        output = symbolTable.lookup(output)
-        check_type(output, Data)
+            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='%s.center(_x, _y)' % piece))
 
-        variables = []
-        input_output_types = [type_map[function.type]]
-
-        for argument, parameter in zip(arguments, function.parameters):
-            if parameter.type in data_types:
-                input_output_types.append(type_map[symbolTable.lookup(argument.to_cpp(env)).type])
-
-            variables.append(argument.to_cpp(env))
+            struct_member_variables.append('Array2d<%s> %s;' % (data_to_scalar[data.type], piece))
+            function_parameters.append('Array2d<%s> _%s' % (data_to_scalar[data.type], piece))
+            struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : piece })
+            requested_variables.append(data.name)
 
 
-        return map_template % { 'output_data' : output.name,
-                                'variables' : ', '.join(variables),
-                                'input_output_types' : ', '.join(input_output_types),
-                                'function' : function.name,
-                                'size_name' : size,
-                                'output_type' : type_map[function.type] }
+        if list_contains_type(statements, ParallelContext):
+            raise CompilerException("Parallel Contexts (foreach loops) can not be nested")
+
+        if list_contains_type(statements, Return):
+            raise CompilerException("Parallel Contexts (foreach loops) can not contain return statments")
+
+        for variable in collect_elements_from_list(statements, Variable):
+            if variable not in symbolTable.currentScope and symbolTable.lookup(variable):
+                # We've got a variable that needs to be passed into this function
+                variable = symbolTable.lookup(variable)
+                if variable.type in data_types:
+                    struct_member_variables.append('Array2d<%s> %s;' % (data_to_scalar[variable.type], variable.name))
+                    function_parameters.append('Array2d<%s> _%s' % (data_to_scalar[variable.type], variable.name))
+                    struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : variable.name })
+                else:
+                    struct_member_variables.append('%s %s;' % (data_to_scalar[variable.type], variable.name))
+                    function_parameters.append('%s _%s' % (data_to_scalar[variable.type], variable.name))
+                    struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : variable.name})
+
+                requested_variables.append(variable.name)
+
+        for assignment in collect_elements_from_list(statements, Assignment):
+            symbol = symbolTable.lookup(assignment[0])
+            if symbol.name not in outputs:
+                raise CompilerException("Error, trying to assign a value to '{name}'. If you want to write to this stream variable, designate it as an output variable (i.e. 'foreach {name}! in {array}')".format(name=symbol.name, array=symbol.array.name))
+
+
+        if len(parameters) > 0:
+            struct_member_variables = indent('\n'.join(struct_member_variables), indent_first_line=False)
+            function_parameters = ', '.join(function_parameters)
+            struct_member_initializations = ": " + ', '.join(struct_member_initializations)
+        else:
+            struct_member_variables = function_parameters = struct_member_initializations = ''
+
+
+
+        body = '{\n' + indent('\n'.join(map(lambda s: s.to_cpp(), statements))) + '\n}'
+        body = indent(indent(body, indent_first_line=False), indent_first_line=False) # indent twice
+
+        environment = { 'function_name' : context_name,
+                        'function_body' : body,
+                        'struct_members' : struct_member_variables,
+                        'function_parameters' : function_parameters,
+                        'struct_member_initializations' : struct_member_initializations }
+
+        function_declaration = parallel_context_declaration % environment
+
+
+        # Function Call
+        size = symbolTable.lookup(parameters[0][1]).name + '.size()'
+
+        outputs = [symbolTable.lookup(output) for output in outputs]
+
+        temp_array_names = ['temp_array_%s' % i for i in range(len(outputs))]
+        temp_arrays = [create_data(output.array.type, name, output.array.size) for output, name in zip(outputs, temp_array_names)]
+        swaps = map(lambda (a, b): swap_data(a, b.array.name), zip(temp_array_names, outputs))
+        releases = [release_data(output.array.type, temp) for output, temp in zip(outputs, temp_array_names)]
+
+        temp_mapping = {}
+        for temp, output in zip(temp_array_names, outputs):
+            temp_mapping[output.array.name] = temp
+
+
+        print temp_mapping
+        print requested_variables
+
+        requested_variables = [var if var not in temp_mapping else temp_mapping[var] for var in requested_variables]
+
+        symbolTable.removeScope()
+
+        function_call = parallel_context_call % { 'variables' : ', '.join(requested_variables),
+                                         'temp_arrays' : indent(''.join(temp_arrays), indent_first_line=False),
+                                         'swaps' : indent(''.join(swaps), indent_first_line=False),
+                                         'releases' : indent(''.join(releases), indent_first_line=False),
+                                         'function' : context_name,
+                                         'size_name' : size }
+
+
+        symbolTable.parallelContexts.append(function_declaration)
+        return function_call
 
     def evaluate(self, env, output):
         name = self[0]
-        function = env.lookup(name)
+        function = env[name]
 
         arguments = map(lambda arg: arg.evaluate(env), self[1])
 
@@ -1022,4 +1135,6 @@ class ParallelFunctionCall(List):
                 array[y, x] = value
 
         return array
+
+
 

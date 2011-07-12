@@ -60,18 +60,9 @@ def compile(ast):
   print ast
   functions = []
   declarations = []
-  main_function_statements = []
-  for program_node in ast:
-    if type(program_node) in [SequentialFunctionDeclaration,
-            ParallelFunctionDeclaration]:
-      functions.append(program_node.to_cpp())
-    elif type(program_node) == DataDeclaration:
-      main_function_statements.append(program_node.to_cpp())
-    elif type(program_node) == VariableDeclaration:
-      main_function_statements.append(program_node.to_cpp())
-    else:
-      main_function_statements.append(program_node.to_cpp())
+  main_function_statements = [obj.to_cpp() for obj in ast]
 
+  functions.extend(symbolTable.parallelContexts)
 
   for window in symbolTable.displayWindows:
       declarations.append(display_init % { 'name' : window.name,

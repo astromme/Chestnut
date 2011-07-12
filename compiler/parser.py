@@ -9,7 +9,15 @@ def with_line(node):
         return node([results, s_delta(stream_in)[1], s_delta(stream_out)[1]])
     return wrapper
 
-identifier = Token('[a-zA-Z][a-zA-Z0-9_]*') >> Symbol
+def set_and_return(obj, **kwargs):
+    for name in kwargs:
+        obj.__setattr__(name, kwargs[name])
+
+    return obj
+
+base = Token('[a-zA-Z][a-zA-Z0-9_]*')
+function = base
+identifier = base >> Symbol
 variable_identifier = identifier
 data_identifier = identifier
 sequential_identifier = identifier
@@ -30,23 +38,19 @@ string = string_single_quote | string_double_quote
 
 # tokens
 real_declaration = Token('Real') >> Type
-integer_declaration = Token('Integer') >> Type
+integer_declaration = Token('Int') >> Type
 color_declaration = Token('Color') >> Type
 bool_declaration = Token('Bool') >> Type
-size1_declaration = Token('Size1') >> Type
-size2_declaration = Token('Size2') >> Type
-size3_declaration = Token('Size3') >> Type
-type_ = real_declaration | integer_declaration | color_declaration | bool_declaration | size1_declaration | size2_declaration | size3_declaration
+type_ = real_declaration | integer_declaration | color_declaration | bool_declaration
 
-real2d_declaration = Token('Real2d') >> Type
-integer2d_declaration = Token('Integer2d') >> Type
-color2d_declaration = Token('Color2d') >> Type
-bool2d_declaration = Token('Bool2d') >> Type
-data_type = real2d_declaration | integer2d_declaration | color2d_declaration | bool2d_declaration
+real2d_declaration = Token('RealArray2d') >> Type
+integer2d_declaration = Token('IntArray2d') >> Type
+color2d_declaration = Token('ColorArray2d') >> Type
+data_type = real2d_declaration | integer2d_declaration | color2d_declaration
 
 real = Token(UnsignedReal()) >> Real
 integer = Token(UnsignedInteger()) >> Integer
-number = integer | real | keyword('yes') >> Bool | keyword('no') >> Bool
+number = integer | real | keyword('yes') >> Bool | keyword('no') >> Bool | keyword('true') >> Bool | keyword('false') >> Bool
 
 width = integer
 height = integer
@@ -77,7 +81,6 @@ group2, group3_product, group4_sum, group5, group6, group7, group8 \
 expression = Delayed()
 primary = Delayed()
 parallel_function_call = Delayed()
-parallel_assignment = Delayed()
 host_function_call = Delayed()
 
 # first layer, most tightly grouped, is parens and numbers
@@ -131,12 +134,15 @@ expression += assignment | group8
 
 expression_list = expression[0:, ~comma] > Expressions
 
-statement, block = Delayed(), Delayed()
+statement, block, parallel_context = Delayed(), Delayed(), Delayed()
 return_ = ~keyword('return') & expression & ~semi > Return
 break_ =  ~keyword('break') & ~semi > Break
 if_ =     ~keyword('if') & ~symbol('(') & expression & ~symbol(')') & statement & Optional(~keyword('else') & statement) > If
 while_ =  ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & statement > While
-statement += ~semi | parallel_assignment | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
+#semicolin_statement = Or(
+#                        Optional(return_ | break_) & ~semi,
+#                        Optional(return_ | break_) 
+statement += ~semi | parallel_context | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
 parameter_declaration = (type_ | data_type ) & identifier > Parameter
@@ -156,7 +162,7 @@ sequential_print = ~keyword('print') & ~symbol('(') & string & (~comma & express
 generic_sequential_function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > SequentialFunctionCall
 
 sequential_function_call = sequential_print | generic_sequential_function_call
-primary += host_function_call | sequential_function_call | identifier | identifier_property
+primary += parallel_function_call | host_function_call | sequential_function_call | identifier | identifier_property
 
 ## Host Data functions
 #data_read  = ~symbol(':') & ~keyword('read') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Read
@@ -167,18 +173,14 @@ host_function_call += data_print | data_display
 
 ## Parallel functions
 min_value = max_value = integer
-parallel_random = ~symbol(':') & ~keyword('random') & ~symbol('(') & Optional(min_value & ~comma & max_value) & ~symbol(')') > ParallelRandom
+parallel_random = ~function('random') & ~symbol('(') & Optional(min_value & ~comma & max_value) & ~symbol(')') > Random
 
-parallel_reduce = ~symbol(':') & ~keyword('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > ParallelReduce
+parallel_reduce = ~function('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > ParallelReduce
 
-parallel_sort   =  ~symbol(':') & ~keyword('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > ParallelSort
+parallel_sort   = ~function('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > ParallelSort
 
 
-genric_parallel_function_call = identifier & ~dot & ~keyword('each') & ~symbol('(') & ~colon & identifier & ~symbol('(') & expression_list & ~symbol(')') & ~symbol(')') > ParallelFunctionCall
-#genric_parallel_function_call = ~symbol(':') & identifier & ~symbol('(') & expression_list & ~symbol(')') > ParallelFunctionCall
-
-parallel_function_call += parallel_random | parallel_reduce | parallel_sort | genric_parallel_function_call
-parallel_assignment += data_identifier & ~symbol('=') & parallel_function_call & ~semi > ParallelAssignment
+parallel_function_call += parallel_random | parallel_reduce | parallel_sort
 
 ## Now we can define the last bits
 unclosed_block = (~symbol('{') & (statement | variable_declaration)[0:]) ** make_error('block is missing a closing }}')
@@ -188,6 +190,10 @@ block += Or(
         unclosed_block
         )
 
+foreach_input_parameter = identifier & ~keyword('in') & identifier > ForeachInputParameter
+foreach_output_parameter = identifier & ~symbol('!') & ~keyword('in') & identifier > ForeachOutputParameter
+foreach_parameter = foreach_output_parameter | foreach_input_parameter
+parallel_context += ~keyword('foreach') & (foreach_parameter[0:, ~comma] > List) & ((variable_declaration | statement)[0:] > List) & ~keyword('end') > ParallelContext
 
 declaration_list = (data_declaration | variable_declaration | sequential_function_declaration | parallel_function_declaration | statement)[0:]
 

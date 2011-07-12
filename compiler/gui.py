@@ -3,9 +3,11 @@
 import sys
 from PyQt4 import QtGui,QtCore
 from parser import parse
-from symboltable import SymbolTable
+from symboltable import Scope
 from nodes import *
 import sys
+
+import pycuda.autoinit
 
 app = QtGui.QApplication(sys.argv)
 
@@ -22,15 +24,15 @@ class GuiStream:
 def evaluate(ast):
   print ast
 
-  global_env = SymbolTable()
-  for program_node in ast:
-    program_node.evaluate(global_env)
+  global_env = Scope()
+  return ast.evaluate(global_env)
 
 def text_changed():
     try:
       ast = parse(str(codeWindow.toPlainText()))
-    except:
-      return
+    except Exception as e:
+        print e
+        return
 
     old = sys.stdout
     resultsWindow.clear()
@@ -62,4 +64,8 @@ def main():
 if __name__ == '__main__':
   main()
 
+  # Seems to prevent crashes at the end of execution where
+  # gpu objects haven't been cleaned up before autoinit finishes
+  import gc
+  gc.collect()
 
