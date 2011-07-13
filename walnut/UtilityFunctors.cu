@@ -19,8 +19,6 @@
 
 #include "UtilityFunctors.h"
 
-
 namespace Walnut {
-
 
 } // namespace Walnut

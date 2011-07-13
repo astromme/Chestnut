@@ -356,7 +356,7 @@ class Assignment(List):
         output, expression = self
         output = symbolTable.lookup(output)
 
-        return '%s = %s' % (output.cpp_name, expression.to_cpp())
+        return '%s = %s' % (output.cpp_name, expression.to_cpp(env))
     def evaluate(self, env):
         symbol = env[self[0]]
         symbol.value = self[1].evaluate(env)
@@ -809,19 +809,15 @@ class While(List):
 class Read(List): pass
 class Write(List): pass
 
-
+# TODO: This will break when there is more than one random call
+random_device_template = """walnut_random()"""
 class Random(List):
     def to_cpp(self, env=defaultdict(bool)):
-        if len(self) == 2:
-            min_limit, max_limit = cpp_tuple(self[0:2])
+        if env['@in_parallel_context']:
+            return random_device_template
         else:
-            min_limit, max_limit = ('0', 'INT_MAX')
+            raise CompilerException("Sequential Random not implemented")
 
-        return '0 /* Random not implemented yet */'
-        raise CompilerException('Random not implemented yet')
-        #if env['@in_parallel_context']:
-        #    return random_template % { 'min_value' : min_limit,
-        #                               'max_value' : max_limit }
     def evaluate(self, env):
         if len(self) == 2:
             min_limit, max_limit = self
@@ -989,6 +985,8 @@ parallel_context_call = """\
 class ParallelContext(List):
     def to_cpp(self, env=defaultdict(bool)):
         parameters, statements = self
+        env['@in_parallel_context'] = True
+
         context_name = '_foreach_context_' + next_open_name()
         arrays = [] # allows us to check if we're already using this array under another alias
         outputs = []
@@ -1027,6 +1025,7 @@ class ParallelContext(List):
         if list_contains_type(statements, Return):
             raise CompilerException("Parallel Contexts (foreach loops) can not contain return statments")
 
+
         for variable in collect_elements_from_list(statements, Variable):
             if variable not in symbolTable.currentScope and symbolTable.lookup(variable):
                 # We've got a variable that needs to be passed into this function
@@ -1055,9 +1054,12 @@ class ParallelContext(List):
         else:
             struct_member_variables = function_parameters = struct_member_initializations = ''
 
+        if list_contains_type(statements, Random):
+            random_initializer = "curandState __random_state;\ncurand_init(hash(_index), 0, 0, &__random_state);\n"
+        else:
+            random_initializer = ''
 
-
-        body = '{\n' + indent('\n'.join(map(lambda s: s.to_cpp(), statements))) + '\n}'
+        body = '{\n' + indent(random_initializer + '\n'.join(map(lambda s: s.to_cpp(env), statements))) + '\n}'
         body = indent(indent(body, indent_first_line=False), indent_first_line=False) # indent twice
 
         environment = { 'function_name' : context_name,
@@ -1096,6 +1098,8 @@ class ParallelContext(List):
 
 
         symbolTable.parallelContexts.append(function_declaration)
+
+        del env['@in_parallel_context']
         return function_call
 
     def evaluate(self, env, output):

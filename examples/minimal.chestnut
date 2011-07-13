@@ -1,7 +1,7 @@
 IntArray2d unsorted[10, 5]; 
 
 foreach element! in unsorted
-  element = random();
+  element = 100*random();
 end
 
 IntArray2d sorted[10, 5] = sort(unsorted);

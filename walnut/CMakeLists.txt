@@ -20,7 +20,7 @@ set(CUDA_BUILD_EMULATION OFF)
 
 
 set(walnut_sources
-    UtilityFunctors.cpp
+    UtilityFunctors.cu
     FunctionIterator.cpp
     HostFunctions.cpp
     DisplayWindow.cpp

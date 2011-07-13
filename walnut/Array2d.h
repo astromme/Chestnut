@@ -27,6 +27,7 @@
 
 namespace Walnut {
 
+#define _index thrust::get<0>(_t)
 #define _x (thrust::get<0>(_t) % thrust::get<1>(_t))
 #define _y (thrust::get<0>(_t) / thrust::get<1>(_t))
 #define _width thrust::get<1>(_t)
