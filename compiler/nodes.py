@@ -546,12 +546,19 @@ class DataInitialization(List):
         return self[0].evaluate(env)
 
 
+display_functor_template = """\
+template <typename InputType>
+struct _color_convert__{display_function_name} : public thrust::unary_function<{input_data_type}, uchar4> {{
+    __host__ __device__
+    uchar4 operator()({input_data_type} value) {{
+        return {display_function_name}(value);
+    }}
+}};
+"""
 display_template = """\
 {
-  FunctionIterator _start = makeStartIterator(%(input)s.width, %(input)s.height);
-
-  thrust::copy(thrust::make_transform_iterator(_start, %(display_function)s_functor<%(template_types)s>(%(input)s)),
-               thrust::make_transform_iterator(_start+%(input)s.length(), %(display_function)s_functor<%(template_types)s>(%(input)s)),
+  thrust::copy(thrust::make_transform_iterator(%(input)s.thrustPointer(), %(display_function)s<%(template_types)s>()),
+               thrust::make_transform_iterator(%(input)s.thrustEndPointer(), %(display_function)s<%(template_types)s>()),
                _%(input)s_display.displayData());
 }
 _%(input)s_display.updateGL();
@@ -561,7 +568,6 @@ class DataDisplay(List):
     def to_cpp(self, env=defaultdict(bool)):
         data = symbolTable.lookup(self[0])
 
-        print self
         if len(self) == 2:
             display_function = symbolTable.lookup(self[1])
             check_type(display_function, ParallelFunction)
@@ -576,11 +582,17 @@ class DataDisplay(List):
             #    raise CompilerException("Display function takes a parameter of type '%s' but the data '%s' is of the type '%s'"
             #            % (parameters[0].type, data.name, data.type))
 
-            display_function = display_function.name
+
+            functor = display_functor_template.format(display_function_name=display_function.name,
+                                                      input_data_type=chestnut_to_c[data.type])
+
+            symbolTable.parallelContexts.append(functor)
+
+            display_function = '_color_convert__{}'.format(display_function.name)
         else:
             display_function = '_chestnut_default_color_conversion'
 
-        template_types = 'color, %s' % type_map[data.type]
+        template_types = '%s' % type_map[data.type]
 
         display_env = { 'input' : data.name,
                         'template_types' : template_types,
@@ -760,7 +772,7 @@ color_properties = { # Screen is apparently BGR not RGB
         'red' : 'z',
         'green' : 'y',
         'blue' : 'x',
-        'alpha' : 'w' }
+        'opacity' : 'w' }
 
 property_template = """\
 %(name)s.%(property)s(%(parameters)s)\
