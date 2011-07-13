@@ -845,18 +845,12 @@ class Random(List):
 
         return output
 
-reduce_template = """
-// Reducing '%(input_data)s' to the single value '%(output_variable)s'
-{
-  %(output_variable)s = thrust::reduce(%(input_data)s.thrustPointer(), %(input_data)s.thrustEndPointer());
-}
+reduce_template = """\
+thrust::reduce({input_data}.thrustPointer(), {input_data}.thrustEndPointer())\
 """
 class ParallelReduce(List):
     def to_cpp(self, env=defaultdict(bool)):
         function = None
-        output = env['variable_to_assign']
-        if not output:
-            raise InternalException("The environment '%s' doesn't have a 'data_to_assign' variable set" % env)
 
         if len(self) == 1:
             input = self[0]
@@ -866,13 +860,9 @@ class ParallelReduce(List):
             raise InternalException("Wrong list length to parallel reduce")
 
         check_is_symbol(input)
-        check_is_symbol(output)
-
         input = symbolTable.lookup(input)
-        output = symbolTable.lookup(output)
 
         check_type(input, Data)
-        check_type(output, Variable)
 
         #TODO: Actually use function
         if function:
@@ -883,8 +873,7 @@ class ParallelReduce(List):
             return ''
 
         else:
-            return reduce_template % { 'input_data' : input.name,
-                                       'output_variable' : output.name }
+            return reduce_template.format(input_data=input.name)
 
     def evaluate(self, env, output=None):
         function = None
