@@ -1,10 +1,10 @@
-from nodes import SequentialFunction, Parameter
+from nodes import NeutralFunction, Parameter
 
 #SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device', 'node'])
 
-built_in_functions = [SequentialFunction('sqrt',  'float', [Parameter(['float', 'value'])], True, None),
-                      SequentialFunction('sqrtf', 'float', [Parameter(['float', 'value'])], True, None),
-                      SequentialFunction('cos',   'float', [Parameter(['float', 'value'])], True, None),
-                      SequentialFunction('sin',   'float', [Parameter(['float', 'value'])], True, None),
-                      SequentialFunction('min',   'float', [Parameter(['float', 'value']), Parameter(['float', 'value'])], True, None),
-                      SequentialFunction('max',   'float', [Parameter(['float', 'value']), Parameter(['float', 'value'])], True, None)]
+built_in_functions = [NeutralFunction('sqrt',  'float', [Parameter(['float', 'value'])], None),
+                      NeutralFunction('sqrtf', 'float', [Parameter(['float', 'value'])], None),
+                      NeutralFunction('cos',   'float', [Parameter(['float', 'value'])], None),
+                      NeutralFunction('sin',   'float', [Parameter(['float', 'value'])], None),
+                      NeutralFunction('min',   'float', [Parameter(['float', 'value']), Parameter(['float', 'value'])], None),
+                      NeutralFunction('max',   'float', [Parameter(['float', 'value']), Parameter(['float', 'value'])], None)]

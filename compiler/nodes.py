@@ -2,7 +2,7 @@ from lepl import *
 from collections import namedtuple, defaultdict
 from templates import *
 from symboltable import scalar_types, data_types
-from symboltable import SymbolTable, Scope, Keyword, StreamVariable, Variable, Window, Data, ParallelFunction, SequentialFunction, DisplayWindow
+from symboltable import SymbolTable, Scope, Keyword, StreamVariable, Variable, Window, Data, ParallelFunction, SequentialFunction, NeutralFunction, DisplayWindow
 import random, numpy
 from pycuda.gpuarray import GPUArray as DeviceArray
 import codepy.cgen as c
@@ -89,7 +89,7 @@ def check_type(symbol, *requiredTypes):
                     (symbol.name, type(symbol), requiredTypes[0]))
         else:
             raise CompilerException("Error, the symbol '%s' is a %s, but one of %s was expected" % \
-                    (symbol.name, type(symbol), ','.join(requiredTypes)))
+                    (symbol.name, type(symbol), requiredTypes))
 
 
 def check_dimensions_are_equal(leftData, rightData):
@@ -118,7 +118,7 @@ class Type(str):
 class Symbol(str):
     def to_cpp(self, env=None):
         check_is_symbol(self)
-        return self
+        return symbolTable.lookup(self).cpp_name
     def evaluate(self, env):
         symbol = env[self]
         if type(symbol) == Variable:
@@ -354,9 +354,7 @@ class BooleanOr(List):
 class Assignment(List):
     def to_cpp(self, env=defaultdict(bool)):
         output, expression = self
-        output = symbolTable.lookup(output)
-
-        return '%s = %s' % (output.cpp_name, expression.to_cpp(env))
+        return '%s = %s' % (output.to_cpp(), expression.to_cpp(env))
     def evaluate(self, env):
         symbol = env[self[0]]
         symbol.value = self[1].evaluate(env)
@@ -431,22 +429,21 @@ class DataDeclaration(List):
       symbol = initialization.evaluate(env)
 
 host_function_template = """\
-%(location)s%(type)s %(function_name)s(%(parameters)s) %(block)s
+__host__ %(type)s %(function_name)s(%(parameters)s) %(block)s
 """
 class SequentialFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
         env = defaultdict(bool, sequential=True)
         type_, name, parameters, block = self
-        symbolTable.add(SequentialFunction(name, type_, parameters, ok_for_device=True, node=self))
+
+        symbolTable.add(SequentialFunction(name, type_, parameters, node=self))
         symbolTable.createScope()
         for parameter in parameters:
             symbolTable.add(Variable(name=parameter.name, type=parameter.type))
 
-
         environment = { 'function_name' : name,
                         'type' : type_,
-                        'location' : '__host__ __device__\n',
-                        'parameters' : ', '.join(map(lambda param: '%s %s' % param, tuple(parameters))),
+                        'parameters' : ', '.join(map(lambda type, name: '%s %s' % (type, name), tuple(parameters))),
                         'block' : block.to_cpp(env) }
 
         host_function = host_function_template % environment
@@ -471,23 +468,32 @@ class SequentialFunctionDeclaration(List):
 
         return result
 
+device_function_template = """\
+__host__ __device__ %(type)s %(function_name)s(%(parameters)s) %(block)s
+"""
 class ParallelFunctionDeclaration(List):
     def to_cpp(self, env=defaultdict(bool)):
-        #todo: make sure no parallel contexts live inside of here
         type_, name, parameters, block = self
+
+        if list_contains_type(block, ParallelContext):
+            raise CompilerException("Parallel contexts (foreach loops) can not exist inside of parallel functions")
+
         symbolTable.add(ParallelFunction(name, type_, parameters, node=self))
         symbolTable.createScope()
+        env['@in_parallel_context'] = True
 
-        windowCount = 0
         for parameter in parameters:
-            if parameter.type in data_types:
-                symbolTable.add(Window(name=parameter.name, number=windowCount))
-                windowCount += 1
-            else:
-                symbolTable.add(Variable(name=parameter.name, type=parameter.type))
+            symbolTable.add(Variable(name=parameter.name, type=parameter.type))
 
-        device_function = create_device_function(self)
+        environment = { 'function_name' : name,
+                        'type' : chestnut_to_c[type_],
+                        'parameters' : ', '.join(map(lambda (type, name): '%s %s' % (chestnut_to_c[type], name), tuple(parameters))),
+                        'block' : block.to_cpp(env) }
 
+        device_function = device_function_template % environment
+
+
+        del env['@in_parallel_context']
         symbolTable.removeScope()
         return device_function
 
@@ -639,9 +645,8 @@ class Print(List):
         print(text % tuple(args))
 
 
-
 sequential_function_call_template = """\
-%(function_name)s(%(arguments)s)
+%(function_name)s(%(arguments)s)\
 """
 class SequentialFunctionCall(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -650,7 +655,7 @@ class SequentialFunctionCall(List):
 
         check_is_symbol(function)
         function = symbolTable.lookup(function)
-        check_type(function, SequentialFunction)
+        check_type(function, SequentialFunction, NeutralFunction)
 
         if not len(arguments) == len(function.parameters):
             print arguments
@@ -674,6 +679,52 @@ class SequentialFunctionCall(List):
         except InterpreterReturn as return_value:
             return return_value[0]
 
+
+parallel_function_call_template = """\
+%(function_name)s(%(arguments)s)\
+"""
+class ParallelFunctionCall(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        function = self[0]
+        arguments = self[1:][0]
+
+
+        #TODO: Make this generic instead of a hack
+        if function == 'location':
+            return ParallelLocation(arguments).to_cpp(env)
+
+        check_is_symbol(function)
+        function = symbolTable.lookup(function)
+        check_type(function, ParallelFunction, NeutralFunction)
+
+        if not len(arguments) == len(function.parameters):
+            print arguments
+            raise CompilerException("Error, parallel function ':%s' takes %s parameters but %s were given" % \
+                    (function.name, len(function.parameters), len(arguments)))
+
+
+        return parallel_function_call_template % { 'function_name' : function.name,
+                                                   'arguments' : ', '.join(cpp_tuple(arguments, env)) }
+
+    def evaluate(self, env):
+        function = self[0]
+        arguments = map(lambda obj: obj.evaluate(env), self[1:][0])
+
+        function = env[function]
+
+        try:
+            function.node.run(arguments, env)
+        except InterpreterBreak:
+            raise InterpreterException('Error: caught break statement outside of a loop in function %s', function.name)
+        except InterpreterReturn as return_value:
+            return return_value[0]
+
+class FunctionCall(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        if env['@in_parallel_context']:
+            return ParallelFunctionCall(self).to_cpp(env)
+        else:
+            return SequentialFunctionCall(self).to_cpp(env)
 
 class Size(List):
     @property
@@ -711,7 +762,6 @@ color_properties = { # Screen is apparently BGR not RGB
         'blue' : 'x',
         'alpha' : 'w' }
 
-
 property_template = """\
 %(name)s.%(property)s(%(parameters)s)\
 """
@@ -736,8 +786,19 @@ class Property(List):
         elif type(symbol) == Variable:
             if symbol.type == 'Color':
                 return '%s.%s' % (symbol.name, color_properties[property_])
+            elif symbol.type == 'Point2d' and property_ in ['x', 'y']:
+                return '%s.%s' % (symbol.name, property_)
+            elif symbol.type == 'Size2d' and property_ in ['width', 'height']:
+                return '%s.%s' % (symbol.name, property_)
             else:
-                raise Exception('unknown property variable type')
+                raise Exception('unknown property variable type %s.%s' % (symbol.type, property_))
+        elif type(symbol) == Data:
+            if property_ not in ['size']:
+                raise CompilerException("Error, property '%s' not part of the data '%s'" % (property_, name))
+            return property_template % { 'name' : name,
+                                         'property' : property_,
+                                         'parameters' : '' }
+
         else:
             print symbolTable
             print self
@@ -809,7 +870,6 @@ class While(List):
 class Read(List): pass
 class Write(List): pass
 
-# TODO: This will break when there is more than one random call
 random_device_template = """walnut_random()"""
 class Random(List):
     def to_cpp(self, env=defaultdict(bool)):
@@ -840,6 +900,13 @@ class Random(List):
         expand_to_range(min_limit, max_limit, output, pycuda.curandom.rand(output.shape))
 
         return output
+
+
+class ParallelLocation(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        if type(symbolTable.lookup(self[0])) is not StreamVariable:
+            raise CompilerException("Trying to take the window of a normal (non-stream) variable '%s'. This doesn't work" % self[0])
+        return 'Point2d(_x, _y)'
 
 reduce_template = """\
 thrust::reduce({input_data}.thrustPointer(), {input_data}.thrustEndPointer())\
@@ -1011,11 +1078,12 @@ class ParallelContext(List):
             if data.type not in data_types:
                 raise CompilerException("%s %s should be an array" % (data.type, data.name))
 
-            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='%s.center(_x, _y)' % piece))
+            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='%s.center(_x, _y)' % data.name))
+            symbolTable.add(data)
 
-            struct_member_variables.append('Array2d<%s> %s;' % (data_to_scalar[data.type], piece))
-            function_parameters.append('Array2d<%s> _%s' % (data_to_scalar[data.type], piece))
-            struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : piece })
+            struct_member_variables.append('Array2d<%s> %s;' % (data_to_scalar[data.type], data.name))
+            function_parameters.append('Array2d<%s> _%s' % (data_to_scalar[data.type], data.name))
+            struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : data.name })
             requested_variables.append(data.name)
 
 
@@ -1026,8 +1094,8 @@ class ParallelContext(List):
             raise CompilerException("Parallel Contexts (foreach loops) can not contain return statments")
 
 
-        for variable in collect_elements_from_list(statements, Variable):
-            if variable not in symbolTable.currentScope and symbolTable.lookup(variable):
+        for variable in collect_elements_from_list(statements, Symbol):
+            if variable not in symbolTable.currentScope and symbolTable.lookup(variable) and type(symbolTable.lookup(variable)) not in [ParallelFunction, SequentialFunction, NeutralFunction]:
                 # We've got a variable that needs to be passed into this function
                 variable = symbolTable.lookup(variable)
                 if variable.type in data_types:
@@ -1048,7 +1116,7 @@ class ParallelContext(List):
 
 
         if len(parameters) > 0:
-            struct_member_variables = indent('\n'.join(struct_member_variables), indent_first_line=False)
+            struct_member_variables = indent(indent('\n'.join(struct_member_variables), indent_first_line=False), indent_first_line=False)
             function_parameters = ', '.join(function_parameters)
             struct_member_initializations = ": " + ', '.join(struct_member_initializations)
         else:

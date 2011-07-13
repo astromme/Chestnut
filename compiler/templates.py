@@ -9,59 +9,6 @@ def indent(code, indent_first_line=True):
     return code.replace('\n', '\n  ')
 
 
-device_function_template = """\
-template <%(template_parameters)s>
-struct %(function_name)s_functor : public thrust::unary_function<int, OutputType> {
-    %(struct_members)s
-    %(function_name)s_functor(%(static_variables)s) %(variable_initializations)s {}
-
-    template <typename Tuple>
-    __host__ __device__
-    OutputType operator()(Tuple _t) %(function_body)s
-};
-"""
-def create_device_function(function_node):
-  type_, name, parameters, block = function_node
-  template_types = ['OutputType']
-  struct_vars = []
-  parameter_vars = []
-  underscore_vars = []
-
-  for parameter in parameters:
-      if parameter.type in data_types:
-          template_types.append('Input%sType' % len(template_types))
-          struct_vars.append('Array2d<%s> %s;' % (template_types[-1], parameter.name))
-          parameter_vars.append('Array2d<%s> _%s' % (template_types[-1], parameter.name))
-          underscore_vars.append('%(name)s(_%(name)s)' % { 'name' : parameter.name })
-      else:
-          struct_vars.append('%s %s;' % (type_map[parameter.type], parameter.name))
-          parameter_vars.append('%s _%s' % (type_map[parameter.type], parameter.name))
-          underscore_vars.append('%(name)s(_%(name)s)' % { 'name' : parameter.name})
-
-  #if not (len(parameters) == 1 or parameters[0][0] == 'window'):
-  #  raise Exception('Error, parameters %s must instead be window')
-
-
-  if len(parameters) > 0:
-      struct_vars = indent('\n'.join(struct_vars), indent_first_line=False)
-      parameter_vars = ', '.join(parameter_vars)
-      underscore_vars = ": " + ', '.join(underscore_vars)
-  else:
-      struct_vars = parameter_vars = underscore_vars = ''
-
-  template_types = ', '.join(map(lambda type: 'typename %s' % type, template_types))
-
-  environment = { 'function_name' : name,
-                  'function_body' : indent(block.to_cpp(), indent_first_line=False),
-                  'template_parameters' : template_types,
-                  'struct_members' : struct_vars,
-                  'static_variables' : parameter_vars,
-                  'variable_initializations' : underscore_vars }
-
-  return device_function_template % environment
-
-
-
 type_map = {
         'Int' : 'int',
         'IntArray1d' : 'int',
@@ -78,9 +25,18 @@ type_map = {
         'Bool' : 'bool',
         'BoolArray1d' : 'bool',
         'BoolArray2d' : 'bool',
-        'BoolArray3d' : 'bool' }
+        'BoolArray3d' : 'bool',
+        'Size1d' : 'Size1d',
+        'Size2d' : 'Size2d',
+        'Size3d' : 'Size3d',
+        'Point1d' : 'Point1d',
+        'Point2d' : 'Point2d',
+        'Point3d' : 'Point3d',
+        'Point4d' : 'Point4d',
+        }
 
 data_to_scalar = type_map
+chestnut_to_c = type_map
 
 
 numpy_type_map = {

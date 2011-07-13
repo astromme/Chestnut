@@ -9,6 +9,9 @@ preamble = """\
 #include <walnut/DisplayWindow.h>
 #include <walnut/ColorKernels.h>
 
+#include <walnut/Sizes.h>
+#include <walnut/Points.h>
+
 #include <thrust/sort.h>
 
 #include <limits.h>
@@ -56,11 +59,13 @@ _%(name)s_display.show();
 _%(name)s_display.setWindowTitle("%(title)s");
 """
 
+function_types = [SequentialFunctionDeclaration, ParallelFunctionDeclaration]
+
 def compile(ast):
   print ast
-  functions = []
+  functions = [func.to_cpp() for func in ast if type(func) in function_types]
   declarations = []
-  main_function_statements = [obj.to_cpp() for obj in ast]
+  main_function_statements = [obj.to_cpp() for obj in ast if type(obj) not in function_types]
 
   functions.extend(symbolTable.parallelContexts)
 

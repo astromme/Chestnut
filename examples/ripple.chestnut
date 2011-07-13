@@ -1,6 +1,6 @@
-parallel Int ripple(Int current_time) {
-  Real x_offset = parallel.x - parallel.width/2;
-  Real y_offset = parallel.y - parallel.height/2;
+parallel Int ripple(Point2d location, Size2d dimensions, Int current_time) {
+  Real x_offset = location.x - dimensions.width/2;
+  Real y_offset = location.y - dimensions.height/2;
 
   Real distance = sqrtf(x_offset * x_offset + y_offset * y_offset);
 
@@ -9,7 +9,9 @@ parallel Int ripple(Int current_time) {
   return shade;
 }
 
+/*
 parallel Color orange_convert(IntArray2d array) {
+  //return Color(red=array.center, green=array.center/2, blue=0, opacity=1);
   Color c;
   c.red = array.center;
   c.green = array.center / 2;
@@ -17,6 +19,7 @@ parallel Color orange_convert(IntArray2d array) {
   c.alpha = 255;
   return c;
 }
+*/
 
 //Window2d display;
 
@@ -27,18 +30,10 @@ Int iteration = 0;
 Int iterations = 10000;
 
 while (iteration < iterations) {
-  ripple_image = :ripple(iteration);
-  //ripple_image = ripple_image.each(:ripple(iteration));
-
-  //display.draw(ripple_image);
-  display(ripple_image, orange_convert);
+  foreach pixel! in ripple_image
+    pixel = ripple(location(pixel), ripple_image.size, iteration);
+  end
 
   iteration = iteration + 1;
 }
 
-//Size2d size(20, 40);
-//size.each:ripple(a, b, c);
-//ripple_image.each:ripple(ripple_image);
-//
-//
-//ripple_image = ripple_image.each(:ripple(iteration))

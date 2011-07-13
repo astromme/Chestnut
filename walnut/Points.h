@@ -17,36 +17,40 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef SIZES_H
-#define SIZES_H
+#ifndef POINTS_H
+#define POINTS_H
 
 #include "walnut_global.h"
 
 namespace Walnut {
 
-struct Size1d
+struct Point1d
 {
-  int32 width;
-  __host__ __device__ Size1d(int32 width_) : width(width_) {}
-  int32 length() const { return width; }
+  int32 x;
+  __host__ __device__ Point1d(int32 x_) : x(x_) {}
 };
 
-struct Size2d {
-  int32 width;
-  int32 height;
-  __host__ __device__ Size2d(int32 width_, int32 height_) : width(width_), height(height_) {}
-  int32 length() const { return width * height; }
-
+struct Point2d {
+  int32 x;
+  int32 y;
+  __host__ __device__ Point2d(int32 x_, int32 y_) : x(x_), y(y_) {}
 };
 
-struct Size3d {
-  int32 width;
-  int32 height;
-  int32 depth;
-  __host__ __device__ Size3d(int32 width_, int32 height_, int32 depth_) : width(width_), height(height_), depth(depth_) {}
-  int32 length() const { return width * height * depth; }
+struct Point3d {
+  int32 x;
+  int32 y;
+  int32 z;
+  __host__ __device__ Point3d(int32 x_, int32 y_, int32 z_) : x(x_), y(y_), z(z_) {}
 };
 
-} // namespace Walnut
+struct Point4d {
+  int32 x;
+  int32 y;
+  int32 z;
+  int32 w;
+  __host__ __device__ Point4d(int32 x_, int32 y_, int32 z_, int32 w_) : x(x_), y(y_), z(z_), w(w_) {}
+};
 
-#endif // SIZES_H
+}
+
+#endif // POINTS_H

@@ -46,7 +46,9 @@ type_ = real_declaration | integer_declaration | color_declaration | bool_declar
 real2d_declaration = Token('RealArray2d') >> Type
 integer2d_declaration = Token('IntArray2d') >> Type
 color2d_declaration = Token('ColorArray2d') >> Type
-data_type = real2d_declaration | integer2d_declaration | color2d_declaration
+point2d_declaration = Token('Point2d') >> Type
+size2d_declaration = Token('Size2d') >> Type
+data_type = real2d_declaration | integer2d_declaration | color2d_declaration | point2d_declaration | size2d_declaration
 
 real = Token(UnsignedReal()) >> Real
 integer = Token(UnsignedInteger()) >> Integer
@@ -159,9 +161,9 @@ parallel_function_declaration = ~Token('parallel') & type_ & identifier & ~symbo
 
 #Built-in Sequential functions
 sequential_print = ~keyword('print') & ~symbol('(') & string & (~comma & expression)[:] & ~symbol(')') > Print
-generic_sequential_function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > SequentialFunctionCall
+generic_function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > FunctionCall
 
-sequential_function_call = sequential_print | generic_sequential_function_call
+sequential_function_call = sequential_print | generic_function_call
 primary += parallel_function_call | host_function_call | sequential_function_call | identifier | identifier_property
 
 ## Host Data functions

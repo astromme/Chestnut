@@ -48,7 +48,7 @@ struct WALNUT_EXPORT Array2d
 
   int length() const { return width * height; }
 
-  Size2 size() const { return Size2(width, height); }
+  __host__ __device__ Size2d size() const { return Size2d(width, height); }
 
   const T* constData() const { return (const T*)data; }
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }

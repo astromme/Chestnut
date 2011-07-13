@@ -5,10 +5,13 @@ from pycuda import gpuarray
 # Keywords supported by chestnut syntax
 # These are added to the symbol table
 scalar_types = ['Integer', 'Real', 'Color', 'Bool']
+
 data_types = ['IntArray1d', 'IntArray2d', 'IntArray3d',
               'RealArray1d', 'RealArray2d', 'RealArray3d',
               'ColorArray1d', 'ColorArray2d', 'ColorArray3d']
-structure_types = ['Size1', 'Size2', 'Size3',
+
+structure_types = ['Point1d', 'Point2d', 'Point3d',
+                   'Size1d', 'Size2d', 'Size3d',
                    'Window']
 
 reserved_words = [
@@ -36,8 +39,9 @@ class UninitializedException(Exception): pass
 DisplayWindow = namedtuple('DisplayWindow', ['name', 'title', 'width', 'height'])
 
 Keyword = namedtuple('Keyword', ['name'])
-SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device', 'node'])
+SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'node'])
 ParallelFunction = namedtuple('ParallelFunction', ['name', 'type', 'parameters', 'node'])
+NeutralFunction = namedtuple('NeutralFunction', ['name', 'type', 'parameters', 'node'])
 
 class StreamVariable(namedtuple('StreamVariable', ['name', 'type', 'array', 'cpp_name'])): pass
 

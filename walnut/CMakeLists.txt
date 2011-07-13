@@ -38,6 +38,7 @@ set(walnut_headers
     ArrayAllocator.h
     Array2d.h
     Sizes.h
+    Points.h
     )
 
 set(walnut_ui
