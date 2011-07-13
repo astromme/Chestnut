@@ -36,13 +36,13 @@ syn keyword chestnutFunctionDecoration  parallel sequential
 syn keyword chestnutInts	       	Int   IntArray1d   IntArray2d   IntArray3d   IntWindow1d   IntWindow2d   IntWindow3d
 syn keyword chestnutReals               Real  RealArray1d  RealArray2d  RealArray3d  RealWindow1d  RealWindow2d  RealWindow3d
 syn keyword chestnutColors              Color ColorArray1d ColorArray2d ColorArray3d ColorWindow1d ColorWindow2d ColorWindow3d
-syn keyword chestnutOtherTypes          Bool
+syn keyword chestnutOtherTypes          Bool Point1d Point2d Point3d Size1d Size2d Size3d
 
 syn keyword chestnutStatement		return
 syn keyword chestnutBoolean		yes no true false
 
 syn keyword chestnutParallelBuiltin     reduce sort randomInts randomReals
-syn keyword chestnutSequentialBuiltin   print
+syn keyword chestnutSequentialBuiltin   print location
 
 syn sync fromstart
 syn sync maxlines=100
