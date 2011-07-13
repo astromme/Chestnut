@@ -1083,11 +1083,7 @@ class ParallelContext(List):
         for temp, output in zip(temp_array_names, outputs):
             temp_mapping[output.array.name] = temp
 
-
-        print temp_mapping
-        print requested_variables
-
-        requested_variables = [var if var not in temp_mapping else temp_mapping[var] for var in requested_variables]
+        requested_variables = [temp_mapping[var] if var in temp_mapping else var for var in requested_variables]
 
         symbolTable.removeScope()
 
