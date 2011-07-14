@@ -17,18 +17,12 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "Array2d.h"
+#include "Windows.h"
 
 namespace Walnut {
 
-template <typename T>
-Array2d<T>::Array2d(thrust::device_vector<T> &vector, int width, int height) {
-  data = thrust::raw_pointer_cast(&(vector[0]));
-  this->width = width;
-  this->height = height;
+//WALNUT_INIT_STRUCT(Window1d);
+WALNUT_INIT_STRUCT(Window2d);
+//WALNUT_INIT_STRUCT(Window3d);
+
 }
-
-WALNUT_INIT_STRUCT(Array2d);
-
-} // namespace Walnut
-

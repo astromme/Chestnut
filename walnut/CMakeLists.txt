@@ -26,6 +26,7 @@ set(walnut_sources
     DisplayWindow.cpp
     ArrayAllocator.cu
     Array2d.cu
+    Windows.cu
     )
 
 set(walnut_headers
@@ -39,6 +40,7 @@ set(walnut_headers
     Array2d.h
     Sizes.h
     Points.h
+    Windows.h
     )
 
 set(walnut_ui

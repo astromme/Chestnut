@@ -11,6 +11,7 @@ preamble = """\
 
 #include <walnut/Sizes.h>
 #include <walnut/Points.h>
+#include <walnut/Windows.h>
 
 #include <thrust/sort.h>
 

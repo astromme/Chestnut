@@ -12,6 +12,7 @@ data_types = ['IntArray1d', 'IntArray2d', 'IntArray3d',
 
 structure_types = ['Point1d', 'Point2d', 'Point3d',
                    'Size1d', 'Size2d', 'Size3d',
+                   'IntWindow2d', 'RealWindow2d', 'ColorWindow2d',
                    'Window']
 
 reserved_words = [

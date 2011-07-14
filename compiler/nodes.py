@@ -704,14 +704,19 @@ class ParallelFunctionCall(List):
         #TODO: Make this generic instead of a hack
         if function == 'location':
             return ParallelLocation(arguments).to_cpp(env)
+        elif function == 'window':
+            return ParallelWindow(arguments).to_cpp(env)
 
-        check_is_symbol(function)
+        try:
+            check_is_symbol(function)
+        except CompilerException:
+            raise CompilerException("Can't find the function called '%s', is this a misspelling?" % function)
         function = symbolTable.lookup(function)
         check_type(function, ParallelFunction, NeutralFunction)
 
         if not len(arguments) == len(function.parameters):
             print arguments
-            raise CompilerException("Error, parallel function ':%s' takes %s parameters but %s were given" % \
+            raise CompilerException("The parallel function ':%s' takes %s parameters but %s were given" % \
                     (function.name, len(function.parameters), len(arguments)))
 
 
@@ -784,13 +789,7 @@ class Property(List):
         symbol = symbolTable.lookup(name)
 
 
-        if type(symbol) == Window:
-            if property_ not in ['topLeft', 'top', 'topRight', 'left', 'center', 'right', 'bottomLeft', 'bottom', 'bottomRight']:
-                raise CompilerException("Error, property '%s' not part of the data window '%s'" % (property_, name))
-            return property_template % { 'name' : name,
-                                         'property' : property_,
-                                         'parameters' : coordinates['x'] + ', ' + coordinates['y'] }
-        elif type(symbol) == Keyword and symbol.name == 'parallel':
+        if type(symbol) == Keyword and symbol.name == 'parallel':
             if property_ in coordinates:
                 return coordinates[property_];
             else:
@@ -802,6 +801,11 @@ class Property(List):
                 return '%s.%s' % (symbol.name, property_)
             elif symbol.type == 'Size2d' and property_ in ['width', 'height']:
                 return '%s.%s' % (symbol.name, property_)
+            elif symbol.type in ['IntWindow2d', 'RealWindow2d', 'ColorWindow2d'] \
+               and property_ in ['topLeft', 'top', 'topRight', 'left', 'center', 'right', 'bottomLeft', 'bottom', 'bottomRight']:
+                return property_template % { 'name' : name,
+                                            'property' : property_,
+                                            'parameters' : '' }
             else:
                 raise Exception('unknown property variable type %s.%s' % (symbol.type, property_))
         elif type(symbol) == Data:
@@ -917,8 +921,17 @@ class Random(List):
 class ParallelLocation(List):
     def to_cpp(self, env=defaultdict(bool)):
         if type(symbolTable.lookup(self[0])) is not StreamVariable:
-            raise CompilerException("Trying to take the window of a normal (non-stream) variable '%s'. This doesn't work" % self[0])
+            raise CompilerException("Trying to take the location of a normal (non-stream) variable '%s'. This doesn't work" % self[0])
         return 'Point2d(_x, _y)'
+
+class ParallelWindow(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        symbol = symbolTable.lookup(self[0])
+
+        if type(symbol) is not StreamVariable:
+            raise CompilerException("Trying to take the window of a normal (non-stream) variable '%s'. This doesn't work" % self[0])
+
+        return '%s(%s, _x, _y)' % (chestnut_to_c[datatype_to_windowtype[symbol.array.type]], symbol.array.name)
 
 reduce_template = """\
 thrust::reduce({input_data}.thrustPointer(), {input_data}.thrustEndPointer())\
@@ -1078,8 +1091,6 @@ class ParallelContext(List):
         symbolTable.createScope()
         for parameter in parameters:
             piece, data = parameter
-            if type(parameter) == ForeachOutputParameter:
-                outputs.append(piece)
 
             if data not in arrays:
                 arrays.append(data)
@@ -1090,7 +1101,14 @@ class ParallelContext(List):
             if data.type not in data_types:
                 raise CompilerException("%s %s should be an array" % (data.type, data.name))
 
-            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='%s.center(_x, _y)' % data.name))
+            if type(parameter) == ForeachOutputParameter:
+                outputs.append(piece)
+                symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='Window2d<%s>(_output_%s, _x, _y).center()'
+                                % (chestnut_to_c[data.type], data.name)))
+            else:
+                symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='Window2d<%s>(%s, _x, _y).center()'
+                                % (chestnut_to_c[data.type], data.name)))
+
             symbolTable.add(data)
 
             struct_member_variables.append('Array2d<%s> %s;' % (data_to_scalar[data.type], data.name))
@@ -1127,6 +1145,23 @@ class ParallelContext(List):
                 raise CompilerException("Error, trying to assign a value to '{name}'. If you want to write to this stream variable, designate it as an output variable (i.e. 'foreach {name}! in {array}')".format(name=symbol.name, array=symbol.array.name))
 
 
+
+        outputs = [symbolTable.lookup(output) for output in outputs]
+
+        temp_array_names = ['temp_array_%s' % i for i in range(len(outputs))]
+        temp_arrays = [create_data(output.array.type, name, output.array.size) for output, name in zip(outputs, temp_array_names)]
+        swaps = map(lambda (a, b): swap_data(a, b.array.name), zip(temp_array_names, outputs))
+        releases = [release_data(output.array.type, temp) for output, temp in zip(outputs, temp_array_names)]
+
+        temp_mapping = {}
+        for temp, output in zip(temp_array_names, outputs):
+            requested_variables.append(temp)
+
+            struct_member_variables.append('Array2d<%s> _output_%s;' % (data_to_scalar[output.array.type], output.array.name))
+            function_parameters.append('Array2d<%s> __output_%s' % (data_to_scalar[output.array.type], output.array.name))
+            struct_member_initializations.append('_output_%(name)s(__output_%(name)s)' % { 'name' : output.array.name })
+
+
         if len(parameters) > 0:
             struct_member_variables = indent(indent('\n'.join(struct_member_variables), indent_first_line=False), indent_first_line=False)
             function_parameters = ', '.join(function_parameters)
@@ -1154,18 +1189,6 @@ class ParallelContext(List):
         # Function Call
         size = symbolTable.lookup(parameters[0][1]).name + '.size()'
 
-        outputs = [symbolTable.lookup(output) for output in outputs]
-
-        temp_array_names = ['temp_array_%s' % i for i in range(len(outputs))]
-        temp_arrays = [create_data(output.array.type, name, output.array.size) for output, name in zip(outputs, temp_array_names)]
-        swaps = map(lambda (a, b): swap_data(a, b.array.name), zip(temp_array_names, outputs))
-        releases = [release_data(output.array.type, temp) for output, temp in zip(outputs, temp_array_names)]
-
-        temp_mapping = {}
-        for temp, output in zip(temp_array_names, outputs):
-            temp_mapping[output.array.name] = temp
-
-        requested_variables = [temp_mapping[var] if var in temp_mapping else var for var in requested_variables]
 
         symbolTable.removeScope()
 

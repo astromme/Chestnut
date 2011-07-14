@@ -33,10 +33,19 @@ type_map = {
         'Point2d' : 'Point2d',
         'Point3d' : 'Point3d',
         'Point4d' : 'Point4d',
+        'IntWindow2d' : 'Window2d<int>',
+        'RealWindow2d' : 'Window2d<float>',
+        'ColorWindow2d' : 'Window2d<color>',
         }
 
 data_to_scalar = type_map
 chestnut_to_c = type_map
+
+datatype_to_windowtype = {
+        'IntArray2d' : 'IntWindow2d',
+        'RealArray2d' : 'RealWindow2d',
+        'ColorWindow2d' : 'ColorWindow2d',
+        }
 
 
 numpy_type_map = {

@@ -19,10 +19,7 @@ parallel Color orange_convert(Int value) {
   return c;
 }
 
-//Window2d display;
-
 IntArray2d ripple_image[500, 500];
-//display.size = ripple_image.size;
 
 Int iteration = 0;
 Int iterations = 10000;
