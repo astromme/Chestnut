@@ -37,18 +37,23 @@ string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"') >> (lambda obj: String(obj[
 string = string_single_quote | string_double_quote
 
 # tokens
+int2d_declaration = Token('IntArray2d') >> Type
+real2d_declaration = Token('RealArray2d') >> Type
+color2d_declaration = Token('ColorArray2d') >> Type
+data_type = real2d_declaration | int2d_declaration | color2d_declaration
+
+int_window2d_declaration = Token('IntWindow2d') >> Type
+real_window2d_declaration = Token('RealWindow2d') >> Type
+color_window2d_declaration = Token('ColorWindow2d') >> Type
+window_type = real_window2d_declaration | int_window2d_declaration | color_window2d_declaration
+
+int_declaration = Token('Int') >> Type
 real_declaration = Token('Real') >> Type
-integer_declaration = Token('Int') >> Type
 color_declaration = Token('Color') >> Type
 bool_declaration = Token('Bool') >> Type
-type_ = real_declaration | integer_declaration | color_declaration | bool_declaration
-
-real2d_declaration = Token('RealArray2d') >> Type
-integer2d_declaration = Token('IntArray2d') >> Type
-color2d_declaration = Token('ColorArray2d') >> Type
 point2d_declaration = Token('Point2d') >> Type
 size2d_declaration = Token('Size2d') >> Type
-data_type = real2d_declaration | integer2d_declaration | color2d_declaration | point2d_declaration | size2d_declaration
+type_ = real_declaration | int_declaration | color_declaration | bool_declaration | point2d_declaration | size2d_declaration | window_type
 
 real = Token(UnsignedReal()) >> Real
 integer = Token(UnsignedInteger()) >> Integer
