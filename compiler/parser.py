@@ -4,6 +4,15 @@ import re
 from nodes import *
 
 
+# Some Delayed Stuff
+group2, group3_product, group4_sum, group5, group6, group7, group8 \
+    = Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed()
+
+expression = Delayed()
+primary = Delayed()
+parallel_function_call, sequential_function_call, host_function_call, generic_function_call = Delayed(), Delayed(), Delayed(), Delayed()
+
+#Line Helpers
 def with_line(node):
     def wrapper(results, stream_in, stream_out):
         results.extend([s_delta(stream_in)[1], s_delta(stream_out)[1]])
@@ -24,14 +33,15 @@ data_identifier = identifier
 sequential_identifier = identifier
 parallel_identifier = identifier
 
-property = identifier
 symbol = Token('[^0-9a-zA-Z \t\r\n]')
 keyword = Token('[a-z]+')
 semi = symbol(';')
 colon = symbol(':')
 comma = symbol(',')
 dot = symbol('.')
-identifier_property = identifier & ~dot & property > Property
+
+property = ~dot & (parallel_function_call | host_function_call | sequential_function_call | identifier)
+property_list = (parallel_function_call | host_function_call | sequential_function_call | identifier) & property[1:] > Property
 
 string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'") >> (lambda obj: String(obj[1:-1]))
 string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"') >> (lambda obj: String(obj[1:-1]))
@@ -83,13 +93,6 @@ size = Or(
 #  7 and (&&)
 #  8 or (||)
 #  9 assignment (=)
-group2, group3_product, group4_sum, group5, group6, group7, group8 \
-    = Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed()
-
-expression = Delayed()
-primary = Delayed()
-parallel_function_call = Delayed()
-host_function_call = Delayed()
 
 # first layer, most tightly grouped, is parens and numbers
 parens = ~symbol('(') & expression & ~symbol(')')
@@ -137,7 +140,7 @@ group7 += boolean_and | group6
 boolean_or = group7 & ~symbol('|')[2] & group8 > BooleanOr
 group8 += boolean_or | group7
 
-assignment = (identifier | identifier_property) & ~symbol('=') & expression > Assignment
+assignment = (identifier | property_list) & ~symbol('=') & expression > Assignment
 expression += assignment | group8
 
 expression_list = expression[0:, ~comma] > Expressions
@@ -167,10 +170,10 @@ parallel_function_declaration = ~Token('parallel') & type_ & identifier & ~symbo
 
 #Built-in Sequential functions
 sequential_print = ~keyword('print') & ~symbol('(') & string & (~comma & expression)[:] & ~symbol(')') > Print
-generic_function_call = identifier & ~symbol('(') & expression_list & ~symbol(')') > FunctionCall
+generic_function_call += identifier & ~symbol('(') & expression_list & ~symbol(')') > FunctionCall
 
-sequential_function_call = sequential_print | generic_function_call
-primary += parallel_function_call | host_function_call | sequential_function_call | identifier | identifier_property
+sequential_function_call += sequential_print | generic_function_call
+primary += parallel_function_call | host_function_call | sequential_function_call | identifier | property_list
 
 ## Host Data functions
 #data_read  = ~symbol(':') & ~keyword('read') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Read
