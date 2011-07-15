@@ -67,11 +67,16 @@ struct WALNUT_EXPORT Array2d
   }
 
   __host__ __device__
-  int calculateIndex(int x, int y, int x_offset, int y_offset) const {
+  int calculateIndex(int x, int y, int x_offset=0, int y_offset=0) const {
     x = ((x + x_offset) + width)  % width;
     y = ((y + y_offset) + height) % height;
 
     return y*width + x;
+  }
+
+  __host__ __device__
+  T& at(int x, int y) {
+    return data[calculateIndex(x, y)];
   }
 };
 

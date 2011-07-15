@@ -37,19 +37,19 @@ struct WALNUT_EXPORT Window2d {
   __host__ __device__ Window2d(const Window2d<T> &other) : array(other.array), m_xLocation(other.m_xLocation), m_yLocation(other.m_yLocation) {}
 
   __host__ __device__
-  T& shiftedData(int x_offset, int y_offset) {
+  T& at(int x_offset, int y_offset) {
     return array.data[array.calculateIndex(m_xLocation, m_yLocation, x_offset, y_offset)];
   }
 
-  __host__ __device__ T& topLeft()     { return shiftedData(-1, -1); }
-  __host__ __device__ T& top()         { return shiftedData( 0, -1); }
-  __host__ __device__ T& topRight()    { return shiftedData( 1, -1); }
-  __host__ __device__ T& left()        { return shiftedData(-1,  0); }
-  __host__ __device__ T& center()      { return shiftedData( 0,  0); }
-  __host__ __device__ T& right()       { return shiftedData( 1,  0); }
-  __host__ __device__ T& bottomLeft()  { return shiftedData(-1,  1); }
-  __host__ __device__ T& bottom()      { return shiftedData( 0,  1); }
-  __host__ __device__ T& bottomRight() { return shiftedData( 1,  1); }
+  __host__ __device__ T& topLeft()     { return at(-1, -1); }
+  __host__ __device__ T& top()         { return at( 0, -1); }
+  __host__ __device__ T& topRight()    { return at( 1, -1); }
+  __host__ __device__ T& left()        { return at(-1,  0); }
+  __host__ __device__ T& center()      { return at( 0,  0); }
+  __host__ __device__ T& right()       { return at( 1,  0); }
+  __host__ __device__ T& bottomLeft()  { return at(-1,  1); }
+  __host__ __device__ T& bottom()      { return at( 0,  1); }
+  __host__ __device__ T& bottomRight() { return at( 1,  1); }
 
 };
 
