@@ -101,8 +101,8 @@ def check_dimensions_are_equal(leftData, rightData):
 
 def extract_line_info(function):
     def wrapper(obj, env=defaultdict(bool)):
-        node_info = obj # obj[0:-2]
-        start_line, end_line = (0, 0) #obj[-2:]
+        node_info = obj[0:-2]
+        start_line, end_line = obj[-2:]
         return function(obj, node_info, start_line, end_line, env)
     return wrapper
 
@@ -521,7 +521,6 @@ class Parameters(List): pass
 class Block(List):
     @extract_line_info
     def to_cpp(self, block, start_line, end_line, env):
-        print 'start: %s, end: %s' % (start_line, end_line)
         symbolTable.createScope()
         cpp = '{\n' + indent('\n'.join(cpp_tuple(block, env))) + '\n}'
         symbolTable.removeScope()

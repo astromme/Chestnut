@@ -6,7 +6,8 @@ from nodes import *
 
 def with_line(node):
     def wrapper(results, stream_in, stream_out):
-        return node([results, s_delta(stream_in)[1], s_delta(stream_out)[1]])
+        results.extend([s_delta(stream_in)[1], s_delta(stream_out)[1]])
+        return node(results)
     return wrapper
 
 def set_and_return(obj, **kwargs):
@@ -193,7 +194,7 @@ parallel_function_call += parallel_random | parallel_reduce | parallel_sort
 unclosed_block = (~symbol('{') & (statement | variable_declaration)[0:]) ** make_error('block is missing a closing }}')
 
 block += Or(
-        ~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}') > Block, # ** with_line(Block)
+        (~symbol('{') & (statement | variable_declaration)[0:] ** with_line(Block) & ~symbol('}')),
         unclosed_block
         )
 
