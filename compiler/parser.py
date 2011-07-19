@@ -10,7 +10,7 @@ group2, group3_product, group4_sum, group5, group6, group7, group8 \
 
 expression = Delayed()
 primary = Delayed()
-parallel_function_call, sequential_function_call, host_function_call, generic_function_call = Delayed(), Delayed(), Delayed(), Delayed()
+function_call = Delayed()
 
 #Line Helpers
 def with_line(node):
@@ -21,10 +21,9 @@ def with_line(node):
         except StopIteration:
             end_line = 'eof'
 
-        object = node(results)
-        object.start_line = start_line
-        object.end_line = end_line
-        return object
+        results.append(Context([start_line, end_line]))
+        return node(results)
+
     return wrapper
 
 def set_and_return(obj, **kwargs):
@@ -48,8 +47,8 @@ colon = symbol(':')
 comma = symbol(',')
 dot = symbol('.')
 
-property = ~dot & (parallel_function_call | host_function_call | sequential_function_call | identifier)
-property_list = (parallel_function_call | host_function_call | sequential_function_call | identifier) & property[1:] > Property
+property = ~dot & (function_call | identifier)
+property_list = (function_call | identifier) & property[1:] > Property
 
 string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'") >> (lambda obj: String(obj[1:-1]))
 string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"') >> (lambda obj: String(obj[1:-1]))
@@ -115,14 +114,14 @@ group2 += unary_not | unary_neg | binary_mod | group1
 multiplier = ~symbol('*') & group2
 inverse    = ~symbol('/') & group2 > Inverse
 group3_pass_on  = group2
-group3_include  = (group2 & (multiplier | inverse)[1:]) ** with_line(Product)
+group3_include  = (group2 & (multiplier | inverse)[1:]) > Product
 group3_product += group3_pass_on | group3_include
 
 # fourth layer, less tightly grouped, is addition
 addend   = ~symbol('+') & group3_product
 negative = ~symbol('-') & group3_product > Negative
 group4_pass_on = group3_product
-group4_include = (group3_product & (addend | negative)[1:]) ** with_line(Sum)
+group4_include = (group3_product & (addend | negative)[1:]) > Sum
 group4_sum    += group4_pass_on | group4_include
 
 #group4end = Delayed()
@@ -132,23 +131,23 @@ group4_sum    += group4_pass_on | group4_include
 #group4 += group3 & group4end > List
 
 
-less_than              = (group4_sum & ~symbol('<')   & group5) ** with_line(LessThan)
-less_than_or_equal     = (group4_sum & ~symbol('<') & ~symbol('=') & group5) ** with_line(LessThanOrEqual)
-greater_than           = (group4_sum & ~symbol('>')   & group5) ** with_line(GreaterThan)
-greather_than_or_equal = (group4_sum & ~symbol('>') & ~symbol('=') & group5) ** with_line(GreaterThanOrEqual)
+less_than              = (group4_sum & ~symbol('<')   & group5) > LessThan
+less_than_or_equal     = (group4_sum & ~symbol('<') & ~symbol('=') & group5) > LessThanOrEqual
+greater_than           = (group4_sum & ~symbol('>')   & group5) > GreaterThan
+greather_than_or_equal = (group4_sum & ~symbol('>') & ~symbol('=') & group5) > GreaterThanOrEqual
 group5 += less_than | less_than_or_equal | greater_than | greather_than_or_equal | group4_sum
 
-equal     = (group5 & ~symbol('=')[2] & group6) ** with_line(Equal)
-not_equal = (group5 & ~symbol('!') & ~symbol('=') & group6) ** with_line(NotEqual)
+equal     = (group5 & ~symbol('=')[2] & group6) > Equal
+not_equal = (group5 & ~symbol('!') & ~symbol('=') & group6) > NotEqual
 group6 += equal | not_equal | group5
 
-boolean_and = (group6 & ~symbol('&')[2] & group7) ** with_line(BooleanAnd)
+boolean_and = (group6 & ~symbol('&')[2] & group7) > BooleanAnd
 group7 += boolean_and | group6
 
-boolean_or = (group7 & ~symbol('|')[2] & group8) ** with_line(BooleanOr)
+boolean_or = (group7 & ~symbol('|')[2] & group8) > BooleanOr
 group8 += boolean_or | group7
 
-assignment = ((identifier | property_list) & ~symbol('=') & expression) ** with_line(Assignment)
+assignment = ((identifier | property_list) & ~symbol('=') & expression) > Assignment
 expression += assignment | group8
 
 expression_list = expression[0:, ~comma] > Expressions
@@ -164,9 +163,8 @@ while_ = ( ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & statem
 statement += ~semi | parallel_context | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
-parameter_declaration = ((type_ | data_type ) & identifier) ** with_line(Parameter)
-#parameter_declaration = type_ & identifier > Parameter
-parameter_declaration_list = (parameter_declaration[0:, ~comma]) ** with_line(Parameters)
+parameter_declaration = ((type_ | data_type ) & identifier) > Parameter
+parameter_declaration_list = (parameter_declaration[0:, ~comma]) > Parameters
 
 initialization = (~symbol('=') & expression) ** with_line(VariableInitialization)
 
@@ -176,35 +174,14 @@ sequential_function_declaration = (~Token('sequential') & type_ & identifier & ~
 parallel_function_declaration = (~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(ParallelFunctionDeclaration)
 
 #Built-in Sequential functions
-sequential_print = (~keyword('print') & ~symbol('(') & string & (~comma & expression)[:] & ~symbol(')')) ** with_line(Print)
-generic_function_call += (identifier & ~symbol('(') & expression_list & ~symbol(')')) ** with_line(FunctionCall)
-
-sequential_function_call += sequential_print | generic_function_call
-primary += parallel_function_call | host_function_call | sequential_function_call | identifier | property_list
-
-## Host Data functions
-#data_read  = ~symbol(':') & ~keyword('read') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Read
-#data_write = ~symbol(':') & ~keyword('write') & ~symbol('(') & data_identifier & ~comma & filename & ~symbol(')') & ~semi > Write
-data_print = (~keyword('print') & ~symbol('(') & data_identifier & ~symbol(')')) ** with_line(DataPrint)
-data_display = (~keyword('display') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')')) ** with_line(DataDisplay)
-host_function_call += data_print | data_display
-
-## Parallel functions
-min_value = max_value = integer
-parallel_random = (~function('random') & ~symbol('(') & Optional(min_value & ~comma & max_value) & ~symbol(')')) ** with_line(Random)
-
-parallel_reduce = (~function('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')')) ** with_line(ParallelReduce)
-
-parallel_sort   = (~function('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')')) ** with_line(ParallelSort)
-
-
-parallel_function_call += parallel_random | parallel_reduce | parallel_sort
+function_call += (identifier & ~symbol('(') & expression_list & ~symbol(')')) ** with_line(FunctionCall)
+primary += function_call | identifier | property_list
 
 ## Now we can define the last bits
 unclosed_block = (~symbol('{') & (statement | variable_declaration)[0:]) ** make_error('block is missing a closing }}')
 
 block += Or(
-        (~symbol('{') & (statement | variable_declaration)[0:] ** with_line(Block) & ~symbol('}')),
+        (~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}')) > Block,
         unclosed_block
         )
 

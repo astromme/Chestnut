@@ -63,7 +63,6 @@ _%(name)s_display.setWindowTitle("%(title)s");
 function_types = [SequentialFunctionDeclaration, ParallelFunctionDeclaration]
 
 def compile(ast):
-  print ast
   functions = [func.to_cpp() for func in ast if type(func) in function_types]
   declarations = []
   main_function_statements = [obj.to_cpp() for obj in ast if type(obj) not in function_types]
@@ -114,7 +113,12 @@ def main():
       code = ''.join(f.readlines())
 
     ast = parse(code)
-    thrust_code = compile(ast)
+
+    try:
+        thrust_code = compile(ast)
+    except CompilerException as e:
+        print e
+        sys.exit(1)
 
     with open(output_file+'.cu', 'w') as f:
       f.write(thrust_code)

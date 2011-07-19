@@ -16,6 +16,27 @@ symbolTable = SymbolTable()
 global current_name_number
 current_name_number = 0
 
+class Context(List):
+    @property
+    def start_line(self):
+        return self[0]
+    @property
+    def end_line(self):
+        return self[1]
+
+class ChestnutNode(List):
+    def __init__(self, items):
+        super(ChestnutNode, self).__init__(items)
+
+        if len(self) == 0 or type(self[-1]) != Context:
+            self.extend([Context([None, None])])
+    @property
+    def context(self):
+        if type(self[-1]) == Context:
+            return self[-1]
+        return None
+
+
 def list_contains(variable, deep_list):
     if len(deep_list) == 0:
         return False
@@ -49,10 +70,30 @@ def collect_elements_from_list(deep_list, element_type):
 
     return collection
 
+
+def list_contains_function(deep_list, function_name):
+    for function in collect_elements_from_list(deep_list, FunctionCall):
+        if len(function) > 0 and function[0] == 'random':
+            return True
+
+    return False
+
 def next_open_name():
     global current_name_number
     current_name_number += 1
     return str(current_name_number)
+
+
+def safe_index(function):
+    def wrapper(*args, **kwargs):
+        try:
+            property = function(*args, **kwargs)
+            if type(property) == Context:
+                return None
+            return property
+        except IndexError:
+            return None
+    return wrapper
 
 #class cuda_context:
 #    def __enter__(self):
@@ -157,11 +198,14 @@ class CompilerException(Exception):
         self.node = node
 
     def __str__(self):
-        if not node:
-            return "Error - {message}".format(message=self.message)
+        if not self.node or not self.node.context:
+            return "Error\n  {message}".format(message=self.message)
+        elif self.node.context.start_line == self.node.context.end_line:
+            return "Error around line {line_num}\n  {message}".format(line_num=self.node.context.start_line,
+                                                                            message=self.message)
         else:
-            return "Error around lines {start} and {end} - {message}".format(start=self.node.start_line,
-                                                                            end=self.node.end_line,
+            return "Error around lines {start} and {end}\n  {message}".format(start=self.node.context.start_line,
+                                                                            end=self.node.context.end_line,
                                                                             message=self.message)
 
 
@@ -245,12 +289,12 @@ class RuntimeWindow:
 
 ### Nodes ###
 # Operators
-class Not(List):
+class Not(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         return "!%s" % cpp_tuple(self, env)
     def evaluate(self, env):
         return not self[0].evaluate(env)
-class Neg(List):
+class Neg(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         return "-%s" % cpp_tuple(self, env)
     def evaluate(self, env):
@@ -284,7 +328,7 @@ class Negative(List):
         return op.neg(self[0].evaluate(env))
 
 ### Other Operators ###
-class Mod(List):
+class Mod(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         return "((int)%s %% %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
@@ -361,65 +405,53 @@ class Program(List):
         for node in self:
             node.evaluate(env)
 
-class VariableDeclaration(List):
+class VariableDeclaration(ChestnutNode):
+    @property
+    def type(self): return self[0]
+
+    @property
+    def name(self): return self[1]
+
+    @property
+    @safe_index
+    def initialization(self): return self[2]
+
     def to_cpp(self, env=defaultdict(bool)):
-        type, name = self[0], self[1]
-        symbolTable.add(Variable(name, type))
-        if len(self) == 3: # we have an initialization
-            env = defaultdict(bool, variable_to_assign=name)
-            return '%s %s;\n%s' % cpp_tuple(self, env)
+        symbolTable.add(Variable(self.name, self.type))
+
+        if self.initialization:
+            env = defaultdict(bool, variable_to_assign=self.name)
+            return '%s %s;\n%s' % cpp_tuple([self.type, self.name, self.initialization], env)
         else:
-            return '%s %s;' % cpp_tuple(self, env)
+            return '%s %s;' % cpp_tuple([self.type, self.name], env)
     def evaluate(self, env):
-        type, name = self[0:2]
-        var = env[name] = Variable(name, type)
+        var = env[self.name] = Variable(self.name, self.type)
 
-        if len(self) == 3: # we have an initialization
-            var.value = self[2].evaluate(env)
+        if self.initialization:
+            var.value = self.initialization.evaluate(env)
 
 
-class DataDeclaration(List):
+class DataDeclaration(ChestnutNode):
   def to_cpp(self, env=defaultdict(bool)):
-    if len(self) == 2: #only name and type, no size or initialization
-      type_, name = self
-      symbolTable.add(Data(name, type_, 0, 0)) #TODO: fix to not have 0,0 for uninitialized
-
-    elif len(self) == 3: # adds a size
-      type_, name, size = self
+      type_, name, size, context = self
       symbolTable.add(Data(name, type_, size.width, size.height))
       return create_data(type_, name, size)
 
-    elif len(self) == 4: # adds an initialization
-      type_, name, size, initialization = self
-      symbolTable.add(Data(name, type_, size.width, size.height))
-      env = defaultdict(bool, data_to_assign=name)
-      return '%s\n %s' % (create_data(type_, name, size), initialization.to_cpp(env))
-
   def evaluate(self, env):
-    if len(self) == 2: #only name and type, no size or initialization
-      type_, name = self
-      env[name] = DeviceArray((0, 0, 0), dtype=numpy_type_map[type_], allocator=dev_pool.allocate)
-
-    elif len(self) == 3: # adds a size
-      type_, name, size = self
+      type_, name, size, context = self
       (size.width, size.height)
       numpy_type_map[type_]
       env['@device_memory_pool'].allocate
       env[name] = DeviceArray((size.width, size.height), dtype=numpy_type_map[type_], allocator=env['@device_memory_pool'].allocate)
 
-    elif len(self) == 4: # adds an initialization
-      type_, name, size, initialization = self
-      env[name] = DeviceArray((size.width, size.height), dtype=numpy_type_map[type_], allocator=env['@device_memory_pool'].allocate)
-      env['@output'] = env[name]
-      symbol = initialization.evaluate(env)
 
 host_function_template = """\
 __host__ %(type)s %(function_name)s(%(parameters)s) %(block)s
 """
-class SequentialFunctionDeclaration(List):
+class SequentialFunctionDeclaration(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         env = defaultdict(bool, sequential=True)
-        type_, name, parameters, block = self
+        type_, name, parameters, block, context = self
 
         symbolTable.add(SequentialFunction(name, type_, parameters, node=self))
         symbolTable.createScope()
@@ -437,11 +469,11 @@ class SequentialFunctionDeclaration(List):
         return host_function
 
     def evaluate(self, env):
-        type_, name, parameters, block = self
+        type_, name, parameters, block, context = self
         env[name] = SequentialFunction(name, type_, parameters, ok_for_device=True, node=self)
 
     def run(self, arguments, env):
-        type_, name, parameters, block = self
+        type_, name, parameters, block, context = self
 
         function_scope = Scope(env)
 
@@ -456,9 +488,9 @@ class SequentialFunctionDeclaration(List):
 device_function_template = """\
 __host__ __device__ %(type)s %(function_name)s(%(parameters)s) %(block)s
 """
-class ParallelFunctionDeclaration(List):
+class ParallelFunctionDeclaration(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
-        type_, name, parameters, block = self
+        type_, name, parameters, block, context = self
 
         if list_contains_type(block, ParallelContext):
             raise CompilerException("Parallel contexts (foreach loops) can not exist inside of parallel functions", self)
@@ -483,11 +515,11 @@ class ParallelFunctionDeclaration(List):
         return device_function
 
     def evaluate(self, env):
-        type_, name, parameters, block = self
+        type_, name, parameters, block, context = self
         env[name] = ParallelFunction(name, type_, parameters, node=self)
 
     def run(self, arguments, env):
-        name, parameters, block = self
+        name, parameters, block, context = self
 
         # TODO: Deal with parallel functions and scope. Minimal env with no global stuff?
         function_scope = Scope()
@@ -515,13 +547,13 @@ class Block(List):
             statement.evaluate(block_scope)
 
 
-class VariableInitialization(List):
+class VariableInitialization(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         return '%s = %s;' % (env['variable_to_assign'], self[0].to_cpp(env))
     def evaluate(self, env):
         return self[0].evaluate(env)
 
-class DataInitialization(List):
+class DataInitialization(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         return self[0].to_cpp(env)
     def evaluate(self, env):
@@ -546,12 +578,19 @@ display_template = """\
 _%(input)s_display.updateGL();
 _app.processEvents();
 """
-class DataDisplay(List):
-    def to_cpp(self, env=defaultdict(bool)):
-        data = symbolTable.lookup(self[0])
+class DataDisplay(ChestnutNode):
+    @property
+    def data(self): return self[0]
 
-        if len(self) == 2:
-            display_function = symbolTable.lookup(self[1])
+    @property
+    @safe_index
+    def display_function(self): return self[1]
+
+    def to_cpp(self, env=defaultdict(bool)):
+        data = symbolTable.lookup(self.data)
+
+        if self.display_function:
+            display_function = symbolTable.lookup(self.display_function)
             check_type(display_function, ParallelFunction)
             if display_function.type != 'Color':
                 raise CompilerException("Display function '%s' returns data of type '%s'. Display functions must return 'Color'."
@@ -601,7 +640,7 @@ print_template = """
   printArray2D(hostData, %(width)s, %(height)s);
 }
 """
-class DataPrint(List):
+class DataPrint(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         data = self[0]
         check_is_symbol(data)
@@ -615,7 +654,7 @@ class DataPrint(List):
     def evaluate(self, env):
         print env[self[0]]
 
-class Print(List):
+class Print(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         num_format_placeholders = self[0].to_cpp(env).count('%s')
         num_args = len(self)-1
@@ -642,10 +681,22 @@ class Print(List):
 sequential_function_call_template = """\
 %(function_name)s(%(arguments)s)\
 """
-class SequentialFunctionCall(List):
+class SequentialFunctionCall(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         function = self[0]
-        arguments = self[1:][0]
+        arguments = self[1]
+
+        #TODO: Make this generic instead of a hack
+        if function == 'sort':
+            return DataSort(arguments).to_cpp(env)
+        elif function == 'reduce':
+            return DataReduce(arguments).to_cpp(env)
+        elif function == 'display':
+            return DataDisplay(arguments).to_cpp(env)
+        elif function == 'print': #TODO: Check if we are doing var or data printing
+            return Print(arguments).to_cpp(env)
+        elif function == 'random':
+            return Random(arguments).to_cpp(env)
 
         check_is_symbol(function)
         function = symbolTable.lookup(function)
@@ -662,7 +713,7 @@ class SequentialFunctionCall(List):
 
     def evaluate(self, env):
         function = self[0]
-        arguments = map(lambda obj: obj.evaluate(env), self[1:][0])
+        arguments = map(lambda obj: obj.evaluate(env), self[1])
 
         function = env[function]
 
@@ -677,10 +728,10 @@ class SequentialFunctionCall(List):
 parallel_function_call_template = """\
 %(function_name)s(%(arguments)s)\
 """
-class ParallelFunctionCall(List):
+class ParallelFunctionCall(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         function = self[0]
-        arguments = self[1:][0]
+        arguments = self[1]
 
 
         #TODO: Make this generic instead of a hack
@@ -688,6 +739,8 @@ class ParallelFunctionCall(List):
             return ParallelLocation(arguments).to_cpp(env)
         elif function == 'window':
             return ParallelWindow(arguments).to_cpp(env)
+        elif function == 'random':
+            return Random(arguments).to_cpp(env)
 
         try:
             check_is_symbol(function)
@@ -697,9 +750,8 @@ class ParallelFunctionCall(List):
         check_type(function, ParallelFunction, NeutralFunction)
 
         if not len(arguments) == len(function.parameters):
-            print arguments
-            raise CompilerException("The parallel function ':%s' takes %s parameters but %s were given" % \
-                    (function.name, len(function.parameters), len(arguments)))
+            raise CompilerException("The parallel function '%s' takes %s parameters but %s were given" % \
+                    (function.name, len(function.parameters), len(arguments)), self)
 
 
         return parallel_function_call_template % { 'function_name' : function.name,
@@ -707,7 +759,7 @@ class ParallelFunctionCall(List):
 
     def evaluate(self, env):
         function = self[0]
-        arguments = map(lambda obj: obj.evaluate(env), self[1:][0])
+        arguments = map(lambda obj: obj.evaluate(env), self[1])
 
         function = env[function]
 
@@ -718,7 +770,7 @@ class ParallelFunctionCall(List):
         except InterpreterReturn as return_value:
             return return_value[0]
 
-class FunctionCall(List):
+class FunctionCall(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         if env['@in_parallel_context']:
             return ParallelFunctionCall(self).to_cpp(env)
@@ -764,19 +816,27 @@ color_properties = { # Screen is apparently BGR not RGB
 property_template = """\
 %(name)s.%(property)s(%(parameters)s)\
 """
-class Property(List):
+class Property(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
-        name, property_ = self
+        name, property_, context = self
         check_is_symbol(name)
         symbol = symbolTable.lookup(name)
 
+        ## New property pseudo code
+        #property_cpp = symbol.cpp_name
+        #current_symbol_type = symbol.type
 
-        if type(symbol) == Keyword and symbol.name == 'parallel':
-            if property_ in coordinates:
-                return coordinates[property_];
-            else:
-                raise CompilerException('Property %s not found for function %s' % (property_, name))
-        elif type(symbol) == Variable:
+        #for member_identifier in self[1:]:
+        #    check_that_symbol_type_has_member(current_symbol_type, member_identifier) # need to implement
+        #    current_symbol_type = get_return_type_for_member(current_symbol_type, member_identifier) # need to implement
+
+        #    property_cpp = property_template % { 'name' : property_cpp,
+        #                                         'property' : member_identifier,
+        #                                         'parameters' : '' }
+
+        #return property_cpp
+
+        if type(symbol) == Variable:
             if symbol.type == 'Color':
                 return '%s.%s' % (symbol.name, color_properties[property_])
             elif symbol.type == 'Point2d' and property_ in ['x', 'y']:
@@ -790,6 +850,7 @@ class Property(List):
                                             'parameters' : '' }
             else:
                 raise Exception('unknown property variable type %s.%s' % (symbol.type, property_))
+
         elif type(symbol) == Data:
             if property_ not in ['size']:
                 raise CompilerException("Error, property '%s' not part of the data '%s'" % (property_, name))
@@ -815,61 +876,71 @@ class Property(List):
             raise Exception
 
 
-class Return(List):
+class Return(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         return 'return %s;' % self[0].to_cpp(env)
     def evaluate(self, env):
         raise InterpreterReturn(self[0].evaluate(env))
 
-class Break(List):
+class Break(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         return 'break;'
     def evaluate(self, env):
         raise InterpreterBreak
 
-class If(List):
+class If(ChestnutNode):
+    @property
+    def condition(self): return self[0]
+
+    @property
+    def if_statement(self): return self[1]
+
+    @property
+    @safe_index
+    def else_statement(self) : return self[2]
+
     def to_cpp(self, env=defaultdict(bool)):
-        if len(self) == 2: # simple if (condition) {statement}
-          return 'if (%s) %s' % cpp_tuple(self, env)
-        elif len(self) == 3: # full if (condition) {statement} else {statement}
-          return 'if (%s) %s else %s' % cpp_tuple(self, env)
+        if not self.else_statement:
+            return 'if (%s) %s' % cpp_tuple([self.condition, self.if_statement], env)
         else:
-          raise InternalException("Wrong type of if statement with %s length" % len(self))
+            return 'if (%s) %s else %s' % cpp_tuple([self.condition, self.if_statement, self.else_statement], env)
+
     def evaluate(self, env):
-        if len(self) == 2: # simple if (condition) {statement}
-            condition, statement = self
-            if condition.evaluate(env):
-                statement.evaluate(env)
-        elif len(self) == 3: # full if (condition) {statement} else {statement}
-            condition, if_statement, else_statement
-            if condition.evaluate(env):
-                if_statement.evaluate(env)
+        if not self.else_statement:
+            if self.condition.evaluate(env):
+                self.if_statement.evaluate(env)
+        else:
+            if self.condition.evaluate(env):
+                self.if_statement.evaluate(env)
             else:
-                else_statement.evaluate(env)
+                self.else_statement.evaluate(env)
 
-        else:
-          raise InternalException("Wrong type of if statement with %s length" % len(self))
+class While(ChestnutNode):
+    @property
+    def condition(self): return self[0]
 
+    @property
+    @safe_index
+    def statement(self): return self[1]
 
-class While(List):
     def to_cpp(self, env=defaultdict(bool)):
-        return 'while (%s) %s' % cpp_tuple(self, env)
+        return 'while (%s) %s' % cpp_tuple([self.condition, self.statement], env)
+
     def evaluate(self, env):
-        expression, statement = self
         while (True):
-            result = expression.evaluate(env)
+            result = self.expression.evaluate(env)
             if not result:
                 break
             try:
-                statement.evaluate(env)
+                self.statement.evaluate(env)
             except InterpreterBreak:
                 break
 
-class Read(List): pass
-class Write(List): pass
+class Read(ChestnutNode): pass
+class Write(ChestnutNode): pass
 
 random_device_template = """walnut_random()"""
-class Random(List):
+class Random(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         if env['@in_parallel_context']:
             return random_device_template
@@ -877,13 +948,6 @@ class Random(List):
             raise CompilerException("Sequential Random not implemented")
 
     def evaluate(self, env):
-        if len(self) == 2:
-            min_limit, max_limit = self
-        else:
-            min_limit = 0
-            max_limit = (2**32)/2-1
-
-
         if not '@output' in env:
             print 'Warning, no output variable, can\'t perform rand()'
             return
@@ -900,13 +964,13 @@ class Random(List):
         return output
 
 
-class ParallelLocation(List):
+class ParallelLocation(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         if type(symbolTable.lookup(self[0])) is not StreamVariable:
             raise CompilerException("Trying to take the location of a normal (non-stream) variable '%s'. This doesn't work" % self[0])
         return 'Point2d(_x, _y)'
 
-class ParallelWindow(List):
+class ParallelWindow(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         symbol = symbolTable.lookup(self[0])
 
@@ -918,44 +982,35 @@ class ParallelWindow(List):
 reduce_template = """\
 thrust::reduce({input_data}.thrustPointer(), {input_data}.thrustEndPointer())\
 """
-class ParallelReduce(List):
+class DataReduce(ChestnutNode):
+    @property
+    def input(self): return self[0]
+
+    @property
+    @safe_index
+    def function(self): return self[1]
+
     def to_cpp(self, env=defaultdict(bool)):
         function = None
 
-        if len(self) == 1:
-            input = self[0]
-        elif len(self) == 2:
-            input, function = self
-        else:
-            raise InternalException("Wrong list length to parallel reduce")
-
-        check_is_symbol(input)
-        input = symbolTable.lookup(input)
+        check_is_symbol(self.input)
+        input = symbolTable.lookup(self.input)
 
         check_type(input, Data)
 
         #TODO: Actually use function
-        if function:
+        if self.function:
             print('Warning: functions in reduce() calls are not implemented yet')
-            check_is_symbol(function)
-            function = symbolTable.lookup(function)
-            check_type(function, SequentialFunction)
+            check_is_symbol(self.function)
+            function = symbolTable.lookup(self.function)
+            check_type(self.function, SequentialFunction)
             return ''
 
         else:
             return reduce_template.format(input_data=input.name)
 
     def evaluate(self, env, output=None):
-        function = None
-        if len(self) == 1:
-            input = self[0]
-        elif len(self) == 2:
-            input, function = self
-        else:
-            raise InternalException("Wrong list length to parallel reduce")
-
-
-        input = env[input]
+        input = env[self.input]
         reduction = ReductionKernel(input.dtype, neutral='0',
                                     reduce_expr='a+b', map_expr='in[i]',
                                     arguments='{type} *in'.format(type=dtype_to_ctype[input.dtype]))
@@ -972,34 +1027,34 @@ sort_template = """
   thrust::sort(%(output_data)s.thrustPointer(), %(output_data)s.thrustEndPointer());
 }
 """
-class ParallelSort(List):
+class DataSort(ChestnutNode):
+    @property
+    def input(self): return self[0]
+
+    @property
+    @safe_index
+    def function(self): return self[1]
+
     def to_cpp(self, env=defaultdict(bool)):
         function = None
         output = env['data_to_assign']
         if not output:
             raise InternalException("The environment '%s' doesn't have a 'data_to_assign' variable set" % env)
 
-        if len(self) == 1:
-            input = self[0]
-        elif len(self) == 2:
-            input, function = self
-        else:
-            raise InternalException("Wrong list length to parallel sort")
-
-        check_is_symbol(input)
+        check_is_symbol(self.input)
         check_is_symbol(output)
 
-        input = symbolTable.lookup(input)
+        input = symbolTable.lookup(self.input)
         output = symbolTable.lookup(output)
 
         check_type(input, Data)
         check_type(output, Data)
 
         #TODO: Actually use function
-        if function:
+        if self.function:
             print('Warning: functions in reduce() calls are not implemented yet')
-            check_is_symbol(function)
-            function = symbolTable.lookup(function)
+            check_is_symbol(self.function)
+            function = symbolTable.lookup(self.function)
             check_type(function, SequentialFunction)
             return ''
 
@@ -1027,7 +1082,7 @@ class ParallelSort(List):
         return temp.reshape(input.height, input.width)
 
 
-class ForeachParameter(List):
+class ForeachParameter(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         print self
 
@@ -1056,9 +1111,9 @@ parallel_context_call = """\
     %(releases)s
 }
 """
-class ParallelContext(List):
+class ParallelContext(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
-        parameters, statements = self
+        parameters, statements, context = self
         env['@in_parallel_context'] = True
 
         context_name = '_foreach_context_' + next_open_name()
@@ -1072,12 +1127,12 @@ class ParallelContext(List):
 
         symbolTable.createScope()
         for parameter in parameters:
-            piece, data = parameter
+            piece, data, context = parameter
 
             if data not in arrays:
                 arrays.append(data)
             else:
-                raise CompilerException("{name} already used in this foreach loop".format(name=data))
+                raise CompilerException("{name} already used in this foreach loop".format(name=data), parameter)
 
             data = symbolTable.lookup(data)
             if data.type not in data_types:
@@ -1151,7 +1206,7 @@ class ParallelContext(List):
         else:
             struct_member_variables = function_parameters = struct_member_initializations = ''
 
-        if list_contains_type(statements, Random):
+        if list_contains_function(statements, 'random'):
             random_initializer = "curandState __random_state;\ncurand_init(hash(_index), 0, 0, &__random_state);\n"
         else:
             random_initializer = ''
