@@ -283,34 +283,15 @@ class Negative(List):
     def evaluate(self, env):
         return op.neg(self[0].evaluate(env))
 
-### Old Operators ###
-class Mul(List):
-    def to_cpp(self, env=defaultdict(bool)):
-        return "(%s * %s)" % cpp_tuple(self, env)
-    def evaluate(self, env):
-        return self[0].evaluate(env) * self[1].evaluate(env)
-class Div(List):
-    def to_cpp(self, env=defaultdict(bool)):
-        return "((float)%s / %s)" % cpp_tuple(self, env)
-    def evaluate(self, env):
-        return self[0].evaluate(env) / self[1].evaluate(env)
+### Other Operators ###
 class Mod(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "((int)%s %% %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
         return self[0].evaluate(env) % self[1].evaluate(env)
 
-class Add(List):
-    def to_cpp(self, env=defaultdict(bool)):
-        return "(%s + %s)" % cpp_tuple(self, env)
-    def evaluate(self, env):
-        return self[0].evaluate(env) + self[1].evaluate(env)
-class Sub(List):
-    def to_cpp(self, env=defaultdict(bool)):
-        return "(%s - %s)" % cpp_tuple(self, env)
-    def evaluate(self, env):
-        return self[0].evaluate(env) - self[1].evaluate(env)
 
+### Comparetors ###
 class LessThan(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "(%s < %s)" % cpp_tuple(self, env)
