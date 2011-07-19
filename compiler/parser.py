@@ -166,10 +166,9 @@ parameter_declaration = (type_ | data_type ) & identifier > Parameter
 parameter_declaration_list = parameter_declaration[0:, ~comma] > Parameters
 
 initialization = ~symbol('=') & expression > VariableInitialization
-data_initialization = ~symbol('=') & parallel_function_call > DataInitialization
 
-variable_declaration = type_ & identifier & Optional(initialization | data_initialization) & ~semi > VariableDeclaration
-data_declaration = data_type & identifier & size & Optional(data_initialization) & ~semi > DataDeclaration
+variable_declaration = (type_ & identifier & Optional(initialization) & ~semi) ** with_line(VariableDeclaration)
+data_declaration = data_type & identifier & size & ~semi > DataDeclaration
 sequential_function_declaration = ~Token('sequential') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > SequentialFunctionDeclaration
 parallel_function_declaration = ~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
 

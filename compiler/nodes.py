@@ -377,14 +377,15 @@ class Program(List):
             node.evaluate(env)
 
 class VariableDeclaration(List):
-    def to_cpp(self, env=defaultdict(bool)):
-        type, name = self[0], self[1]
+    @extract_line_info
+    def to_cpp(self, node, start_line, end_line, env=defaultdict(bool)):
+        type, name = node[0], node[1]
         symbolTable.add(Variable(name, type))
-        if len(self) == 3: # we have an initialization
+        if len(node) == 3: # we have an initialization
             env = defaultdict(bool, variable_to_assign=name)
-            return '%s %s;\n%s' % cpp_tuple(self, env)
+            return '%s %s;\n%s' % cpp_tuple(node, env)
         else:
-            return '%s %s;' % cpp_tuple(self, env)
+            return '%s %s;' % cpp_tuple(node, env)
     def evaluate(self, env):
         type, name = self[0:2]
         var = env[name] = Variable(name, type)
