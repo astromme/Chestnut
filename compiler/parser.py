@@ -85,7 +85,7 @@ unopened_size_block = (width & comma & height & symbol(']')) ** make_error('no [
 unclosed_size_block = (symbol('[') & width & comma & height) ** make_error('Datablock size specification is missing a closing ]')
 
 size = Or(
-        ~symbol('[') & width & ~comma & height & ~symbol(']') > Size,
+        (~symbol('[') & width & ~comma & height & ~symbol(']')) ** with_line(Size),
         unopened_size_block,
         unclosed_size_block
         )
@@ -106,23 +106,23 @@ size = Or(
 parens = ~symbol('(') & expression & ~symbol(')')
 group1 = parens | number | primary
 
-unary_not = ~symbol('!') & group2 > Not
-unary_neg = ~symbol('-') & group2 > Neg
-binary_mod = group1 & ~symbol('%') & group2 > Mod
+unary_not = (~symbol('!') & group2) ** with_line(Not)
+unary_neg = (~symbol('-') & group2) ** with_line(Neg)
+binary_mod = (group1 & ~symbol('%') & group2) ** with_line(Mod)
 group2 += unary_not | unary_neg | binary_mod | group1
 
 # third layer, next most tightly grouped, is multiplication
 multiplier = ~symbol('*') & group2
 inverse    = ~symbol('/') & group2 > Inverse
 group3_pass_on  = group2
-group3_include  = group2 & (multiplier | inverse)[1:] > Product
+group3_include  = (group2 & (multiplier | inverse)[1:]) ** with_line(Product)
 group3_product += group3_pass_on | group3_include
 
 # fourth layer, less tightly grouped, is addition
 addend   = ~symbol('+') & group3_product
 negative = ~symbol('-') & group3_product > Negative
 group4_pass_on = group3_product
-group4_include = group3_product & (addend | negative)[1:] > Sum
+group4_include = (group3_product & (addend | negative)[1:]) ** with_line(Sum)
 group4_sum    += group4_pass_on | group4_include
 
 #group4end = Delayed()
@@ -132,52 +132,52 @@ group4_sum    += group4_pass_on | group4_include
 #group4 += group3 & group4end > List
 
 
-less_than              = group4_sum & ~symbol('<')   & group5 > LessThan
-less_than_or_equal     = group4_sum & ~symbol('<') & ~symbol('=') & group5 > LessThanOrEqual
-greater_than           = group4_sum & ~symbol('>')   & group5 > GreaterThan
-greather_than_or_equal = group4_sum & ~symbol('>') & ~symbol('=') & group5 > GreaterThanOrEqual
+less_than              = (group4_sum & ~symbol('<')   & group5) ** with_line(LessThan)
+less_than_or_equal     = (group4_sum & ~symbol('<') & ~symbol('=') & group5) ** with_line(LessThanOrEqual)
+greater_than           = (group4_sum & ~symbol('>')   & group5) ** with_line(GreaterThan)
+greather_than_or_equal = (group4_sum & ~symbol('>') & ~symbol('=') & group5) ** with_line(GreaterThanOrEqual)
 group5 += less_than | less_than_or_equal | greater_than | greather_than_or_equal | group4_sum
 
-equal     = group5 & ~symbol('=')[2] & group6 > Equal
-not_equal = group5 & ~symbol('!') & ~symbol('=') & group6 > NotEqual
+equal     = (group5 & ~symbol('=')[2] & group6) ** with_line(Equal)
+not_equal = (group5 & ~symbol('!') & ~symbol('=') & group6) ** with_line(NotEqual)
 group6 += equal | not_equal | group5
 
-boolean_and = group6 & ~symbol('&')[2] & group7 > BooleanAnd
+boolean_and = (group6 & ~symbol('&')[2] & group7) ** with_line(BooleanAnd)
 group7 += boolean_and | group6
 
-boolean_or = group7 & ~symbol('|')[2] & group8 > BooleanOr
+boolean_or = (group7 & ~symbol('|')[2] & group8) ** with_line(BooleanOr)
 group8 += boolean_or | group7
 
-assignment = (identifier | property_list) & ~symbol('=') & expression > Assignment
+assignment = ((identifier | property_list) & ~symbol('=') & expression) ** with_line(Assignment)
 expression += assignment | group8
 
 expression_list = expression[0:, ~comma] > Expressions
 
 statement, block, parallel_context = Delayed(), Delayed(), Delayed()
-return_ = ~keyword('return') & expression & ~semi > Return
-break_ =  ~keyword('break') & ~semi > Break
-if_ =     ~keyword('if') & ~symbol('(') & expression & ~symbol(')') & statement & Optional(~keyword('else') & statement) > If
-while_ =  ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & statement > While
+return_ = (~keyword('return') & expression & ~semi) ** with_line(Return)
+break_ = ( ~keyword('break') & ~semi) ** with_line(Break)
+if_ = (    ~keyword('if') & ~symbol('(') & expression & ~symbol(')') & statement & Optional(~keyword('else') & statement)) ** with_line(If)
+while_ = ( ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & statement) ** with_line(While)
 #semicolin_statement = Or(
 #                        Optional(return_ | break_) & ~semi,
 #                        Optional(return_ | break_) 
 statement += ~semi | parallel_context | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
 
 #### Top Level Program Matching ####
-parameter_declaration = (type_ | data_type ) & identifier > Parameter
+parameter_declaration = ((type_ | data_type ) & identifier) ** with_line(Parameter)
 #parameter_declaration = type_ & identifier > Parameter
-parameter_declaration_list = parameter_declaration[0:, ~comma] > Parameters
+parameter_declaration_list = (parameter_declaration[0:, ~comma]) ** with_line(Parameters)
 
-initialization = ~symbol('=') & expression > VariableInitialization
+initialization = (~symbol('=') & expression) ** with_line(VariableInitialization)
 
 variable_declaration = (type_ & identifier & Optional(initialization) & ~semi) ** with_line(VariableDeclaration)
-data_declaration = data_type & identifier & size & ~semi > DataDeclaration
-sequential_function_declaration = ~Token('sequential') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > SequentialFunctionDeclaration
-parallel_function_declaration = ~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block > ParallelFunctionDeclaration
+data_declaration = (data_type & identifier & size & ~semi) ** with_line(DataDeclaration)
+sequential_function_declaration = (~Token('sequential') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(SequentialFunctionDeclaration)
+parallel_function_declaration = (~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(ParallelFunctionDeclaration)
 
 #Built-in Sequential functions
-sequential_print = ~keyword('print') & ~symbol('(') & string & (~comma & expression)[:] & ~symbol(')') > Print
-generic_function_call += identifier & ~symbol('(') & expression_list & ~symbol(')') > FunctionCall
+sequential_print = (~keyword('print') & ~symbol('(') & string & (~comma & expression)[:] & ~symbol(')')) ** with_line(Print)
+generic_function_call += (identifier & ~symbol('(') & expression_list & ~symbol(')')) ** with_line(FunctionCall)
 
 sequential_function_call += sequential_print | generic_function_call
 primary += parallel_function_call | host_function_call | sequential_function_call | identifier | property_list
@@ -185,17 +185,17 @@ primary += parallel_function_call | host_function_call | sequential_function_cal
 ## Host Data functions
 #data_read  = ~symbol(':') & ~keyword('read') & ~symbol('(') & data_identifier & ~symbol(')') & ~semi > Read
 #data_write = ~symbol(':') & ~keyword('write') & ~symbol('(') & data_identifier & ~comma & filename & ~symbol(')') & ~semi > Write
-data_print = ~keyword('print') & ~symbol('(') & data_identifier & ~symbol(')') > DataPrint
-data_display = ~keyword('display') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > DataDisplay
+data_print = (~keyword('print') & ~symbol('(') & data_identifier & ~symbol(')')) ** with_line(DataPrint)
+data_display = (~keyword('display') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')')) ** with_line(DataDisplay)
 host_function_call += data_print | data_display
 
 ## Parallel functions
 min_value = max_value = integer
-parallel_random = ~function('random') & ~symbol('(') & Optional(min_value & ~comma & max_value) & ~symbol(')') > Random
+parallel_random = (~function('random') & ~symbol('(') & Optional(min_value & ~comma & max_value) & ~symbol(')')) ** with_line(Random)
 
-parallel_reduce = ~function('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > ParallelReduce
+parallel_reduce = (~function('reduce') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')')) ** with_line(ParallelReduce)
 
-parallel_sort   = ~function('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')') > ParallelSort
+parallel_sort   = (~function('sort') & ~symbol('(') & data_identifier & Optional(~comma & parallel_identifier) & ~symbol(')')) ** with_line(ParallelSort)
 
 
 parallel_function_call += parallel_random | parallel_reduce | parallel_sort
@@ -208,10 +208,10 @@ block += Or(
         unclosed_block
         )
 
-foreach_input_parameter = identifier & ~keyword('in') & identifier > ForeachInputParameter
-foreach_output_parameter = identifier & ~symbol('!') & ~keyword('in') & identifier > ForeachOutputParameter
+foreach_input_parameter = (identifier & ~keyword('in') & identifier) ** with_line(ForeachInputParameter)
+foreach_output_parameter = (identifier & ~symbol('!') & ~keyword('in') & identifier) ** with_line(ForeachOutputParameter)
 foreach_parameter = foreach_output_parameter | foreach_input_parameter
-parallel_context += ~keyword('foreach') & (foreach_parameter[0:, ~comma] > List) & ((variable_declaration | statement)[0:] > List) & ~keyword('end') > ParallelContext
+parallel_context += (~keyword('foreach') & (foreach_parameter[0:, ~comma] > List) & ((variable_declaration | statement)[0:] > List) & ~keyword('end')) ** with_line(ParallelContext)
 
 declaration_list = (data_declaration | variable_declaration | sequential_function_declaration | parallel_function_declaration | statement)[0:]
 
