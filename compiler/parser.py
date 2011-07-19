@@ -20,8 +20,11 @@ def with_line(node):
             end_line = s_delta(stream_out)[1]
         except StopIteration:
             end_line = 'eof'
-        results.extend([start_line, end_line])
-        return node(results)
+
+        object = node(results)
+        object.start_line = start_line
+        object.end_line = end_line
+        return object
     return wrapper
 
 def set_and_return(obj, **kwargs):

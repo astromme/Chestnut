@@ -99,15 +99,6 @@ def check_dimensions_are_equal(leftData, rightData):
          (rightData.name, rightData.width, rightData.height, leftData.name, leftData.width, leftData.height))
 
 
-def extract_line_info(function):
-    def wrapper(obj, env=defaultdict(bool)):
-        node_info = obj[0:-2]
-        start_line, end_line = obj[-2:]
-        return function(obj, node_info, start_line, end_line, env)
-    return wrapper
-
-
-
 class Type(str):
     def to_cpp(self, env=None):
         return type_map[self]
@@ -160,7 +151,20 @@ def indent(code, indent_first_line=True):
     return code.replace('\n', '\n  ')
 
 #helper functions to check for errors and to print them in a nice way
-class CompilerException(Exception): pass
+class CompilerException(Exception):
+    def __init__(self, message, node=None):
+        self.message = message
+        self.node = node
+
+    def __str__(self):
+        if not node:
+            return "Error - {message}".format(message=self.message)
+        else:
+            return "Error around lines {start} and {end} - {message}".format(start=self.node.start_line,
+                                                                            end=self.node.end_line,
+                                                                            message=self.message)
+
+
 class InternalException(Exception): pass
 
 #helper functions to emulate return, break
@@ -377,15 +381,14 @@ class Program(List):
             node.evaluate(env)
 
 class VariableDeclaration(List):
-    @extract_line_info
-    def to_cpp(self, node, start_line, end_line, env=defaultdict(bool)):
-        type, name = node[0], node[1]
+    def to_cpp(self, env=defaultdict(bool)):
+        type, name = self[0], self[1]
         symbolTable.add(Variable(name, type))
-        if len(node) == 3: # we have an initialization
+        if len(self) == 3: # we have an initialization
             env = defaultdict(bool, variable_to_assign=name)
-            return '%s %s;\n%s' % cpp_tuple(node, env)
+            return '%s %s;\n%s' % cpp_tuple(self, env)
         else:
-            return '%s %s;' % cpp_tuple(node, env)
+            return '%s %s;' % cpp_tuple(self, env)
     def evaluate(self, env):
         type, name = self[0:2]
         var = env[name] = Variable(name, type)
@@ -477,7 +480,7 @@ class ParallelFunctionDeclaration(List):
         type_, name, parameters, block = self
 
         if list_contains_type(block, ParallelContext):
-            raise CompilerException("Parallel contexts (foreach loops) can not exist inside of parallel functions")
+            raise CompilerException("Parallel contexts (foreach loops) can not exist inside of parallel functions", self)
 
         symbolTable.add(ParallelFunction(name, type_, parameters, node=self))
         symbolTable.createScope()
@@ -520,14 +523,12 @@ class ParallelFunctionDeclaration(List):
 
 class Parameters(List): pass
 class Block(List):
-    @extract_line_info
-    def to_cpp(self, block, start_line, end_line, env):
+    def to_cpp(self, env):
         symbolTable.createScope()
-        cpp = '{\n' + indent('\n'.join(cpp_tuple(block, env))) + '\n}'
+        cpp = '{\n' + indent('\n'.join(cpp_tuple(self, env))) + '\n}'
         symbolTable.removeScope()
         return cpp
-    @extract_line_info
-    def evaluate(self, block, start_line, end_line, env):
+    def evaluate(self, env):
         block_scope = Scope(env)
         for statement in self:
             statement.evaluate(block_scope)
@@ -710,7 +711,7 @@ class ParallelFunctionCall(List):
         try:
             check_is_symbol(function)
         except CompilerException:
-            raise CompilerException("Can't find the function called '%s', is this a misspelling?" % function)
+            raise CompilerException("Can't find the function called '%s', is this a misspelling?" % function, self)
         function = symbolTable.lookup(function)
         check_type(function, ParallelFunction, NeutralFunction)
 
