@@ -14,8 +14,13 @@ parallel_function_call, sequential_function_call, host_function_call, generic_fu
 
 #Line Helpers
 def with_line(node):
-    def wrapper(results, stream_in, stream_out):
-        results.extend([s_delta(stream_in)[1], s_delta(stream_out)[1]])
+    def wrapper(results, stream_in, stream_out, *kargs):
+        start_line = s_delta(stream_in)[1]
+        try:
+            end_line = s_delta(stream_out)[1]
+        except StopIteration:
+            end_line = 'eof'
+        results.extend([start_line, end_line])
         return node(results)
     return wrapper
 
