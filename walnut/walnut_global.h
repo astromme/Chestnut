@@ -54,24 +54,26 @@ struct WALNUT_EXPORT complex {
   real32 real_part;
   real32 imaginary_part;
 
-  __host__ __device__ complex(real32 real_part, real32 imaginary_part);
-  __host__ __device__ real32 magnitude() const;
-  __host__ __device__ real32 magnitudeSquared() const;
+  __device__ complex(real32 real_part, real32 imaginary_part);
+  __device__ real32 magnitude() const;
+  __device__ real32 magnitudeSquared() const;
 
-  __host__ __device__ complex operator*(const complex &other) const;
-  __host__ __device__ complex operator+(const complex &other) const;
+  __device__ complex operator*(const complex &other) const;
+  __device__ complex operator+(const complex &other) const;
 };
 
-template <typename T> __host__ __device__
+template <typename T> __device__
 inline const T &wMin(const T &a, const T &b) { if (a < b) return a; return b; }
 
-template <typename T> __host__ __device__
+template <typename T> __device__
 inline const T &wMax(const T &a, const T &b) { if (a < b) return b; return a; }
 
-template <typename T> __host__ __device__
+template <typename T> __device__
 inline const T &wBound(const T &min, const T &val, const T &max)
 { return wMax(min, wMin(max, val)); }
 
 }
+
+
 
 #endif // WALNUT_GLOBAL

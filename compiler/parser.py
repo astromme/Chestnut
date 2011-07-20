@@ -103,10 +103,10 @@ size = Or(
 
 # first layer, most tightly grouped, is parens and numbers
 parens = ~symbol('(') & expression & ~symbol(')')
-group1 = parens | number | primary
+group1 = parens | number | string | primary
 
-unary_not = (~symbol('!') & group2) ** with_line(Not)
-unary_neg = (~symbol('-') & group2) ** with_line(Neg)
+unary_not = (~symbol('!') & group2) > Not
+unary_neg = (~symbol('-') & group2) > Neg
 binary_mod = (group1 & ~symbol('%') & group2) ** with_line(Mod)
 group2 += unary_not | unary_neg | binary_mod | group1
 

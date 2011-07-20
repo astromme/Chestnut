@@ -23,7 +23,13 @@
 #include "walnut_global.h"
 #include "Sizes.h"
 
+#include <thrust/sort.h>
 #include <thrust/device_vector.h>
+
+
+__device__ inline bool operator<(const Walnut::color &left, const Walnut::color &right) {
+  return left.x + left.y + left.z + left.w < right.x + right.y + right.z + right.w;
+}
 
 namespace Walnut {
 
@@ -44,7 +50,7 @@ struct WALNUT_EXPORT Array2d
 
   __host__ __device__ Array2d() : data(0), height(0), width(0) {}
   __host__ __device__ Array2d(T *data_, int width_, int height_) : data(data_), width(width_), height(height_) {}
-  __host__            Array2d(thrust::device_vector<T> &vector, int width, int height); // If vector is deleted,
+             Array2d(thrust::device_vector<T> &vector, int width, int height); // If vector is deleted,
   __host__ __device__ Array2d(const Array2d &other) : data(other.data), width(other.width), height(other.height) {}
 
   int length() const { return width * height; }
@@ -54,6 +60,14 @@ struct WALNUT_EXPORT Array2d
   const T* constData() const { return (const T*)data; }
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }
   thrust::device_ptr<T> thrustEndPointer() { return thrustPointer() + width*height; }
+
+  void sort() { thrust::sort(this->thrustPointer(), this->thrustEndPointer()); }
+
+  Array2d<T>& sorted_copy_in(Array2d<T> &output) {
+    this->copyTo(output); //TODO: Check if pointers are the same... and don't copy
+    output.sort();
+    return output;
+  }
 
   void copyTo(Array2d<T> &array)               { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.thrustPointer()); }
   void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width*height, array); }
@@ -66,7 +80,7 @@ struct WALNUT_EXPORT Array2d
     other.data = temp;
   }
 
-  __host__ __device__
+  __device__
   int calculateIndex(int x, int y, int x_offset=0, int y_offset=0) const {
     x = ((x + x_offset) + width)  % width;
     y = ((y + y_offset) + height) % height;
@@ -74,7 +88,7 @@ struct WALNUT_EXPORT Array2d
     return y*width + x;
   }
 
-  __host__ __device__
+  __device__
   T& at(int x, int y) {
     return data[calculateIndex(x, y)];
   }

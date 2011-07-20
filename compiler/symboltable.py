@@ -75,6 +75,10 @@ class Window(namedtuple('Window', ['name', 'number'])):
 
 class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
     @property
+    def cpp_name(self):
+        return self.name
+
+    @property
     def has_display(self):
         try:
             return self._has_display

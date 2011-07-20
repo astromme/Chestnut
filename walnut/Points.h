@@ -27,20 +27,20 @@ namespace Walnut {
 struct Point1d
 {
   int32 x;
-  __host__ __device__ Point1d(int32 x_) : x(x_) {}
+  __device__ Point1d(int32 x_) : x(x_) {}
 };
 
 struct Point2d {
   int32 x;
   int32 y;
-  __host__ __device__ Point2d(int32 x_, int32 y_) : x(x_), y(y_) {}
+  __device__ Point2d(int32 x_=0, int32 y_=0) : x(x_), y(y_) {}
 };
 
 struct Point3d {
   int32 x;
   int32 y;
   int32 z;
-  __host__ __device__ Point3d(int32 x_, int32 y_, int32 z_) : x(x_), y(y_), z(z_) {}
+  __device__ Point3d(int32 x_, int32 y_, int32 z_) : x(x_), y(y_), z(z_) {}
 };
 
 struct Point4d {
@@ -48,7 +48,7 @@ struct Point4d {
   int32 y;
   int32 z;
   int32 w;
-  __host__ __device__ Point4d(int32 x_, int32 y_, int32 z_, int32 w_) : x(x_), y(y_), z(z_), w(w_) {}
+  __device__ Point4d(int32 x_, int32 y_, int32 z_, int32 w_) : x(x_), y(y_), z(z_), w(w_) {}
 };
 
 }

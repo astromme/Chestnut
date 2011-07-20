@@ -10,17 +10,17 @@ namespace Walnut {
 template <typename InputType>
 struct WALNUT_EXPORT _chestnut_default_color_conversion_functor : public thrust::unary_function<InputType, color> {
 
-  __host__ __device__
+  __device__
   int convert(float value) {
     return wBound(0, int(value * 255), 255);
   }
 
-  __host__ __device__
+  __device__
   int convert(int value) {
     return wBound(0, value, 255);
   }
 
-  __host__ __device__
+  __device__
   color operator()(InputType value) {
     color gray;
     gray.x = convert(value);

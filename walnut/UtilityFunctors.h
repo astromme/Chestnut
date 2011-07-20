@@ -23,21 +23,38 @@
 #include "walnut_global.h"
 #include <thrust/transform.h>
 #include <curand_kernel.h>
+#include <curand.h>
 
 #define walnut_random() Walnut::random(&__random_state)
 
 namespace Walnut {
 
-float __host__ __device__ random(curandState *state) {
- #ifdef __CUDA_ARCH__
+#if __CUDA_ARCH__ > 0
+float __device__ random(curandState *state) {
  return curand_uniform(state);
- #else
-  Q_UNUSED(state)
+}
+#else
+float __host__ random(curandState *state) {
+ Q_UNUSED(state)
  return float(rand())/INT_MAX;
- #endif
+}
+#endif
+
+inline void check_cuda_errors(const char *filename, const int line_number)
+{
+#ifdef DEBUG
+  cudaThreadSynchronize();
+  cudaError_t error = cudaGetLastError();
+  if(error != cudaSuccess)
+  {
+    printf("CUDA error at %s:%i: %s\n", filename, line_number, cudaGetErrorString(error));
+    exit(-1);
+  }
+#endif
 }
 
-__host__ __device__ unsigned int hash(unsigned int a) {
+
+__device__ unsigned int hash(unsigned int a) {
     a = (a+0x7ed55d16) + (a<<12);
     a = (a^0xc761c23c) ^ (a>>19);
     a = (a+0x165667b1) + (a<<5);
@@ -47,7 +64,7 @@ __host__ __device__ unsigned int hash(unsigned int a) {
     return a;
 }
 
-int __host__ __device__ indexFromDimensions(dim3 blockIdx, dim3 threadIdx, dim3 gridDim, dim3 blockDim) {
+int __device__ indexFromDimensions(dim3 blockIdx, dim3 threadIdx, dim3 gridDim, dim3 blockDim) {
   int index = threadIdx.x +
               threadIdx.y * blockDim.x +
               threadIdx.z * blockDim.x * blockDim.y +
@@ -59,32 +76,32 @@ int __host__ __device__ indexFromDimensions(dim3 blockIdx, dim3 threadIdx, dim3 
 }
 
 // X access
-int __host__ __device__ xFromIndex(int index, int width) {
+int __device__ xFromIndex(int index, int width) {
   Q_UNUSED(width);
   return index;
 }
-int __host__ __device__ xFromIndex(int index, int width, int height) {
+int __device__ xFromIndex(int index, int width, int height) {
   Q_UNUSED(height);
   return index % width;
 }
-int __host__ __device__ xFromIndex(int index, int width, int height, int depth) {
+int __device__ xFromIndex(int index, int width, int height, int depth) {
   Q_UNUSED(height);
   Q_UNUSED(depth);
   return index % width;
 }
 
 // Y access
-int __host__ __device__ yFromIndex(int index, int width, int height) {
+int __device__ yFromIndex(int index, int width, int height) {
   Q_UNUSED(height);
   return index / width;
 }
-int __host__ __device__ yFromIndex(int index, int width, int height, int depth) {
+int __device__ yFromIndex(int index, int width, int height, int depth) {
   Q_UNUSED(depth);
   return (index / width) % height;
 }
 
 // Z access
-int __host__ __device__ zFromIndex(int index, int width, int height, int depth) {
+int __device__ zFromIndex(int index, int width, int height, int depth) {
   Q_UNUSED(depth);
   return index / (width * height);
 }
@@ -120,7 +137,7 @@ __global__ void initialize_random_number_generator(curandState *state)
 //struct make_random_float2
 //{
 //};
-//__host__ __device__ float2 operator()(int index) {
+//__device__ float2 operator()(int index) {
 //}
 //default_random_engine rng;
 //// skip past numbers used in previous threads
@@ -133,7 +150,7 @@ __global__ void initialize_random_number_generator(curandState *state)
 //On the device with an integer hash: struct make_random_float2
 //{
 //};
-//__host__ __device__ float2 operator()(int index) {
+//__device__ float2 operator()(int index) {
 //return make_float2( (float)hash(2*index + 0) / UINT_MAX, (float)hash(2*index + 1) / UINT_MAX);
 //}
 //// generate random input directly on the device

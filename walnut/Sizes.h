@@ -35,7 +35,7 @@ struct Size2d {
   int32 width;
   int32 height;
   __host__ __device__ Size2d(int32 width_, int32 height_) : width(width_), height(height_) {}
-  int32 length() const { return width * height; }
+  __host__ __device__ int32 length() const { return width * height; }
 
 };
 

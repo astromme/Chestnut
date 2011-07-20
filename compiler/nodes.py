@@ -289,12 +289,12 @@ class RuntimeWindow:
 
 ### Nodes ###
 # Operators
-class Not(ChestnutNode):
+class Not(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "!%s" % cpp_tuple(self, env)
     def evaluate(self, env):
         return not self[0].evaluate(env)
-class Neg(ChestnutNode):
+class Neg(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "-%s" % cpp_tuple(self, env)
     def evaluate(self, env):
@@ -383,7 +383,8 @@ class BooleanOr(List):
 class Assignment(List):
     def to_cpp(self, env=defaultdict(bool)):
         output, expression = self
-        return '%s = %s' % (output.to_cpp(), expression.to_cpp(env))
+        env = defaultdict(bool, env, data_to_assign=output)
+        return '%s = %s' % (output.to_cpp(env), expression.to_cpp(env))
     def evaluate(self, env):
         symbol = env[self[0]]
         symbol.value = self[1].evaluate(env)
@@ -486,7 +487,7 @@ class SequentialFunctionDeclaration(ChestnutNode):
         return result
 
 device_function_template = """\
-__host__ __device__ %(type)s %(function_name)s(%(parameters)s) %(block)s
+__device__ %(type)s %(function_name)s(%(parameters)s) %(block)s
 """
 class ParallelFunctionDeclaration(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
@@ -563,7 +564,7 @@ class DataInitialization(ChestnutNode):
 display_functor_template = """\
 template <typename InputType>
 struct _color_convert__{display_function_name} : public thrust::unary_function<{input_data_type}, uchar4> {{
-    __host__ __device__
+    __device__
     uchar4 operator()({input_data_type} value) {{
         return {display_function_name}(value);
     }}
@@ -657,15 +658,15 @@ class DataPrint(ChestnutNode):
 class Print(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         num_format_placeholders = self[0].to_cpp(env).count('%s')
-        num_args = len(self)-1
+        num_args = len(self)-2
 
         if num_format_placeholders != num_args:
-            raise CompilerException("Error, there are %s format specifiers but %s arguments to print()" % \
-                    (num_format_placeholders, num_args))
+            raise CompilerException("There are %s format specifiers but %s arguments to print()" % \
+                    (num_format_placeholders, num_args), self)
         format_substrings = self[0].to_cpp(env).split('%s')
 
         code = 'std::cout'
-        for substring, placeholder in zip(format_substrings[:-1], cpp_tuple(self[1:], env)):
+        for substring, placeholder in zip(format_substrings[:-1], cpp_tuple(self[1:-1], env)):
             code += ' << "%s"' % substring
             code += ' << %s' % placeholder
         code += ' << "%s" << std::endl' % format_substrings[-1]
@@ -673,7 +674,7 @@ class Print(ChestnutNode):
         return code
     def evaluate(self, env):
         text = self[0]
-        args = map(lambda arg: arg.evaluate(env), self[1:])
+        args = map(lambda arg: arg.evaluate(env), self[1:-1])
 
         print(text % tuple(args))
 
@@ -818,6 +819,7 @@ property_template = """\
 """
 class Property(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
+        print self
         name, property_, context = self
         check_is_symbol(name)
         symbol = symbolTable.lookup(name)
@@ -1018,15 +1020,7 @@ class DataReduce(ChestnutNode):
         #return numpy.add.reduce(input.value.reshape(input.width*input.height))
         return reduction(input).get()
 
-sort_template = """
-// Sorting '%(input_data)s' and placing it into '%(output_data)s'
-
-// Thrust then performs the hard work, and we swap pointers at the end if needed
-{
-  %(input_data)s.copyTo(%(output_data)s); //TODO: Check if pointers are the same... and don't copy
-  thrust::sort(%(output_data)s.thrustPointer(), %(output_data)s.thrustEndPointer());
-}
-"""
+sort_template = """%(input_data)s.sorted_copy_in(%(output_data)s)"""
 class DataSort(ChestnutNode):
     @property
     def input(self): return self[0]
@@ -1095,7 +1089,7 @@ struct %(function_name)s {
     %(function_name)s(%(function_parameters)s) %(struct_member_initializations)s {}
 
     template <typename Tuple>
-    __host__ __device__
+    __device__
     void operator()(Tuple _t) %(function_body)s
 };
 """
