@@ -12,8 +12,8 @@ parallel Int ripple(Point2d location, Size2d dimensions, Int current_time) {
 parallel Color orange_convert(Int value) {
   //return Color(red=value, green=value/2, blue=0, opacity=1);
   Color c;
-  c.red = value;
-  c.green = value / 2;
+  c.red = min(255, value+20);
+  c.green = min(127.0, value / 2 + 20);
   c.blue = 0;
   c.opacity = 255;
   return c;
@@ -25,7 +25,7 @@ Int iteration = 0;
 Int iterations = 10000;
 
 while (iteration < iterations) {
-  foreach pixel! in ripple_image
+  foreach pixel in ripple_image
     pixel = ripple(location(pixel), ripple_image.size, iteration);
   end
 

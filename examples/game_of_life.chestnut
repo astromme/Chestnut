@@ -36,14 +36,14 @@ parallel Color green_convert(Int value) {
 IntArray2d life_data[1000, 500];
 
 // Initialize to 30% 1s
-foreach cell! in life_data
+foreach cell in life_data
   cell = (random() < 0.25);
 end
 
 // Run 10,000 iterations of this game of life
 Int iteration = 0;
 while (iteration < 10000) {
-  foreach cell! in life_data
+  foreach cell in life_data
     cell = game_of_life(window(cell));
   end
 

@@ -1149,6 +1149,7 @@ class ParallelContext(ChestnutNode):
             if data.type not in data_types:
                 raise CompilerException("%s %s should be an array" % (data.type, data.name), self)
 
+
             symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='Window2d<%s>(%s, _x, _y).center()'
                             % (chestnut_to_c[data.type], data.name)))
 
@@ -1158,7 +1159,6 @@ class ParallelContext(ChestnutNode):
             function_parameters.append('Array2d<%s> _%s' % (chestnut_to_c[data.type], data.name))
             struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : data.name })
             requested_variables.append(data.name)
-
 
         if list_contains_type(statements, ParallelContext):
             raise CompilerException("Parallel Contexts (foreach loops) can not be nested")
@@ -1184,7 +1184,7 @@ class ParallelContext(ChestnutNode):
 
         for assignment in collect_elements_from_list(statements, Assignment):
             symbol = symbolTable.lookup(assignment[0])
-            if symbol and type(symbol) == StreamVariable:
+            if symbol and type(symbol) == StreamVariable and symbol not in outputs:
                 outputs.append(symbol)
 
                 struct_member_variables.append('Array2d<%s> _original_values_for_%s;' % (chestnut_to_c[symbol.type], symbol.array.name))
@@ -1199,7 +1199,7 @@ class ParallelContext(ChestnutNode):
         for (new_name, original_name) in [('_new_values_for_%s' % output.array.name, output.array.name) for output in outputs]:
             #Swap order of new and old so that it matches the kernel order. Weird, I know
             requested_variables[requested_variables.index(original_name)] = new_name
-            requested_variables.append(new_name)
+            requested_variables.append(original_name)
             new_names.append(new_name)
 
         temp_arrays = [create_data(output.array.type, name, output.array.size) for output, name in zip(outputs, new_names)]

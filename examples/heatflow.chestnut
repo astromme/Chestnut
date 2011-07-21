@@ -1,4 +1,4 @@
-parallel Real heat(RealArray2d data, Int timestep) {
+parallel Real heat(Real data, Point2d location, Int timestep) {
   //timestep = timestep / 10;
   //Int xmin = timestep % parallel.width;
   //Int xmax = (timestep + 10) % parallel.width;
@@ -10,7 +10,7 @@ parallel Real heat(RealArray2d data, Int timestep) {
   Int ymin = 50;
   Int ymax = 60;
 
-  if ((parallel.x < xmax) && (parallel.x > xmin) && (parallel.y < ymax) && (parallel.y > ymin)) {
+  if ((location.x < xmax) && (location.x > xmin) && (location.y < ymax) && (location.y > ymin)) {
     return 1;
   }
   
@@ -19,14 +19,14 @@ parallel Real heat(RealArray2d data, Int timestep) {
   ymin = 65;
   ymax = 70;
 
-  if ((parallel.x < xmax) && (parallel.x > xmin) && (parallel.y < ymax) && (parallel.y > ymin)) {
+  if ((location.x < xmax) && (location.x > xmin) && (location.y < ymax) && (location.y > ymin)) {
     return 0;
   }
 
-  return data.center;
+  return data;
 }
 
-parallel Real heat_flow(RealArray2d data, Real c0, Real c1) {
+parallel Real heat_flow(RealWindow2d data, Real c0, Real c1) {
   Real new_data = c0*data.center;
   new_data = new_data + c1*(data.left + data.right + data.top + data.bottom);
 
@@ -34,28 +34,20 @@ parallel Real heat_flow(RealArray2d data, Real c0, Real c1) {
   return max(0.0, new_data);
 }
 
-//sequential Real squared(Real value) {
-//  return value*value;
-//}
-
-parallel Color convert_color(RealArray2d array) {
+parallel Color convert_color(Real value) {
   Color output;
 
-  if (array.center == 1) {
+  if (value == 1) {
     output.red = output.blue = output.green = 255;
-    output.alpha = 255;
+    output.opacity = 255;
   } else {
-    output.red = array.center*255;
+    output.red = value*255;
     output.green = 0;
     output.blue = 0;
-    output.alpha = 255;
+    output.opacity = 255;
   }
 
   return output;
-}
-
-parallel Real set_to(Real value) {
-  return value;
 }
 
 Real kappa = 0.2;
@@ -65,27 +57,20 @@ Real delta_x = 1;
 Real c0 = 1 - 4 * kappa * delta_t / delta_x;
 Real c1 = kappa * delta_t / delta_x;
 
-RealArray2d heat_data[500, 250] = :set_to(0);
-IntArray2d heat_display[500, 250];
+RealArray2d heat_data[500, 250];
 
+foreach point in heat_data
+  point = 0;
+end
 
 Int iteration = 0;
-Int iterations = 10000;
-while (iteration < iterations) {
-  heat_data = :heat_flow(heat_data, c0, c1);
-  heat_data = :heat(heat_data, iteration);
+while (iteration < 10000) {
 
-  heat_data = :heat_flow(heat_data, c0, c1);
-  heat_data = :heat(heat_data, iteration);
+  foreach point in heat_data
+    point = heat_flow(window(point), c0, 1);
+    point = heat(point, location(point), iteration);
+  end
 
-  heat_data = :heat_flow(heat_data, c0, c1);
-  heat_data = :heat(heat_data, iteration);
-
-  heat_data = :heat_flow(heat_data, c0, c1);
-  heat_data = :heat(heat_data, iteration);
-
-  heat_data = :heat_flow(heat_data, c0, c1);
-  heat_data = :heat(heat_data, iteration);
   display(heat_data, convert_color);
 
   iteration = iteration + 1;

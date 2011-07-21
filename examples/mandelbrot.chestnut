@@ -38,7 +38,7 @@ Real bottom = -1;
 
 IntArray2d mandelbrot_display[875, 500];
 
-foreach pixel! in mandelbrot_display
+foreach pixel in mandelbrot_display
   pixel = mandelbrot(location(pixel), mandelbrot_display.size, left, right, top, bottom);
 end
 
