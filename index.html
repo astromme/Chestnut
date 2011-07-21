@@ -29,21 +29,23 @@
     </div>
 
 		<p>
-		Consisting of a language and a graphical environment, Chestnut is an easy-to-learn, easy-to-use parallel programming environment. Parallel functions are first class citizens that operate on individual chunks of data. Sequential functions are available and operate exactly as you think they should.
+		Chestnut uses the power of your graphics card to perform simulations and visualizations. Chestnut sits between C and Python with the conceptual simplicity of C's imperitive programming style but without the pitfalls of pointers and legacy syntax. Built on top CUDA, Chestnut can run on almost any modern system with a NVidia graphics card. Read on for a simple example to get you started.
 		</p>
 
 		<h2>Example</h2>
 		<p>
 			<pre class="ChestnutCode">
-<span class="Type">int2d</span> unsorted[10, 5] = :<span class="Identifier">random</span>(80, 100);
-<span class="Type">int2d</span> sorted[10, 5] = :<span class="Identifier">sort</span>(unsorted);
+<span class="Type">IntArray2d</span> numbers[10, 5];
 
-<span class="Type">int</span> reduced = :<span class="Identifier">reduce</span>(sorted);
+<span class="Keyword">foreach</span> number <span class="Keyword">in</span> numbers
+  number = 100*random();
+<span class="Keyword">end</span>
 
-<span class="Identifier">print</span>(unsorted);
-<span class="Identifier">print</span>(sorted);
-<span class="Identifier">print</span>(<span class="String">&quot;Reduced = %s&quot;</span>, reduced);</pre>
-		In this example two data blocks are created, both with width 10 and height 5. Unsorted is filled with random numbers between 80 and 100 (not including 100) and is then sorted using the parallel function :<span class="Identifier">sort</span>(). Both are printed, along with a reduction of the data.
+<span class="Type">Int</span> sum = <span class="Identifier">reduce</span>(numbers);
+
+<span class="Identifier">print</span>(numbers);
+<span class="Identifier">print</span>(<span class="String">&quot;Average = %s&quot;</span>, reduced/numbers.length);</pre>
+		In this example a 2d array is created that is 10 items wide by 5 items high for a total of 50 items. We fill this array with random numbers by using a parallel context. Each number has its own private thread which are all executed in parallel. Finally, a built in parallel function is used to display the average of the numbers.
 		</p>
 
 		<h2>Contact</h2>
@@ -52,7 +54,7 @@
 
     <h2>Download</h2>
     <p>
-      You can download Chestnut in either
+      You can download the Chestnut sources in either
       <a href="http://github.com/astromme/Chestnut/zipball/master">zip</a> or
       <a href="http://github.com/astromme/Chestnut/tarball/master">tar</a> formats.
     </p>
