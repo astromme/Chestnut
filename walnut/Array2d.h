@@ -22,13 +22,14 @@
 
 #include "walnut_global.h"
 #include "Sizes.h"
+#include "Color.h"
 
 #include <thrust/sort.h>
 #include <thrust/device_vector.h>
 
 
-__device__ inline bool operator<(const Walnut::color &left, const Walnut::color &right) {
-  return left.x + left.y + left.z + left.w < right.x + right.y + right.z + right.w;
+__device__ inline bool operator<(const Walnut::Color &left, const Walnut::Color &right) {
+  return left.red() + left.green() + left.blue() + left.opacity() < right.red() + right.green() + right.blue() + right.opacity();
 }
 
 namespace Walnut {

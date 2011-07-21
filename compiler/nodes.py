@@ -328,7 +328,7 @@ class Negative(List):
         return op.neg(self[0].evaluate(env))
 
 ### Other Operators ###
-class Mod(ChestnutNode):
+class Mod(List):
     def to_cpp(self, env=defaultdict(bool)):
         return "((int)%s %% %s)" % cpp_tuple(self, env)
     def evaluate(self, env):
@@ -421,7 +421,7 @@ class VariableDeclaration(ChestnutNode):
         symbolTable.add(Variable(self.name, self.type))
 
         if self.initialization:
-            env = defaultdict(bool, variable_to_assign=self.name)
+            env = defaultdict(bool, env, variable_to_assign=self.name)
             return '%s %s;\n%s' % cpp_tuple([self.type, self.name, self.initialization], env)
         else:
             return '%s %s;' % cpp_tuple([self.type, self.name], env)
@@ -451,7 +451,6 @@ __host__ %(type)s %(function_name)s(%(parameters)s) %(block)s
 """
 class SequentialFunctionDeclaration(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
-        env = defaultdict(bool, sequential=True)
         type_, name, parameters, block, context = self
 
         symbolTable.add(SequentialFunction(name, type_, parameters, node=self))
@@ -563,9 +562,9 @@ class DataInitialization(ChestnutNode):
 
 display_functor_template = """\
 template <typename InputType>
-struct _color_convert__{display_function_name} : public thrust::unary_function<{input_data_type}, uchar4> {{
+struct _color_convert__{display_function_name} : public thrust::unary_function<{input_data_type}, Color> {{
     __device__
-    uchar4 operator()({input_data_type} value) {{
+    Color operator()({input_data_type} value) {{
         return {display_function_name}(value);
     }}
 }};
@@ -817,53 +816,49 @@ color_properties = { # Screen is apparently BGR not RGB
 property_template = """\
 %(name)s.%(property)s(%(parameters)s)\
 """
-class Property(ChestnutNode):
+class Property(List):
     def to_cpp(self, env=defaultdict(bool)):
-        print self
-        name, property_, context = self
-        check_is_symbol(name)
-        symbol = symbolTable.lookup(name)
+        expr, rest = self[0], self[1:]
 
-        ## New property pseudo code
-        #property_cpp = symbol.cpp_name
-        #current_symbol_type = symbol.type
+        # New property pseudo code
+        property_cpp = expr.to_cpp(env)
 
-        #for member_identifier in self[1:]:
-        #    check_that_symbol_type_has_member(current_symbol_type, member_identifier) # need to implement
-        #    current_symbol_type = get_return_type_for_member(current_symbol_type, member_identifier) # need to implement
+        for member_identifier in rest:
+            #check_that_symbol_type_has_member(current_symbol_type, member_identifier) # need to implement
+            #current_symbol_type = get_return_type_for_member(current_symbol_type, member_identifier) # need to implement
 
-        #    property_cpp = property_template % { 'name' : property_cpp,
-        #                                         'property' : member_identifier,
-        #                                         'parameters' : '' }
+            property_cpp = property_template % { 'name' : property_cpp,
+                                                 'property' : member_identifier,
+                                                 'parameters' : '' }
 
-        #return property_cpp
+        return property_cpp
 
-        if type(symbol) == Variable:
-            if symbol.type == 'Color':
-                return '%s.%s' % (symbol.name, color_properties[property_])
-            elif symbol.type == 'Point2d' and property_ in ['x', 'y']:
-                return '%s.%s' % (symbol.name, property_)
-            elif symbol.type == 'Size2d' and property_ in ['width', 'height']:
-                return '%s.%s' % (symbol.name, property_)
-            elif symbol.type in ['IntWindow2d', 'RealWindow2d', 'ColorWindow2d'] \
-               and property_ in ['topLeft', 'top', 'topRight', 'left', 'center', 'right', 'bottomLeft', 'bottom', 'bottomRight']:
-                return property_template % { 'name' : name,
-                                            'property' : property_,
-                                            'parameters' : '' }
-            else:
-                raise Exception('unknown property variable type %s.%s' % (symbol.type, property_))
+        #if type(symbol) == Variable:
+        #    if symbol.type == 'Color':
+        #        return '%s.%s' % (symbol.name, color_properties[property_])
+        #    elif symbol.type == 'Point2d' and property_ in ['x', 'y']:
+        #        return '%s.%s' % (symbol.name, property_)
+        #    elif symbol.type == 'Size2d' and property_ in ['width', 'height']:
+        #        return '%s.%s' % (symbol.name, property_)
+        #    elif symbol.type in ['IntWindow2d', 'RealWindow2d', 'ColorWindow2d'] \
+        #       and property_ in ['topLeft', 'top', 'topRight', 'left', 'center', 'right', 'bottomLeft', 'bottom', 'bottomRight']:
+        #        return property_template % { 'name' : name,
+        #                                    'property' : property_,
+        #                                    'parameters' : '' }
+        #    else:
+        #        raise Exception('unknown property variable type %s.%s' % (symbol.type, property_))
 
-        elif type(symbol) == Data:
-            if property_ not in ['size']:
-                raise CompilerException("Error, property '%s' not part of the data '%s'" % (property_, name))
-            return property_template % { 'name' : name,
-                                         'property' : property_,
-                                         'parameters' : '' }
+        #elif type(symbol) == Data:
+        #    if property_ not in ['size']:
+        #        raise CompilerException("Error, property '%s' not part of the data '%s'" % (property_, name))
+        #    return property_template % { 'name' : name,
+        #                                 'property' : property_,
+        #                                 'parameters' : '' }
 
-        else:
-            print symbolTable
-            print self
-            raise Exception('unknown property type')
+        #else:
+        #    print symbolTable
+        #    print self
+        #    raise Exception('unknown property type')
 
     def evaluate(self, env):
         check_is_symbol(self[0], env)
@@ -1095,7 +1090,7 @@ struct %(function_name)s {
 """
 parallel_context_call = """\
 {
-    FunctionIterator iterator = makeStartIterator(%(size_name)s.width, %(size_name)s.height);
+    FunctionIterator iterator = makeStartIterator(%(size_name)s.width(), %(size_name)s.height());
 
     %(temp_arrays)s
 
@@ -1172,7 +1167,7 @@ class ParallelContext(ChestnutNode):
 
         for assignment in collect_elements_from_list(statements, Assignment):
             symbol = symbolTable.lookup(assignment[0])
-            if symbol.name not in outputs:
+            if symbol and symbol.name not in outputs:
                 raise CompilerException("Error, trying to assign a value to '{name}'. If you want to write to this stream variable, designate it as an output variable (i.e. 'foreach {name}! in {array}')".format(name=symbol.name, array=symbol.array.name))
 
 

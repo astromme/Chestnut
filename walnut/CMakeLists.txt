@@ -41,6 +41,7 @@ set(walnut_headers
     Sizes.h
     Points.h
     Windows.h
+    Color.h
     )
 
 set(walnut_ui

@@ -7,4 +7,5 @@ built_in_functions = [NeutralFunction('sqrt',  'float', [Parameter(['float', 'va
                       NeutralFunction('cos',   'float', [Parameter(['float', 'value'])], None),
                       NeutralFunction('sin',   'float', [Parameter(['float', 'value'])], None),
                       NeutralFunction('min',   'float', [Parameter(['float', 'value']), Parameter(['float', 'value'])], None),
-                      NeutralFunction('max',   'float', [Parameter(['float', 'value']), Parameter(['float', 'value'])], None)]
+                      NeutralFunction('max',   'float', [Parameter(['float', 'value']), Parameter(['float', 'value'])], None),
+                      NeutralFunction('abs',   'float', [Parameter(['float', 'value'])], None)]

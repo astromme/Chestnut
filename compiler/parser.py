@@ -107,7 +107,7 @@ group1 = parens | number | string | primary
 
 unary_not = (~symbol('!') & group2) > Not
 unary_neg = (~symbol('-') & group2) > Neg
-binary_mod = (group1 & ~symbol('%') & group2) ** with_line(Mod)
+binary_mod = (group1 & ~symbol('%') & group2) > Mod
 group2 += unary_not | unary_neg | binary_mod | group1
 
 # third layer, next most tightly grouped, is multiplication

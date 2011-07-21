@@ -36,7 +36,7 @@
 #define WALNUT_INIT_STRUCT(name) WALNUT_INIT_STRUCT_WITH_TYPE(name, int); \
                                  WALNUT_INIT_STRUCT_WITH_TYPE(name, char); \
                                  WALNUT_INIT_STRUCT_WITH_TYPE(name, float); \
-                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, uchar4)
+                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, Colord)
 
 namespace Walnut {
 
@@ -45,10 +45,13 @@ typedef short   int16;
 typedef int     int32;
 typedef long    int64;
 
+typedef unsigned char    uint8;
+typedef unsigned short   uint16;
+typedef unsigned int     uint32;
+typedef unsigned long    uint64;
+
 typedef float   real32;
 typedef double  real64;
-
-typedef uchar4   color;
 
 struct WALNUT_EXPORT complex {
   real32 real_part;

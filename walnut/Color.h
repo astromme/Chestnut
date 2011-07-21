@@ -17,45 +17,24 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef POINTS_H
-#define POINTS_H
+#ifndef COLOR_H
+#define COLOR_H
 
 #include "walnut_global.h"
 
 namespace Walnut {
 
-struct Point1d
-{
-  int32 x;
-  __device__ Point1d(int32 x_) : x(x_) {}
-};
+struct Color : uchar4 {
+  __host__ __device__ inline uint8& blue() { return this->x; }
+  __host__ __device__ inline uint8& green() { return this->y; }
+  __host__ __device__ inline uint8& red() { return this->z; }
+  __host__ __device__ inline uint8& opacity() { return this->w; }
 
-struct Point2d {
-  int32 m_x;
-  int32 m_y;
-  __host__ __device__ Point2d(int32 x_=0, int32 y_=0) : m_x(x_), m_y(y_) {}
-  __host__ __device__ int32& x() { return m_x; }
-  __host__ __device__ int32& y() { return m_y; }
-
-  __host__ __device__ int32 x() const { return m_x; }
-  __host__ __device__ int32 y() const { return m_y; }
-};
-
-struct Point3d {
-  int32 x;
-  int32 y;
-  int32 z;
-  __device__ Point3d(int32 x_, int32 y_, int32 z_) : x(x_), y(y_), z(z_) {}
-};
-
-struct Point4d {
-  int32 x;
-  int32 y;
-  int32 z;
-  int32 w;
-  __device__ Point4d(int32 x_, int32 y_, int32 z_, int32 w_) : x(x_), y(y_), z(z_), w(w_) {}
+  __host__ __device__ inline uint8 blue() const { return this->x; }
+  __host__ __device__ inline uint8 green() const { return this->y; }
+  __host__ __device__ inline uint8 red() const { return this->z; }
+  __host__ __device__ inline uint8 opacity() const { return this->w; }
 };
 
 }
-
-#endif // POINTS_H
+#endif // COLOR_H

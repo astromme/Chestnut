@@ -32,10 +32,16 @@ struct Size1d
 };
 
 struct Size2d {
-  int32 width;
-  int32 height;
-  __host__ __device__ Size2d(int32 width_, int32 height_) : width(width_), height(height_) {}
-  __host__ __device__ int32 length() const { return width * height; }
+  int32 m_width;
+  int32 m_height;
+  __host__ __device__ Size2d(int32 width_, int32 height_) : m_width(width_), m_height(height_) {}
+  __host__ __device__ inline int32 length() const { return m_width * m_height; }
+
+  __host__ __device__ inline int32& width() { return m_width; }
+  __host__ __device__ inline int32& height() { return m_height; }
+
+  __host__ __device__ inline int32 width() const { return m_width; }
+  __host__ __device__ inline int32 height() const { return m_height; }
 
 };
 

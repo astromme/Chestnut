@@ -18,10 +18,10 @@ type_map = {
         'RealArray1d' : 'float',
         'RealArray2d' : 'float',
         'RealArray3d' : 'float',
-        'Color' : 'uchar4',
-        'ColorArray1d' : 'uchar4',
-        'ColorArray2d' : 'uchar4',
-        'ColorArray3d' : 'uchar4',
+        'Color' : 'Color',
+        'ColorArray1d' : 'Color',
+        'ColorArray2d' : 'Color',
+        'ColorArray3d' : 'Color',
         'Bool' : 'bool',
         'BoolArray1d' : 'bool',
         'BoolArray2d' : 'bool',
@@ -70,7 +70,7 @@ numpy_type_map = {
 dtype_to_ctype = {
         numpy.dtype('int32') : 'int',
         numpy.float32 : 'float',
-        types.uchar4 : 'uchar4' }
+        types.uchar4 : 'Color' }
 
 
 data_create_template = """\
