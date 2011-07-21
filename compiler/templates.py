@@ -38,7 +38,21 @@ type_map = {
         'ColorWindow2d' : 'Window2d<color>',
         }
 
-data_to_scalar = type_map
+data_to_scalar = {
+        'IntArray1d' : 'Int',
+        'IntArray2d' : 'Int',
+        'IntArray3d' : 'Int',
+        'RealArray1d' : 'Real',
+        'RealArray2d' : 'Real',
+        'RealArray3d' : 'Real',
+        'ColorArray1d' : 'Color',
+        'ColorArray2d' : 'Color',
+        'ColorArray3d' : 'Color',
+        'BoolArray1d' : 'Bool',
+        'BoolArray2d' : 'Bool',
+        'BoolArray3d' : 'Bool',
+        }
+
 chestnut_to_c = type_map
 
 datatype_to_windowtype = {

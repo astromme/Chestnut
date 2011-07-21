@@ -1096,8 +1096,7 @@ class ForeachParameter(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         print self
 
-class ForeachInputParameter(ForeachParameter): pass
-class ForeachOutputParameter(ForeachParameter): pass
+class ForeachParameter(ForeachParameter): pass
 
 parallel_context_declaration = """\
 struct %(function_name)s {
@@ -1135,6 +1134,8 @@ class ParallelContext(ChestnutNode):
         function_parameters = []
         struct_member_initializations = []
 
+        copies = ''
+
         symbolTable.createScope()
         for parameter in parameters:
             piece, data, context = parameter
@@ -1142,24 +1143,19 @@ class ParallelContext(ChestnutNode):
             if data not in arrays:
                 arrays.append(data)
             else:
-                raise CompilerException("{name} already used in this foreach loop".format(name=data), parameter)
+                raise CompilerException("{name} already used in this foreach loop".format(name=data), self)
 
             data = symbolTable.lookup(data)
             if data.type not in data_types:
-                raise CompilerException("%s %s should be an array" % (data.type, data.name))
+                raise CompilerException("%s %s should be an array" % (data.type, data.name), self)
 
-            if type(parameter) == ForeachOutputParameter:
-                outputs.append(piece)
-                symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='Window2d<%s>(_output_%s, _x, _y).center()'
-                                % (chestnut_to_c[data.type], data.name)))
-            else:
-                symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='Window2d<%s>(%s, _x, _y).center()'
-                                % (chestnut_to_c[data.type], data.name)))
+            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='Window2d<%s>(%s, _x, _y).center()'
+                            % (chestnut_to_c[data.type], data.name)))
 
             symbolTable.add(data)
 
-            struct_member_variables.append('Array2d<%s> %s;' % (data_to_scalar[data.type], data.name))
-            function_parameters.append('Array2d<%s> _%s' % (data_to_scalar[data.type], data.name))
+            struct_member_variables.append('Array2d<%s> %s;' % (chestnut_to_c[data.type], data.name))
+            function_parameters.append('Array2d<%s> _%s' % (chestnut_to_c[data.type], data.name))
             struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : data.name })
             requested_variables.append(data.name)
 
@@ -1176,38 +1172,39 @@ class ParallelContext(ChestnutNode):
                 # We've got a variable that needs to be passed into this function
                 variable = symbolTable.lookup(variable)
                 if variable.type in data_types:
-                    struct_member_variables.append('Array2d<%s> %s;' % (data_to_scalar[variable.type], variable.name))
-                    function_parameters.append('Array2d<%s> _%s' % (data_to_scalar[variable.type], variable.name))
+                    struct_member_variables.append('Array2d<%s> %s;' % (chestnut_to_c[variable.type], variable.name))
+                    function_parameters.append('Array2d<%s> _%s' % (chestnut_to_c[variable.type], variable.name))
                     struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : variable.name })
                 else:
-                    struct_member_variables.append('%s %s;' % (data_to_scalar[variable.type], variable.name))
-                    function_parameters.append('%s _%s' % (data_to_scalar[variable.type], variable.name))
+                    struct_member_variables.append('%s %s;' % (chestnut_to_c[variable.type], variable.name))
+                    function_parameters.append('%s _%s' % (chestnut_to_c[variable.type], variable.name))
                     struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : variable.name})
 
                 requested_variables.append(variable.name)
 
         for assignment in collect_elements_from_list(statements, Assignment):
             symbol = symbolTable.lookup(assignment[0])
-            if symbol and symbol.name not in outputs:
-                raise CompilerException("Error, trying to assign a value to '{name}'. If you want to write to this stream variable, designate it as an output variable (i.e. 'foreach {name}! in {array}')".format(name=symbol.name, array=symbol.array.name))
+            if symbol and type(symbol) == StreamVariable:
+                outputs.append(symbol)
+
+                struct_member_variables.append('Array2d<%s> _original_values_for_%s;' % (chestnut_to_c[symbol.type], symbol.array.name))
+                function_parameters.append('Array2d<%s> __original_values_for_%s' % (chestnut_to_c[symbol.type], symbol.array.name))
+                struct_member_initializations.append('_original_values_for_%(name)s(__original_values_for_%(name)s)' % { 'name' : symbol.array.name })
+
+                copies += '%s = %s;\n' % (symbol.cpp_name, 'Window2d<%s>(_original_values_for_%s, _x, _y).center()' % (chestnut_to_c[symbol.type], symbol.array.name))
 
 
+        new_names = []
 
-        outputs = [symbolTable.lookup(output) for output in outputs]
+        for (new_name, original_name) in [('_new_values_for_%s' % output.array.name, output.array.name) for output in outputs]:
+            #Swap order of new and old so that it matches the kernel order. Weird, I know
+            requested_variables[requested_variables.index(original_name)] = new_name
+            requested_variables.append(new_name)
+            new_names.append(new_name)
 
-        temp_array_names = ['temp_array_%s' % i for i in range(len(outputs))]
-        temp_arrays = [create_data(output.array.type, name, output.array.size) for output, name in zip(outputs, temp_array_names)]
-        swaps = map(lambda (a, b): swap_data(a, b.array.name), zip(temp_array_names, outputs))
-        releases = [release_data(output.array.type, temp) for output, temp in zip(outputs, temp_array_names)]
-
-        temp_mapping = {}
-        for temp, output in zip(temp_array_names, outputs):
-            requested_variables.append(temp)
-
-            struct_member_variables.append('Array2d<%s> _output_%s;' % (data_to_scalar[output.array.type], output.array.name))
-            function_parameters.append('Array2d<%s> __output_%s' % (data_to_scalar[output.array.type], output.array.name))
-            struct_member_initializations.append('_output_%(name)s(__output_%(name)s)' % { 'name' : output.array.name })
-
+        temp_arrays = [create_data(output.array.type, name, output.array.size) for output, name in zip(outputs, new_names)]
+        swaps = map(lambda (a, b): swap_data(a, b.array.name), zip(new_names, outputs))
+        releases = [release_data(output.array.type, temp) for output, temp in zip(outputs, new_names)]
 
         if len(parameters) > 0:
             struct_member_variables = indent(indent('\n'.join(struct_member_variables), indent_first_line=False), indent_first_line=False)
@@ -1221,7 +1218,7 @@ class ParallelContext(ChestnutNode):
         else:
             random_initializer = ''
 
-        body = '{\n' + indent(random_initializer + '\n'.join(map(lambda s: s.to_cpp(env), statements))) + '\n}'
+        body = '{\n' + copies + indent(random_initializer + '\n'.join(map(lambda s: s.to_cpp(env), statements))) + '\n}'
         body = indent(indent(body, indent_first_line=False), indent_first_line=False) # indent twice
 
         environment = { 'function_name' : context_name,

@@ -1,14 +1,11 @@
-IntArray2d unsorted[10, 5]; 
-IntArray2d sorted[10, 5];
+IntArray2d numbers[10, 5];
 
-foreach element! in unsorted
-  element = 100*random();
+foreach number in numbers
+  number = 100*random();
 end
 
+Int sum = reduce(numbers);
 
-sorted = sort(unsorted);
-Int reduced = reduce(unsorted);
+print(numbers);
+print("Average = %s", sum/numbers.length);
 
-print(unsorted);
-print(sorted);
-print("Reduced = %s", reduced);

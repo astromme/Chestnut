@@ -186,9 +186,7 @@ block += Or(
         unclosed_block
         )
 
-foreach_input_parameter = (identifier & ~keyword('in') & identifier) ** with_line(ForeachInputParameter)
-foreach_output_parameter = (identifier & ~symbol('!') & ~keyword('in') & identifier) ** with_line(ForeachOutputParameter)
-foreach_parameter = foreach_output_parameter | foreach_input_parameter
+foreach_parameter = (identifier & ~keyword('in') & identifier) ** with_line(ForeachParameter)
 parallel_context += (~keyword('foreach') & (foreach_parameter[0:, ~comma] > List) & ((variable_declaration | statement)[0:] > List) & ~keyword('end')) ** with_line(ParallelContext)
 
 declaration_list = (object_declaration | data_declaration | variable_declaration | sequential_function_declaration | parallel_function_declaration | statement)[0:]
