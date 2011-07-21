@@ -21,9 +21,10 @@ preamble = """\
 #include <QApplication>
 
 using namespace Walnut;
+
 """
 
-main_template = """\
+main_template = """
 
 int main(int argc, char* argv[])
 {
@@ -76,6 +77,7 @@ def compile(ast):
                                            'height' : window.height,
                                            'title' : window.title })
 
+
   if len(declarations):
     app_statement = 'QApplication _app(argc, argv);'
     return_statement = 'return _app.exec();'
@@ -88,7 +90,7 @@ def compile(ast):
                                     'app_statement' : app_statement,
                                     'return_statement' : return_statement }
 
-  thrust_code = preamble + '\n'.join(functions) + main_function
+  thrust_code = preamble + '\n'.join(symbolTable.structures) + '\n'.join(functions) + main_function
   return thrust_code
 
 def main():

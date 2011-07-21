@@ -446,6 +446,27 @@ class DataDeclaration(ChestnutNode):
       env[name] = DeviceArray((size.width, size.height), dtype=numpy_type_map[type_], allocator=env['@device_memory_pool'].allocate)
 
 
+object_template = """\
+struct {name} {{
+{member_variables}
+{functions}
+}};
+"""
+class ObjectDeclaration(ChestnutNode):
+    def to_cpp(self, env=defaultdict(bool)):
+        object_name, members, context = self
+
+        member_variables = []
+
+        for type, name in members:
+            member_variables.append('%s %s;' % (chestnut_to_c[type], name))
+
+        symbolTable.add(Object(name=object_name, members=members))
+        symbolTable.structures.append(object_template.format(name=object_name,
+                                                             member_variables=indent('\n'.join(member_variables)),
+                                                             functions=''))
+        return ''
+
 host_function_template = """\
 __host__ %(type)s %(function_name)s(%(parameters)s) %(block)s
 """

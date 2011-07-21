@@ -172,6 +172,7 @@ variable_declaration = (type_ & identifier & Optional(initialization) & ~semi) *
 data_declaration = (data_type & identifier & size & ~semi) ** with_line(DataDeclaration)
 sequential_function_declaration = (~Token('sequential') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(SequentialFunctionDeclaration)
 parallel_function_declaration = (~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(ParallelFunctionDeclaration)
+object_declaration = ~keyword('object') & identifier & ~symbol('{') & (((type_ & identifier & ~semi) > List)[0:] > List) & ~symbol('}') > ObjectDeclaration
 
 #Built-in Sequential functions
 function_call += (identifier & ~symbol('(') & expression_list & ~symbol(')')) ** with_line(FunctionCall)
@@ -190,7 +191,8 @@ foreach_output_parameter = (identifier & ~symbol('!') & ~keyword('in') & identif
 foreach_parameter = foreach_output_parameter | foreach_input_parameter
 parallel_context += (~keyword('foreach') & (foreach_parameter[0:, ~comma] > List) & ((variable_declaration | statement)[0:] > List) & ~keyword('end')) ** with_line(ParallelContext)
 
-declaration_list = (data_declaration | variable_declaration | sequential_function_declaration | parallel_function_declaration | statement)[0:]
+declaration_list = (object_declaration | data_declaration | variable_declaration | sequential_function_declaration | parallel_function_declaration | statement)[0:]
+
 
 program = (declaration_list > Program) >> sexpr_throw
 

@@ -43,6 +43,7 @@ Keyword = namedtuple('Keyword', ['name'])
 SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'node'])
 ParallelFunction = namedtuple('ParallelFunction', ['name', 'type', 'parameters', 'node'])
 NeutralFunction = namedtuple('NeutralFunction', ['name', 'type', 'parameters', 'node'])
+Object = namedtuple('Object', ['name', 'members'])
 
 class StreamVariable(namedtuple('StreamVariable', ['name', 'type', 'array', 'cpp_name'])): pass
 
@@ -160,6 +161,7 @@ class Scope(dict):
 class SymbolTable:
     def __init__(self):
         self.table = []
+        self.structures = []
         self.displayWindows = []
         self.parallelContexts = []
         self.createScope() # global scope
