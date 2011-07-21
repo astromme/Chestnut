@@ -294,8 +294,13 @@ def main():
       print('Usage: %s input' % sys.argv[0])
       sys.exit(1)
 
-  with open(sys.argv[1], 'r') as f:
-    original_code = ''.join(f.readlines())
+  try:
+      with open(sys.argv[1], 'r') as f:
+          original_code = ''.join(f.readlines())
+  except IOError as e:
+      print e
+      sys.exit(1)
+
 
   code = remove_multi_line_comments(original_code)
   code = remove_single_line_comments(code)

@@ -110,8 +110,12 @@ def main():
     else:
         output_file = sys.argv[3]
 
-    with open(input_file, 'r') as f:
-      code = ''.join(f.readlines())
+    try:
+        with open(input_file, 'r') as f:
+            code = ''.join(f.readlines())
+    except IOError as e:
+        print e
+        sys.exit(1)
 
     ast = parse(code)
 
