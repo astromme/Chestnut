@@ -714,8 +714,11 @@ class SequentialFunctionCall(ChestnutNode):
             return DataReduce(arguments).to_cpp(env)
         elif function == 'display':
             return DataDisplay(arguments).to_cpp(env)
-        elif function == 'print': #TODO: Check if we are doing var or data printing
-            return Print(arguments).to_cpp(env)
+        elif function == 'print':
+            if symbolTable.lookup(arguments[0]) and type(symbolTable.lookup(arguments[0])) == Data:
+                return DataPrint(arguments).to_cpp(env)
+            else:
+                return Print(arguments).to_cpp(env)
         elif function == 'random':
             return Random(arguments).to_cpp(env)
 
