@@ -327,7 +327,7 @@ def main():
         lineno = e.kargs['lineno']
 
         def valid_line(lineno):
-            return lineno > 0 and lineno < len(code)-1
+            return lineno > 0 and lineno < len(code)
 
         import textwrap
         print 'Error:'
