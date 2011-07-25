@@ -2,7 +2,18 @@
 
 import re
 from nodes import *
+from lepl.stream.maxdepth import FullFirstMatchException
 
+
+def full_first_match_exception_init(filename):
+    def init(self, stream):
+        super(FullFirstMatchException, self).__init__(
+            s_fmt(s_deepest(stream),
+                'Chestnut stumbled at somewhere around {rest} ({location}). Check for syntax errors. (file: ' + str(filename) + ')'))
+        self.deepest = s_deepest(stream)
+        self.kargs = self.deepest[1].kargs(self.deepest[0])
+
+    return init
 
 # Some Delayed Stuff
 group2, group3_product, group4_sum, group5, group6, group7, group8 \
@@ -258,7 +269,9 @@ def remove_single_line_comments(code):
   comment_remover = (Regexp(r'//[^\n]*') >> whitespace | Any())[:, ...]
   return comment_remover.parse(code)[0]
 
-def parse(original_code):
+def parse(original_code, from_file='unknown file'):
+  FullFirstMatchException.__init__ = full_first_match_exception_init(from_file)
+
   code = remove_multi_line_comments(original_code)
   code = remove_single_line_comments(code)
 
@@ -288,29 +301,44 @@ def parse_file(filename):
 
 
 def main():
-  import sys
+    import sys
 
-  if len(sys.argv) != 2:
-      print('Usage: %s input' % sys.argv[0])
-      sys.exit(1)
-
-  try:
-      with open(sys.argv[1], 'r') as f:
-          original_code = ''.join(f.readlines())
-  except IOError as e:
-      print e
-      sys.exit(1)
+    if len(sys.argv) != 2:
+        print('Usage: %s input' % sys.argv[0])
+        sys.exit(1)
 
 
-  code = remove_multi_line_comments(original_code)
-  code = remove_single_line_comments(code)
+    try:
+        with open(sys.argv[1], 'r') as f:
+            original_code = ''.join(f.readlines())
+    except IOError as e:
+        print e
+        sys.exit(1)
 
-  try:
-    print(parser(code)[0])
-  except SyntaxError, e:
-    e.filename = sys.argv[1]
-    e.text = original_code.split('\n')[e.lineno - 1]
-    raise e
+
+    code = remove_multi_line_comments(original_code)
+    code = remove_single_line_comments(code)
+
+    FullFirstMatchException.__init__ = full_first_match_exception_init(sys.argv[1])
+    try:
+        print(parser(code)[0])
+    except FullFirstMatchException, e:
+        code = original_code.split('\n')
+        lineno = e.kargs['lineno']
+
+        def valid_line(lineno):
+            return lineno > 0 and lineno < len(code)-1
+
+        import textwrap
+        print 'Error:'
+        print '\n'.join(map(lambda s: '    ' + s, textwrap.wrap(str(e), 76)))
+        print 'Context:'
+        for offset in [-2, -1, 0, 1, 2]:
+            if valid_line(lineno+offset):
+                if offset == 0: print '  ->',
+                else: print '    ',
+                print '%s: ' % (lineno+offset) + code[lineno+offset - 1]
+        sys.exit(1)
 
 if __name__ == '__main__':
   main()

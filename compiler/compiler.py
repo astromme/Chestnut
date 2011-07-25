@@ -119,8 +119,28 @@ def main():
         print e
         sys.exit(1)
 
-    ast = parse(code)
+    # Time to get an AST, but that might fail and we want nice lines + context information
+    try:
+        ast = parse(code, from_file=input_file)
+    except FullFirstMatchException, e:
+        code_lines = code.split('\n')
+        lineno = e.kargs['lineno']
 
+        def valid_line(lineno):
+            return lineno > 0 and lineno < len(code_lines)-1
+
+        import textwrap
+        print 'Error:'
+        print '\n'.join(map(lambda s: '    ' + s, textwrap.wrap(str(e), 76)))
+        print 'Context:'
+        for offset in [-2, -1, 0, 1, 2]:
+            if valid_line(lineno+offset):
+                if offset == 0: print '  ->',
+                else: print '    ',
+                print '%s: ' % (lineno+offset) + code_lines[lineno+offset - 1]
+        sys.exit(1)
+
+    # Time to compile to C++ code, but that might fail and we want nice error messages
     try:
         thrust_code = compile(ast)
     except CompilerException as e:
