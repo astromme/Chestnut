@@ -21,3 +21,5 @@ foreach element in matrix_output
     i = i + 1;
   }
 end
+
+print(matrix_output);
