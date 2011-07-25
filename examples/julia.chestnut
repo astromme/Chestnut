@@ -1,0 +1,33 @@
+// This example doesn't work yet because Chetsnut doesn't actually have a Complex class.
+parallel Integer julia(Point2d location, Real scale) {
+  Real jx = (scale * (location.width/2 - location.x))/(location.width/2)
+  Real jy = (scale * (location.height/2 - location.y))/(location.height/2)
+
+
+  Complex c(-0.8, 0.156);
+  Complex a(jx, jy);
+
+  int iteration = 0;
+  while (iteration < 200) {
+    a = a * a + c;
+    if (a.magnitude2() > 1000) {
+      return 0;
+    }
+    iteration = iteration + 1;
+  }
+  
+  return 1;
+}
+
+parallel Color juliaColor(Integer2d window) {
+  Color c;
+  c.red = 255 * window.center;
+  c.blue = 0;
+  c.green = 0;
+  c.alpha = 255;
+}
+
+Integer2d data[1000, 500];
+data = data.each(:julia(1.5));
+
+display(data, juliaColor);

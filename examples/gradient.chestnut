@@ -1,0 +1,27 @@
+parallel Color green(Int input) {
+  Color c;
+  c.red = 0;
+  c.green = input;
+  c.blue = 255 - min(255, input*4); 
+  c.opacity = 255;
+  return c;
+}
+
+IntArray2d outputs[720, 480];
+
+Int iteration = 0;
+
+while (iteration < 10000) {
+
+  foreach pixel in outputs
+    Real percent = location(pixel).y  / outputs.size.height;
+    percent = percent * (abs(500 - (iteration % 1000)) / 500);
+    pixel = percent * 255;
+  end
+
+  display(outputs, green);
+
+  iteration = iteration + 1;
+}
+
+
