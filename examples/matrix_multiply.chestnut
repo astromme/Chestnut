@@ -1,0 +1,23 @@
+RealArray2d matrix_a[10, 5];
+RealArray2d matrix_b[5, 8];
+RealArray2d matrix_output[10, 8];
+
+foreach element in matrix_a
+  element = location(element).x + location(element).y;
+end
+
+foreach element in matrix_b
+  element = location(element).x + location(element).y;
+end
+
+print(matrix_a);
+print(matrix_b);
+
+foreach element in matrix_output
+  Int i = 0;
+  element = 0;
+  while (i < matrix_a.size.height) {
+    element = element + matrix_a[location(element).x, i] * matrix_b[i, location(element).y]; 
+    i = i + 1;
+  }
+end
