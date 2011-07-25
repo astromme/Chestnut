@@ -119,9 +119,9 @@ def safe_index(function):
 
 
 
-def check_is_symbol(name, environment=symbolTable):
+def check_is_symbol(name, environment=symbolTable, context=None):
     if not environment.lookup(name):
-        raise CompilerException("Error, the symbol '%s' was used but it hasn't been declared yet" % name)
+        raise CompilerException("Error, the symbol '%s' was used but it hasn't been declared yet" % name, context)
 
 def check_type(symbol, *requiredTypes):
     if type(symbol) not in requiredTypes:
