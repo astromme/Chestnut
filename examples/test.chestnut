@@ -1,9 +1,0 @@
-parallel mod_by_100(window dataWindow) {
-  return dataWindow.center % 100;
-}
-
-int2d data(5000, 10000);
-
-data = :random();
-data = :mod_by_100(data);
-data = :sort(data);
