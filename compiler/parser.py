@@ -60,6 +60,7 @@ dot = symbol('.')
 
 property = ~dot & (function_call | identifier)
 property_list = (function_call | identifier) & property[1:] > Property
+array_reference = ((function_call | identifier | property_list) & ~symbol('[') & expression[1:,~comma] & ~symbol(']')) ** with_line(ArrayReference)
 
 string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'") >> (lambda obj: String(obj[1:-1]))
 string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"') >> (lambda obj: String(obj[1:-1]))
@@ -187,7 +188,7 @@ object_declaration = ~keyword('object') & identifier & ~symbol('{') & (((type_ &
 
 #Built-in Sequential functions
 function_call += (identifier & ~symbol('(') & expression_list & ~symbol(')')) ** with_line(FunctionCall)
-primary += function_call | identifier | property_list
+primary += function_call | identifier | property_list | array_reference
 
 ## Now we can define the last bits
 unclosed_block = (~symbol('{') & (statement | variable_declaration)[0:]) ** make_error('block is missing a closing }}')

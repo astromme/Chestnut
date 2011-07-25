@@ -897,6 +897,30 @@ class Property(List):
             raise Exception
 
 
+class ArrayReference(ChestnutNode):
+    def to_cpp(self, env=defaultdict(bool)):
+        identifier = self[0]
+        references = self[1:-1]
+        context = self[-1]
+
+        check_is_symbol(identifier, symbolTable, self)
+        symbol = symbolTable.lookup(identifier)
+
+        if type(symbol) == Data:
+            # TODO: Support 1d and 3d. Assuming 2d for now.
+            if len(references) > 2:
+                raise CompilerException("Too many arguments to the array lookup, there should only be 2 (%s[x, y])" % symbol.name, self)
+            elif len(references) < 2:
+                raise CompilerException("Too few arguments to the array lookup, there should only be 2 (%s[x, y])" % symbol.name, self)
+            #check_expression_type(arg1)
+            #check_expression_type(arg2)
+
+            return '%s.at(%s, %s)' % (symbol.cpp_name, references[0].to_cpp(env), references[1].to_cpp(env))
+
+        else:
+            raise CompilerException("%s should be an array if you want to do %s[x, y, z] lookups on it" % symbol.name, self)
+
+
 class Return(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
         return 'return %s;' % self[0].to_cpp(env)
@@ -1171,7 +1195,10 @@ class ParallelContext(ChestnutNode):
 
 
         for variable in collect_elements_from_list(statements, Symbol):
-            if variable not in symbolTable.currentScope and symbolTable.lookup(variable) and type(symbolTable.lookup(variable)) not in [ParallelFunction, SequentialFunction, NeutralFunction]:
+            if variable not in symbolTable.currentScope and \
+               symbolTable.lookup(variable) and \
+               symbolTable.lookup(variable).name not in requested_variables and \
+               type(symbolTable.lookup(variable)) not in [ParallelFunction, SequentialFunction, NeutralFunction]:
                 # We've got a variable that needs to be passed into this function
                 variable = symbolTable.lookup(variable)
                 if variable.type in data_types:
