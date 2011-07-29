@@ -64,12 +64,15 @@ void ArrayAllocator::releaseArray(const Array2d<T> &array) {
 
 #define initAllocationsWithType(T) \
 template Array2d<T> ArrayAllocator::arrayWithSize(int width, int height); \
-template void ArrayAllocator::releaseArray(const Array2d<T> &array); \
+template void ArrayAllocator::releaseArray(const Array2d<T> &array) \
 
-initAllocationsWithType(int);
-initAllocationsWithType(char);
-initAllocationsWithType(float);
-initAllocationsWithType(uchar4);
+initAllocationsWithType(int8);
+initAllocationsWithType(int16);
+initAllocationsWithType(int32);
+initAllocationsWithType(int64);
+initAllocationsWithType(real32);
+initAllocationsWithType(real64);
+initAllocationsWithType(Color);
 
 
 } // namespace Walnut
