@@ -1213,6 +1213,8 @@ class ParallelContext(ChestnutNode):
                 requested_variables.append(variable.name)
 
         for assignment in collect_elements_from_list(statements, Assignment):
+            if type(assignment[0]) == Property:
+                continue
             symbol = symbolTable.lookup(assignment[0])
             if symbol and type(symbol) == StreamVariable and symbol not in outputs:
                 outputs.append(symbol)
