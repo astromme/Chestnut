@@ -36,7 +36,7 @@
 #define WALNUT_INIT_STRUCT(name) WALNUT_INIT_STRUCT_WITH_TYPE(name, int); \
                                  WALNUT_INIT_STRUCT_WITH_TYPE(name, char); \
                                  WALNUT_INIT_STRUCT_WITH_TYPE(name, float); \
-                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, Colord)
+                                 WALNUT_INIT_STRUCT_WITH_TYPE(name, Color)
 
 namespace Walnut {
 
