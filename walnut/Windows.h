@@ -21,24 +21,24 @@
 #define WINDOWS_H
 
 #include "walnut_global.h"
-#include "Array2d.h"
+#include "Array.h"
 
 namespace Walnut {
 
 template <typename T>
 struct WALNUT_EXPORT Window2d {
 
-  Array2d<T> array;
+  Array<T> array;
 
   int m_xLocation;
   int m_yLocation;
 
-  __device__ Window2d(Array2d<T> &data, int x, int y) : array(data), m_xLocation(x), m_yLocation(y) {}
+  __device__ Window2d(Array<T> &data, int x, int y) : array(data), m_xLocation(x), m_yLocation(y) {}
   __device__ Window2d(const Window2d<T> &other) : array(other.array), m_xLocation(other.m_xLocation), m_yLocation(other.m_yLocation) {}
 
   __device__
   T& at(int x_offset, int y_offset) {
-    return array.data[array.calculateIndex(m_xLocation, m_yLocation, x_offset, y_offset)];
+    return array.data[array.calculateIndex(m_xLocation, m_yLocation, 0, x_offset, y_offset, 0)];
   }
 
   __device__ T& topLeft()     { return at(-1, -1); }

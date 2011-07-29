@@ -1182,8 +1182,8 @@ class ParallelContext(ChestnutNode):
 
             symbolTable.add(data)
 
-            struct_member_variables.append('Array2d<%s> %s;' % (chestnut_to_c[data.type], data.name))
-            function_parameters.append('Array2d<%s> _%s' % (chestnut_to_c[data.type], data.name))
+            struct_member_variables.append('Array<%s> %s;' % (chestnut_to_c[data.type], data.name))
+            function_parameters.append('Array<%s> _%s' % (chestnut_to_c[data.type], data.name))
             struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : data.name })
             requested_variables.append(data.name)
 
@@ -1202,8 +1202,8 @@ class ParallelContext(ChestnutNode):
                 # We've got a variable that needs to be passed into this function
                 variable = symbolTable.lookup(variable)
                 if variable.type in data_types:
-                    struct_member_variables.append('Array2d<%s> %s;' % (chestnut_to_c[variable.type], variable.name))
-                    function_parameters.append('Array2d<%s> _%s' % (chestnut_to_c[variable.type], variable.name))
+                    struct_member_variables.append('Array<%s> %s;' % (chestnut_to_c[variable.type], variable.name))
+                    function_parameters.append('Array<%s> _%s' % (chestnut_to_c[variable.type], variable.name))
                     struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : variable.name })
                 else:
                     struct_member_variables.append('%s %s;' % (chestnut_to_c[variable.type], variable.name))
@@ -1219,8 +1219,8 @@ class ParallelContext(ChestnutNode):
             if symbol and type(symbol) == StreamVariable and symbol not in outputs:
                 outputs.append(symbol)
 
-                struct_member_variables.append('Array2d<%s> _original_values_for_%s;' % (chestnut_to_c[symbol.type], symbol.array.name))
-                function_parameters.append('Array2d<%s> __original_values_for_%s' % (chestnut_to_c[symbol.type], symbol.array.name))
+                struct_member_variables.append('Array<%s> _original_values_for_%s;' % (chestnut_to_c[symbol.type], symbol.array.name))
+                function_parameters.append('Array<%s> __original_values_for_%s' % (chestnut_to_c[symbol.type], symbol.array.name))
                 struct_member_initializations.append('_original_values_for_%(name)s(__original_values_for_%(name)s)' % { 'name' : symbol.array.name })
 
                 copies += '%s = %s;\n' % (symbol.cpp_name, 'Window2d<%s>(_original_values_for_%s, _x, _y).center()' % (chestnut_to_c[symbol.type], symbol.array.name))

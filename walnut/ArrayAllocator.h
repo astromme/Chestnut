@@ -21,7 +21,7 @@
 #define ARRAYALLOCATOR_H
 
 #include "walnut_global.h"
-#include "array2d.h"
+#include "Array.h"
 
 #include <QMultiMap>
 
@@ -38,10 +38,10 @@ public:
     virtual ~ArrayAllocator();
 
     template <typename T>
-    Array2d<T> arrayWithSize(int width, int height);
+    Array<T> arrayWithSize(int width, int height);
 
     template <typename T>
-    void releaseArray(const Array2d<T> &array);
+    void releaseArray(const Array<T> &array);
 
 private:
     QMultiMap<ArrayLengthInBytes, DeviceMemoryPointer> m_freeMemory;

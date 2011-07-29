@@ -25,7 +25,7 @@ set(walnut_sources
     HostFunctions.cpp
     DisplayWindow.cpp
     ArrayAllocator.cu
-    Array2d.cu
+    Array.cu
     Windows.cu
     )
 
@@ -37,7 +37,7 @@ set(walnut_headers
     DisplayWindow.h
     ColorKernels.h
     ArrayAllocator.h
-    Array2d.h
+    Array.h
     Sizes.h
     Points.h
     Windows.h

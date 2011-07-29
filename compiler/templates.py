@@ -88,7 +88,7 @@ dtype_to_ctype = {
 
 
 data_create_template = """\
-Array2d<%(type)s> %(name)s = _allocator.arrayWithSize<%(type)s>(%(width)s, %(height)s);
+Array<%(type)s> %(name)s = _allocator.arrayWithSize<%(type)s>(%(width)s, %(height)s);
 """
 def create_data(type_, name, size):
   return data_create_template % { 'type' : type_map[type_],

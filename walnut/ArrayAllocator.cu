@@ -39,7 +39,7 @@ ArrayAllocator::~ArrayAllocator() {
 }
 
 template <typename T>
-Array2d<T> ArrayAllocator::arrayWithSize(int width, int height) {
+Array<T> ArrayAllocator::arrayWithSize(int width, int height) {
   ArrayLengthInBytes arrayLength = width*height*sizeof(T);
   DeviceMemoryPointer dataPointer = 0;
 
@@ -53,18 +53,18 @@ Array2d<T> ArrayAllocator::arrayWithSize(int width, int height) {
 
   m_usedMemory.insert(dataPointer, arrayLength);
 
-  return Array2d<T>((T*)dataPointer, width, height);
+  return Array<T>((T*)dataPointer, width, height);
 }
 
 template <typename T>
-void ArrayAllocator::releaseArray(const Array2d<T> &array) {
+void ArrayAllocator::releaseArray(const Array<T> &array) {
   ArrayLengthInBytes arrayLength = m_usedMemory.take((DeviceMemoryPointer)(array.constData()));
   m_freeMemory.insert(arrayLength, (DeviceMemoryPointer)(array.constData()));
 }
 
 #define initAllocationsWithType(T) \
-template Array2d<T> ArrayAllocator::arrayWithSize(int width, int height); \
-template void ArrayAllocator::releaseArray(const Array2d<T> &array) \
+template Array<T> ArrayAllocator::arrayWithSize(int width, int height); \
+template void ArrayAllocator::releaseArray(const Array<T> &array) \
 
 initAllocationsWithType(int8);
 initAllocationsWithType(int16);

@@ -2,7 +2,7 @@
 
 preamble = """\
 #include <walnut/ArrayAllocator.h>
-#include <walnut/Array2d.h>
+#include <walnut/Array.h>
 #include <walnut/HostFunctions.h>
 #include <walnut/UtilityFunctors.h>
 #include <walnut/FunctionIterator.h>

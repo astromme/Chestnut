@@ -17,8 +17,8 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef ARRAY2D_H
-#define ARRAY2D_H
+#ifndef ARRAY_H
+#define ARRAY_H
 
 #include "walnut_global.h"
 #include "Sizes.h"
@@ -41,60 +41,62 @@ namespace Walnut {
 #define _height thrust::get<2>(_t)
 
 template <typename T>
-struct WALNUT_EXPORT Array2d
+struct WALNUT_EXPORT Array
 {
   T *data;
   int width;
   int height;
+  int depth;
 
   typedef T Type;
 
-  __host__ __device__ Array2d() : data(0), height(0), width(0) {}
-  __host__ __device__ Array2d(T *data_, int width_, int height_) : data(data_), width(width_), height(height_) {}
-             Array2d(thrust::device_vector<T> &vector, int width, int height); // If vector is deleted,
-  __host__ __device__ Array2d(const Array2d &other) : data(other.data), width(other.width), height(other.height) {}
+  __host__ __device__ Array() : data(0), height(0), width(0), depth(0) {}
+  __host__ __device__ Array(T *data_, int width_, int height_=1, int depth_=1) : data(data_), width(width_), height(height_), depth(depth_) {}
+             Array(thrust::device_vector<T> &vector, int width, int height, int depth); // If vector is deleted, bad stuff happens
+             __host__ __device__ Array(const Array &other) : data(other.data), width(other.width), height(other.height), depth(other.depth) {}
 
-  int length() const { return width * height; }
+  int length() const { return width * height * depth; }
 
-  __host__ __device__ Size2d size() const { return Size2d(width, height); }
+  __host__ __device__ Size3d size() const { return Size3d(width, height, depth); }
 
   const T* constData() const { return (const T*)data; }
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }
-  thrust::device_ptr<T> thrustEndPointer() { return thrustPointer() + width*height; }
+  thrust::device_ptr<T> thrustEndPointer() { return thrustPointer() + width*height*depth; }
 
   void sort() { thrust::sort(this->thrustPointer(), this->thrustEndPointer()); }
 
-  Array2d<T>& sorted_copy_in(Array2d<T> &output) {
+  Array<T>& sorted_copy_in(Array<T> &output) {
     this->copyTo(output); //TODO: Check if pointers are the same... and don't copy
     output.sort();
     return output;
   }
 
-  void copyTo(Array2d<T> &array)               { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.thrustPointer()); }
-  void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width*height, array); }
-  void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.begin()); }
-  void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width*height, array.begin()); }
+  void copyTo(Array<T> &array)               { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.thrustPointer()); }
+  void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array); }
+  void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.begin()); }
+  void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.begin()); }
 
-  void swapDataWith(Array2d<T> &other) {
+  void swapDataWith(Array<T> &other) {
     T *temp = data;
     data = other.data;
     other.data = temp;
   }
 
   __device__
-  int calculateIndex(int x, int y, int x_offset=0, int y_offset=0) const {
+  int calculateIndex(int x, int y, int z, int x_offset=0, int y_offset=0, int z_offset=0) const {
     x = ((x + x_offset) + width)  % width;
     y = ((y + y_offset) + height) % height;
+    z = ((z + z_offset) + depth) % depth;
 
-    return y*width + x;
+    return z*width*height + y*width + x;
   }
 
   __device__
-  T& at(int x, int y) {
-    return data[calculateIndex(x, y)];
+  T& at(int x, int y=0, int z=0) {
+    return data[calculateIndex(x, y, z)];
   }
 };
 
 } // namespace Walnut
 
-#endif // ARRAY2D_H
+#endif // ARRAY_H
