@@ -24,11 +24,20 @@
 
 namespace Walnut {
 
-struct Size1d
-{
-  int32 width;
-  __host__ __device__ Size1d(int32 width_) : width(width_) {}
-  int32 length() const { return width; }
+struct Size3d {
+  int32 m_width;
+  int32 m_height;
+  int32 m_depth;
+  __host__ __device__ Size3d(int32 width_, int32 height_, int32 depth_) : m_width(width_), m_height(height_), m_depth(depth_) {}
+  __host__ __device__ inline int32 length() const { return m_width * m_height * m_depth; }
+
+  __host__ __device__ inline int32& width() { return m_width; }
+  __host__ __device__ inline int32& height() { return m_height; }
+  __host__ __device__ inline int32& depth() { return m_depth; }
+
+  __host__ __device__ inline int32 width() const { return m_width; }
+  __host__ __device__ inline int32 height() const { return m_height; }
+  __host__ __device__ inline int32 depth() const { return m_depth; }
 };
 
 struct Size2d {
@@ -45,21 +54,14 @@ struct Size2d {
 
 };
 
-struct Size3d {
-  int32 m_width;
-  int32 m_height;
-  int32 m_depth;
-  __host__ __device__ Size3d(int32 width_, int32 height_, int32 depth_) : m_width(width_), m_height(height_), m_depth(depth_) {}
-  __host__ __device__ inline int32 length() const { return m_width * m_height * m_depth; }
 
-  __host__ __device__ inline int32& width() { return m_width; }
-  __host__ __device__ inline int32& height() { return m_height; }
-  __host__ __device__ inline int32& depth() { return m_depth; }
-
-  __host__ __device__ inline int32 width() const { return m_width; }
-  __host__ __device__ inline int32 height() const { return m_height; }
-  __host__ __device__ inline int32 depth() const { return m_depth; }
+struct Size1d
+{
+  int32 width;
+  __host__ __device__ Size1d(int32 width_) : width(width_) {}
+  int32 length() const { return width; }
 };
+
 
 } // namespace Walnut
 

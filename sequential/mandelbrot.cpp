@@ -22,10 +22,10 @@ void printFullArray2D(int* data, int width, int height) {
 }
 
 int main() {
-  int width = 80;
-  int height = 50;
+  int width = 800;
+  int height = 500;
 
-  int iterations = 1;
+  int iterations = 100;
 
   int data[width*height];
 
@@ -61,7 +61,8 @@ int main() {
           data[index] = iteration;
       }
     }
+    printf("iteration %d\n", it);
   }
 
-  printFullArray2D((int*)data, width, height);
+  //printFullArray2D((int*)data, width, height);
 }
