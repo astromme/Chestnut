@@ -1,0 +1,12 @@
+Parts of Chestnut that aren't implemented yet.
+Ordered List
+
+- Input/Output (reading from files or other sources)
+- Array access in CPU land
+- Explicit 1D support
+- Have more automatic tests. Regression tests for performance and correctness
+- Updated GUI
+- +=, -=, *=, /= operators
+- Explicit 3D support
+- Sub-Array access
+- Robust compiler support for linux, osx

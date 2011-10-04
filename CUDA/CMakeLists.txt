@@ -26,6 +26,7 @@ cuda_add_executable(example-map map_example.cu)
 cuda_add_executable(map-benchmark map_benchmark.cu)
 cuda_add_executable(game-of-life game_of_life.cu)
 cuda_add_executable(game-of-life-thrust game_of_life_thrust.cu)
+cuda_add_executable(mandelbrot mandelbrot.cu)
 
 #add_executable(example-map-cpp map_example_cpp.cpp)
 #cuda_add_executable(example-matrix-operations matrix-operations.cu)
