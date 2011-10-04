@@ -1,0 +1,26 @@
+=== Parallel - 1000 iterations on 1000x500 board ===
+
+./game_of_life  6.56s user 0.05s system 98% cpu 6.691 total
+./game_of_life  5.98s user 0.05s system 98% cpu 6.129 total
+./game_of_life  5.76s user 0.05s system 98% cpu 5.884 total
+./game_of_life  6.29s user 0.05s system 98% cpu 6.437 total
+./game_of_life  5.42s user 0.05s system 93% cpu 5.886 total
+./game_of_life  5.86s user 0.05s system 98% cpu 5.986 total
+./game_of_life  6.20s user 0.05s system 99% cpu 6.309 total
+
+
+Average: 6.01s
+
+=== Sequential - 1000 iterations on 1000x500 board ===
+./game_of_life  117.58s user 0.22s system 99% cpu 118.554 total
+
+Average: 
+
+
+=== CUDA - 1000 iterations on 1000x500 board ===
+./game-of-life-thrust  1.34s user 0.05s system 97% cpu 1.414 total
+
+Average: 
+
+
+

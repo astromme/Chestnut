@@ -1,0 +1,7 @@
+=== Parallel - 800x500 display, 100 iterations ===
+./mandelbrot  3.35s user 0.07s system 94% cpu 3.617 total
+
+
+=== Sequential - 800x500 display, 100 iterations ===
+./mandelbrot  95.22s user 0.29s system 97% cpu 1:38.04 total
+

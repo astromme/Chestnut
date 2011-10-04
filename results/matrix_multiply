@@ -1,0 +1,16 @@
+=== Parallel ===
+./matrix_multiply  7.65s user 0.11s system 72% cpu 10.690 total
+./matrix_multiply  9.44s user 0.07s system 96% cpu 9.823 total
+./matrix_multiply  10.29s user 0.11s system 84% cpu 12.347 total
+./matrix_multiply  9.32s user 0.07s system 88% cpu 10.575 total
+./matrix_multiply  8.62s user 0.06s system 95% cpu 9.064 total
+
+Average: 9.41
+
+=== Sequential ===
+./matrix_multiply  26.38s user 0.10s system 88% cpu 29.790 total
+./matrix_multiply  26.34s user 0.06s system 98% cpu 26.706 total
+./matrix_multiply  26.34s user 0.06s system 98% cpu 26.675 total
+./matrix_multiply  26.32s user 0.10s system 94% cpu 27.524 total
+
+Average: 26.345
