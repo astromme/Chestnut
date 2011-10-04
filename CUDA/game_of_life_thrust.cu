@@ -264,9 +264,9 @@ void printArray2D(const thrust::host_vector<int> &vector, int width, int height)
 
 int main(void)
 {
-  int width = 30;
-  int height = 10;
-  int iterations = 100000;
+  int width = 1000;
+  int height = 500;
+  int iterations = 1000;
   int percentLivingAtStart = 30;
   bool wrapAround = true;
 
@@ -285,7 +285,7 @@ int main(void)
     }
   }
 
-  printArray2D(hostData, paddedWidth, paddedHeight);
+  //printArray2D(hostData, paddedWidth, paddedHeight);
   std::cout << std::endl;
 
   // transfer data to the device
@@ -347,7 +347,7 @@ int main(void)
   hostData = currentState;
 
 
-  printArray2D(hostData, paddedWidth, paddedHeight);
+  //printArray2D(hostData, paddedWidth, paddedHeight);
 
   return 0;
 }
