@@ -19,3 +19,4 @@ qtcreator-build/
 CMakeLists.txt.user
 *.xcworkspace
 xcuserdata/
+web/
