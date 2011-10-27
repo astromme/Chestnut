@@ -20,3 +20,6 @@ CMakeLists.txt.user
 *.xcworkspace
 xcuserdata/
 web/
+/virtualenv/bin/
+/virtualenv/lib/
+/virtualenv/include/
