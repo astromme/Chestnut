@@ -27,17 +27,6 @@ set( THRUST_VERSION "${major}.${minor}.${version}")
 # Check for required components 
 set( THRUST_FOUND TRUE ) 
 
-IF("${CMAKE_SYSTEM}" MATCHES "Linux")
-  add_custom_target(make_thrust_symlink echo "Creating Thrust Symlink" DEPENDS thrust)
-  add_custom_command(OUTPUT thrust
-                     COMMAND ${CMAKE_COMMAND}
-                     ARGS -E create_symlink ${THRUST_INCLUDE_DIR} thrust)
-
-  add_dependencies(make_thrust_symlink thrust)
-ENDIF("${CMAKE_SYSTEM}" MATCHES "Linux")
-
-
-
 include( FindPackageHandleStandardArgs ) 
 find_package_handle_standard_args( Thrust 
     REQUIRED_VARS 
@@ -45,4 +34,3 @@ find_package_handle_standard_args( Thrust
     VERSION_VAR 
         THRUST_VERSION 
 ) 
-
