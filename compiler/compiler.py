@@ -147,30 +147,30 @@ def main():
         print e
         sys.exit(1)
 
-    with open(output_file+'.cu', 'w') as f:
+    with open(output_file, 'w') as f:
       f.write(thrust_code)
 
 
-    env = { 'cuda_compiler' : cuda_compiler,
-            'input_file' : output_file+'.cu',
-            'output_file' : output_file }
+    #env = { 'cuda_compiler' : cuda_compiler,
+    #        'input_file' : output_file+'.cu',
+    #        'output_file' : output_file }
 
-    print('compiling...')
-    pass1 = subprocess.Popen(shlex.split(cuda_compile_pass1 % env))
-    pass1.wait()
-    print('stage one complete')
+    #print('compiling...')
+    #pass1 = subprocess.Popen(shlex.split(cuda_compile_pass1 % env))
+    #pass1.wait()
+    #print('stage one complete')
 
-    pass2 = subprocess.Popen(shlex.split(cuda_compile_pass2 % env))
-    pass2.wait()
-    print('stage two complete')
+    #pass2 = subprocess.Popen(shlex.split(cuda_compile_pass2 % env))
+    #pass2.wait()
+    #print('stage two complete')
 
-    pass3 = subprocess.Popen(shlex.split(cuda_compile_pass3 % env))
-    pass3.wait()
-    print('stage three complete')
+    #pass3 = subprocess.Popen(shlex.split(cuda_compile_pass3 % env))
+    #pass3.wait()
+    #print('stage three complete')
 
-    #os.remove(output_file+'.cu')
-    os.remove(output_file+'.cu.o')
-    os.remove(output_file+'.cu.o.NVCC-depend')
+    ##os.remove(output_file+'.cu')
+    #os.remove(output_file+'.cu.o')
+    #os.remove(output_file+'.cu.o.NVCC-depend')
 
 
 if __name__ == '__main__':
