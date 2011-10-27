@@ -44,6 +44,7 @@ include(${QT_USE_FILE})
 
 macro(CHESTNUT_ADD_EXECUTABLE target SOURCE)
 include_directories(${WALNUT_INCLUDE_DIR})
+include_directories(${THRUST_INCLUDE_DIR})
 add_custom_command(
   OUTPUT  ${SOURCE}.cu
   COMMAND ${CHESTNUT_COMPILER}

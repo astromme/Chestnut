@@ -5,6 +5,7 @@ SET(CMAKE_BUILD_TYPE RelWithDebInfo)
 SET(WALNUT_LIBRARY)
 
 find_package(CUDA REQUIRED)
+find_package(Thrust REQUIRED)
 find_package(Qt4 REQUIRED)
 find_package(OpenGL REQUIRED)
 include(${QT_USE_FILE})
