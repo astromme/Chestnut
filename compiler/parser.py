@@ -179,9 +179,10 @@ parameter_declaration = ((type_ | data_type ) & identifier) > Parameter
 parameter_declaration_list = (parameter_declaration[0:, ~comma]) > Parameters
 
 initialization = (~symbol('=') & expression) ** with_line(VariableInitialization)
+data_initialization = (~symbol('=') & expression) ** with_line(DataInitialization)
 
 variable_declaration = (type_ & identifier & Optional(initialization) & ~semi) ** with_line(VariableDeclaration)
-data_declaration = (data_type & identifier & size & ~semi) ** with_line(DataDeclaration)
+data_declaration = (data_type & identifier & size & Optional(data_initialization) & ~semi) ** with_line(DataDeclaration)
 sequential_function_declaration = (~Token('sequential') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(SequentialFunctionDeclaration)
 parallel_function_declaration = (~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(ParallelFunctionDeclaration)
 object_declaration = ~keyword('object') & identifier & ~symbol('{') & (((type_ & identifier & ~semi) > List)[0:] > List) & ~symbol('}') > ObjectDeclaration

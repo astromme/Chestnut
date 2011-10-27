@@ -433,17 +433,41 @@ class VariableDeclaration(ChestnutNode):
 
 
 class DataDeclaration(ChestnutNode):
-  def to_cpp(self, env=defaultdict(bool)):
-      type_, name, size, context = self
-      symbolTable.add(Data(name, type_, size.width, size.height))
-      return create_data(type_, name, size)
+    @property
+    def type(self): return self[0]
 
-  def evaluate(self, env):
-      type_, name, size, context = self
-      (size.width, size.height)
-      numpy_type_map[type_]
-      env['@device_memory_pool'].allocate
-      env[name] = DeviceArray((size.width, size.height), dtype=numpy_type_map[type_], allocator=env['@device_memory_pool'].allocate)
+    @property
+    def name(self): return self[1]
+
+    @property
+    def size(self): return self[2]
+
+    @property
+    def initialization(self):
+        if len(self) == 5:
+            return self[3]
+        else:
+            return None
+
+    @property
+    def context(self): return self[len(self)-1]
+
+
+    def to_cpp(self, env=defaultdict(bool)):
+        symbolTable.add(Data(self.name, self.type, self.size.width, self.size.height))
+        declaration = create_data(self.type, self.name, self.size)
+
+        if not self.initialization:
+            return declaration
+        else:
+            env = defaultdict(bool, env, variable_to_assign=self.name)
+            return '%s;\n%s' % (declaration, self.initialization.to_cpp(env))
+
+    def evaluate(self, env):
+        (self.size.width, self.size.height)
+        numpy_type_map[self.type]
+        env['@device_memory_pool'].allocate
+        env[self.name] = DeviceArray((self.size.width, self.size.height), dtype=numpy_type_map[self.type], allocator=env['@device_memory_pool'].allocate)
 
 
 object_template = """\
@@ -714,6 +738,10 @@ class SequentialFunctionCall(ChestnutNode):
             return DataReduce(arguments).to_cpp(env)
         elif function == 'display':
             return DataDisplay(arguments).to_cpp(env)
+        elif function == 'read':
+            return DataRead(arguments).to_cpp(env)
+        elif function == 'write':
+            return DataWrite(arguments).to_cpp(env)
         elif function == 'print':
             if symbolTable.lookup(arguments[0]) and type(symbolTable.lookup(arguments[0])) == Data:
                 return DataPrint(arguments).to_cpp(env)
@@ -981,9 +1009,6 @@ class While(ChestnutNode):
             except InterpreterBreak:
                 break
 
-class Read(ChestnutNode): pass
-class Write(ChestnutNode): pass
-
 random_device_template = """walnut_random()"""
 class Random(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
@@ -1118,6 +1143,24 @@ class DataSort(ChestnutNode):
         temp.sort()
         return temp.reshape(input.height, input.width)
 
+
+class DataRead(ChestnutNode):
+    @property
+    def filename(self): return self[0]
+
+    def to_cpp(self, env=defaultdict(bool)):
+        return '{data}.readFromFile("{filename}");'.format(data=env['variable_to_assign'], filename=self.filename)
+
+class DataWrite(ChestnutNode):
+    @property
+    def data(self): return self[0]
+
+    @property
+    def filename(self): return self[1]
+
+    def to_cpp(self, env=defaultdict(bool)):
+        return '{data}.writeToFile("{filename}");'.format(data=self.data,
+                                                          filename=self.filename)
 
 class ForeachParameter(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):

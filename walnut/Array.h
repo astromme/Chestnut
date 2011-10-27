@@ -55,6 +55,9 @@ struct WALNUT_EXPORT Array
              Array(thrust::device_vector<T> &vector, int width, int height, int depth); // If vector is deleted, bad stuff happens
              __host__ __device__ Array(const Array &other) : data(other.data), width(other.width), height(other.height), depth(other.depth) {}
 
+  bool readFromFile(const QString &fileName);
+  bool writeToFile(const QString &fileName);
+
   int length() const { return width * height * depth; }
 
   __host__ __device__ Size2d size() const { return Size2d(width, height); }
@@ -71,7 +74,7 @@ struct WALNUT_EXPORT Array
     return output;
   }
 
-  void copyTo(Array<T> &array)               { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.thrustPointer()); }
+  void copyTo(Array<T> &array)                 { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.thrustPointer()); }
   void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array); }
   void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.begin()); }
   void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.begin()); }
@@ -82,7 +85,7 @@ struct WALNUT_EXPORT Array
     other.data = temp;
   }
 
-  __device__
+  __host__ __device__
   int calculateIndex(int x, int y, int z, int x_offset=0, int y_offset=0, int z_offset=0) const {
     x = ((x + x_offset) + width)  % width;
     y = ((y + y_offset) + height) % height;
@@ -95,6 +98,7 @@ struct WALNUT_EXPORT Array
   T& at(int x, int y=0, int z=0) {
     return data[calculateIndex(x, y, z)];
   }
+
 };
 
 } // namespace Walnut
