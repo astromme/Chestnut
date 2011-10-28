@@ -86,7 +86,7 @@ bool Array<T>::readFromFile(const QString &fileName) {
     int width = firstLineMatcher.capturedTexts()[3].toInt();
     int height = firstLineMatcher.capturedTexts()[4].toInt();
 
-    thrust::host_vector<T> host_data(width*height);
+    thrust::host_vector<T> host_data(width*height*depth);
 
     int pos = 0;
 
@@ -95,8 +95,15 @@ bool Array<T>::readFromFile(const QString &fileName) {
         foreach (QByteArray element, line.split(',')) {
             host_data[pos] = elementFromString<T>(element);
             pos++;
+            if (pos >= width*height*depth) {
+                file.close();
+                qDebug() << "Array full with data left in file.";
+                break;
+            }
         }
     }
+
+    file.close();
 
     // copy to device
     thrust::copy(host_data.begin(), host_data.end(), this->thrustPointer());
