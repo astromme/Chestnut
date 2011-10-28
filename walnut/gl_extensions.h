@@ -42,6 +42,8 @@
 #ifndef GLEXTENSIONS_H
 #define GLEXTENSIONS_H
 
+#ifndef Q_WS_MAC
+
 #include <QtOpenGL/QtOpenGL>
 
 /*
@@ -198,5 +200,7 @@ inline GLExtensionFunctions &getGLExtensionFunctions()
 #define glDeleteBuffers getGLExtensionFunctions().DeleteBuffers
 #define glMapBuffer getGLExtensionFunctions().MapBuffer
 #define glUnmapBuffer getGLExtensionFunctions().UnmapBuffer
+
+#endif Q_WS_MAC
 
 #endif

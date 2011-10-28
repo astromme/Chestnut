@@ -35,6 +35,7 @@ set(walnut_headers
     FunctionIterator.h
     HostFunctions.h
     walnut_global.h
+    gl_extensions.h
     DisplayWindow.h
     ColorKernels.h
     ArrayAllocator.h
