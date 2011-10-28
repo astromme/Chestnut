@@ -23,3 +23,4 @@ web/
 /virtualenv/bin/
 /virtualenv/lib/
 /virtualenv/include/
+/virtualbox/.Python
