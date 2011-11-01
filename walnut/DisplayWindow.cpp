@@ -17,11 +17,11 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
 #include "DisplayWindow.h"
 
 #include <QDebug>
 
-#include "gl_extensions.h"
 #include <cuda_gl_interop.h>
 
 using namespace Walnut;

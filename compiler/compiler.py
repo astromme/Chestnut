@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 preamble = """\
+#include <QApplication> // OpenGL stuff on Linux forces this to come first
+
 #include <walnut/ArrayAllocator.h>
 #include <walnut/Array.h>
 #include <walnut/HostFunctions.h>
@@ -17,8 +19,6 @@ preamble = """\
 #include <thrust/sort.h>
 
 #include <limits.h>
-
-#include <QApplication>
 
 using namespace Walnut;
 

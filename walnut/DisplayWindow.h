@@ -20,10 +20,25 @@
 #ifndef DISPLAYWINDOW_H
 #define DISPLAYWINDOW_H
 
+// Touch this ordering of includes and things will die. Badly.
 #include "walnut_global.h"
 
+#include <QWidget>
+#include <QPainter>
+#include <QDebug>
+
+#ifndef Q_WS_MAC
+  #define GL_GLEXT_PROTOTYPES
+  #include <GL/gl.h>
+  #include <GL/glu.h>
+  #include <GL/glx.h>
+  #include <GL/glext.h>
+#endif // not Q_WS_MAC
+
 #include <QtOpenGL/QGLWidget>
+
 #include <thrust/device_vector.h>
+
 
 namespace Walnut {
 
