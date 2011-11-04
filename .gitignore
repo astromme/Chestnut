@@ -1,16 +1,4 @@
 build/
-/latex/proposal.aux
-/latex/proposal.bbl
-/latex/proposal.blg
-/latex/proposal.log
-/latex/proposal.pdf
-/latex/proposal.tex.backup
-/latex/final-report.aux
-/latex/final-report.bbl
-/latex/final-report.blg
-/latex/final-report.log
-/latex/final-report.pdf
-/latex/tex.backup
 qtcreator-build/
 .DS_Store
 .*.swp
@@ -20,7 +8,3 @@ CMakeLists.txt.user*
 *.xcworkspace
 xcuserdata/
 web/
-/virtualenv/bin/
-/virtualenv/lib/
-/virtualenv/include/
-/virtualbox/.Python
