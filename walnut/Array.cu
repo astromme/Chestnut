@@ -38,12 +38,12 @@ Array<T>::Array(thrust::device_vector<T> &vector, int width, int height, int dep
 }
 
 template <typename T>
-T elementFromString(const QByteArray &string) {
+T elementFromString(const QString &string) {
     return string.trimmed().toDouble();
 }
 
 template <>
-Color elementFromString(const QByteArray &string) {
+Color elementFromString(const QString &string) {
     QStringList parts = QString(string).split(" ");
     Color c;
     c.red() = parts[0].toDouble();
@@ -76,7 +76,7 @@ bool Array<T>::readFromFile(const QString &fileName) {
     }
 
     QByteArray firstLine = file.readLine().trimmed();
-    QRegExp firstLineMatcher(QString("^(Int|Bool|Real)Array(1|2|3)d\\[([0-9]+), ([0-9]+)\\] = \\[$").replace(' ', "\\s+"));
+    QRegExp firstLineMatcher(QString("^\\s*(Int|Bool|Real)Array(1|2|3)d\\[width=([0-9]+), height=([0-9]+)\\]\\s*$").replace(' ', "\\s+"));
     firstLineMatcher.indexIn(firstLine);
 
     qDebug() << firstLineMatcher.capturedTexts();
@@ -90,18 +90,30 @@ bool Array<T>::readFromFile(const QString &fileName) {
 
     int pos = 0;
 
+    QString window;
     while (!file.atEnd()) {
-        QByteArray line = file.readLine();
-        foreach (QByteArray element, line.split(',')) {
-            host_data[pos] = elementFromString<T>(element);
-            pos++;
+        window += file.read(1024);
+        QStringList elements = window.split(',');
+        if (elements.size() == 0) {
+            continue;
+        }
+
+        for (int i=0; i<elements.size()-1; i++) {
             if (pos >= width*height*depth) {
                 file.close();
                 qDebug() << "Array full with data left in file.";
                 break;
             }
+
+            host_data[pos] = elementFromString<T>(elements[i]);
+            pos++;
         }
+
+        window = elements.last();
     }
+
+    // get that last element
+    host_data[pos] = elementFromString<T>(window);
 
     file.close();
 
@@ -122,12 +134,7 @@ bool Array<T>::writeToFile(const QString &fileName) {
     thrust::host_vector<T> host_data(width*height*depth);
     this->copyTo(host_data);
 
-    QStringList dimensions;
-    dimensions.append(QString::number(width));
-    dimensions.append(QString::number(height));
-
-
-    QString header = QString("%1Array%2d[%3] = [\n").arg("Real", "2", dimensions.join(", "));
+    QString header = QString("%1Array%2d[width=%3, height=%4]\n").arg("Real", "2", QString::number(width), QString::number(height));
     file.write(header.toAscii());
     for (int y=0; y<height; y++) {
         QStringList row;
@@ -135,9 +142,11 @@ bool Array<T>::writeToFile(const QString &fileName) {
             row.append((stringFromElement(host_data[calculateIndex(x, y, 0)])));
         }
         file.write(row.join(", ").toAscii());
+        if (y < height-1) {
+            file.write(",");
+        }
         file.write("\n");
     }
-    file.write("];\n");
     file.close();
     return true;
 }
