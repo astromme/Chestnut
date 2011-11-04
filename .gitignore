@@ -16,7 +16,7 @@ qtcreator-build/
 .*.swp
 .*.swo
 *.pyc
-CMakeLists.txt.user
+CMakeLists.txt.user*
 *.xcworkspace
 xcuserdata/
 web/
