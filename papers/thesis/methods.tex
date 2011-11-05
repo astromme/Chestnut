@@ -1,26 +1,56 @@
 \section{Chestnut}
 
-\begin{itemize}
-\item Hello
-\item Hi
-\end{itemize}
-
+Chestnut is presented as a framework for parallel computing. The Chestnut language is C-style imperative language that can be used to write sequential code interspersed with parallel contexts. This language can be compiled to C++ source code with the Chestnut compiler. This compiler performs source to source translations and makes heavy use of the Walnut library. Walnut is a C++ library which is built on top of CUDA and Thrust and is used to provide a Chestnut-like API at the C++ level. Currently Walnut is designed to be used internally by the Chestnut compiler but future work could expand its reach to a normal C++ library to be used directly by programmers. One the top of all of this infrastructure is the Chestnut designer which is a gui programming tool that exposes the power of the Chestnut parallel model and uses a drag and drop interface.
 
 Description of the parts of chestnut including the core language syntax, the paradigms, the chestnut designer gui and the chestnut compiler implementation (with its underlying Walnut library).
 
 \subsection{Chestnut Language}
-Assume that the person reading this is a computer scientist
+
+$[parallel|sequential] ReturnType function_name(Type param1, Type param2) { expressions }$
+$$
 
 \subsubsection{The Parallel Context}
-\subsubsection{Parallel Functions}
+
+\begin{itemize}
+\item Reference the parts of the Introduction which discuss the parallel model.  
+\item Example-driven explanation of a parallel context
+\item Describe the particular semantics of a parallel context (no sequential functions, no nested contexts, etc)
+\end{itemize}
+
 \subsubsection{Sequential Functions}
-Language Features go here
+
+\begin{itemize}
+\item Simple C-style sequential functions.
+\item Can access array locations (in a slow manner)
+\item Can contain parallel contexts
+\item CPU-Based
+\end{itemize}
+
+\subsubsection{Parallel Functions}
+
+\begin{itemize}
+\item Very similar to sequential functions
+\item Can't contain parallel contexts
+\item GPU-Based
+\end{itemize}
 
 \subsection{Chestnut Designer}
 
-GUI Choices and reasoning goes here
+\begin{itemize}
+\item Drag and drop interface
+\item Cross platform, written in Qt
+\item Can only do things that actually make sense
+\item sort of Dataflow-like
+\end{itemize}
 
 \subsection{Visualizations}
+
+\begin{itemize}
+\item GPU-Driven visuals
+\item Uses the same parallel model
+\item Everything stays on the GPU
+\item very basic model
+\end{itemize}
 
 \subsection{Chestnut Compiler}
 
