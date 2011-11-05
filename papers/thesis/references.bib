@@ -1,3 +1,17 @@
+@article{physis,
+  author = {Maruyama, Naoya and Sato, Kento and Matsuoka, Satoshi and Nomura, Tatsuo},
+  isbn = {9781450307710},
+  keywords = {application framework,domain specific languages,high,perforamnce computing},
+  title = {{Physis: An Implicitly Parallel Programming Model for Stencil Computations on Large-Scale GPU-Accelerated Supercomputers Categories and Subject Descriptors}},
+  year = {2011},
+  annote = "
+    Stencil computations are a well known class of problems that can often be solved in parallel. In a stencil computation the data required to compute a grid point are the spatially-close surrounding points. Because of this consistent data-access pattern automatic parallel optimizations can be performed. The authors of this paper present Physis which is their framework for programming stencil computations. Physis contains extensions to C which are translated into standard C by a source to source compiler built on the Rose framework. \\
+    \\
+    This paper is interesting mostly because of its similarity to Chestnut's programming model. In chestnut a developer can access a window of data much like the stencils that are provided by Physis. While Physis does hide some of the raw CUDA accesses it still requires the programmer to think about grid allocation which has been shown to provide good potential for performance optimizations but only at the cost of more complex programming knowledge.
+    "
+}
+
+
 @article{gpu-optimizations,
 abstract = {Recent years have seen a trend in using graphic pro- cessing units (GPU) as accelerators for general-purpose comput- ing. The inexpensive, single-chip, massively parallel architecture of GPU has evidentially brought factors of speedup to many nu- merical applications. However, the development of a high-quality GPU application is challenging, due to the large optimization space and complex unpredictable effects of optimizations on GPU program performance. Recently, several studies have attempted to use empiri- cal search to help the optimization. Although those studies have shown promising results, one important factorprogram inputsin the optimization has remained unexplored. In this work, we initiate the exploration in this new dimension. By conducting a series of measurement, we find that the ability to adapt to program inputs is important for some applications to achieve their best performance on GPU. In light of the findings, we develop an input-adaptive optimization framework, namely G-ADAPT, to address the influence by constructing cross-input predictive models for automatically predicting the (near-)optimal configurations for an arbitrary input to a GPU program. The results demonstrate the promise of the framework in serving as a tool to alleviate the productivity bottleneck in GPU programming.},
 author = {Liu, Y and Zhang, E Z},
