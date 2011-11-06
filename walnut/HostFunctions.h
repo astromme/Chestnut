@@ -29,9 +29,18 @@
 
 #include "Sizes.h"
 
+#include <QString>
+
 namespace Walnut {
 
-WALNUT_EXPORT std::string stringFromInt(int number);
+WALNUT_EXPORT template <typename T>
+std::string stdStringFromElement(const T &number);
+
+WALNUT_EXPORT template <typename T>
+T elementFromString(const QString &string);
+
+WALNUT_EXPORT template <typename T>
+QString stringFromElement(const T &element);
 
 /*
   Simple debugging function to print out a 2d array.
@@ -41,7 +50,6 @@ void printArray2D(const thrust::host_vector<T> &vector, int width, int height);
 
 WALNUT_EXPORT template <typename T>
 void printArray(const thrust::host_vector<T> &vector, const Size3d &size);
-
 
 } // namespace Walnut
 

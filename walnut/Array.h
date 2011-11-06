@@ -27,7 +27,6 @@
 #include <thrust/sort.h>
 #include <thrust/device_vector.h>
 
-
 __device__ inline bool operator<(const Walnut::Color &left, const Walnut::Color &right) {
   return left.red() + left.green() + left.blue() + left.opacity() < right.red() + right.green() + right.blue() + right.opacity();
 }

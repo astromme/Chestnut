@@ -19,6 +19,7 @@
 
 #include "Array.h"
 #include "ArrayAllocator.h"
+#include "HostFunctions.h"
 
 #include <QFile>
 #include <QRegExp>
@@ -35,35 +36,6 @@ Array<T>::Array(thrust::device_vector<T> &vector, int width, int height, int dep
   this->width = width;
   this->height = height;
   this->depth = depth;
-}
-
-template <typename T>
-T elementFromString(const QString &string) {
-    return string.trimmed().toDouble();
-}
-
-template <>
-Color elementFromString(const QString &string) {
-    QStringList parts = QString(string).split(" ");
-    Color c;
-    c.red() = parts[0].toDouble();
-    c.green() = parts[1].toDouble();
-    c.blue() = parts[2].toDouble();
-    c.opacity() = parts[3].toDouble();
-    return c;
-}
-
-template <typename T>
-QString stringFromElement(const T &element) {
-    return QString::number(element);
-}
-
-template <>
-QString stringFromElement(const Color &element) {
-    return QString("%1 %2 %3 %4").arg(element.red())
-                                 .arg(element.green())
-                                 .arg(element.blue())
-                                 .arg(element.opacity());
 }
 
 template <typename T>

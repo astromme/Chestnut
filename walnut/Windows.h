@@ -34,6 +34,7 @@ struct WALNUT_EXPORT Window {
   int m_yLocation;
   int m_zLocation;
 
+  __device__ Window() { m_xLocation = m_yLocation = m_zLocation = 0; array = Array<T>(); }
   __device__ Window(Array<T> &data, int x, int y=0, int z=0) : array(data), m_xLocation(x), m_yLocation(y), m_zLocation(z) {}
   __device__ Window(const Window<T> &other) : array(other.array), m_xLocation(other.m_xLocation), m_yLocation(other.m_yLocation), m_zLocation(other.m_zLocation) {}
 
@@ -55,7 +56,7 @@ struct WALNUT_EXPORT Window {
   __device__ T& west()             { return at(-1,  0); }
   __device__ T& northWest()        { return at(-1, -1); }
 
-  __device__ T& aboveCenter()      { return at( 0,  0, -1); }
+  __device__ T& above()            { return at( 0,  0, -1); }
   __device__ T& aboveNorth()       { return at( 0, -1, -1); }
   __device__ T& aboveNorthEast()   { return at( 1, -1, -1); }
   __device__ T& aboveEast()        { return at( 1,  0, -1); }
@@ -65,7 +66,7 @@ struct WALNUT_EXPORT Window {
   __device__ T& aboveWest()        { return at(-1,  0, -1); }
   __device__ T& aboveNorthWest()   { return at(-1, -1, -1); }
 
-  __device__ T& belowCenter()      { return at( 0,  0, 1); }
+  __device__ T& below()            { return at( 0,  0, 1); }
   __device__ T& belowNorth()       { return at( 0, -1, 1); }
   __device__ T& belowNorthEast()   { return at( 1, -1, 1); }
   __device__ T& belowEast()        { return at( 1,  0, 1); }

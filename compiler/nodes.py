@@ -755,8 +755,9 @@ class SequentialFunctionCall(ChestnutNode):
 
         if not len(arguments) == len(function.parameters):
             print arguments
-            raise CompilerException("Error, sequential function ':%s' takes %s parameters but %s were given" % \
-                    (function.name, len(function.parameters), len(arguments)))
+            print function.parameters[0][1]
+            raise CompilerException("The sequential function %s(%s) takes %s parameters but %s were given" % \
+                    (function.name, ', '.join(map(lambda x: x[1], function.parameters)), len(function.parameters), len(arguments)), self)
 
 
         return sequential_function_call_template % { 'function_name' : function.name,
@@ -790,19 +791,21 @@ class ParallelFunctionCall(ChestnutNode):
             return ParallelLocation(arguments).to_cpp(env)
         elif function == 'window':
             return ParallelWindow(arguments).to_cpp(env)
+        elif function == 'index':
+            return '_index'
         elif function == 'random':
             return Random(arguments).to_cpp(env)
 
         try:
             check_is_symbol(function)
         except CompilerException:
-            raise CompilerException("Can't find the function called '%s', is this a misspelling?" % function, self)
+            raise CompilerException("Can't find the function %s(), is this a misspelling?" % function, self)
         function = symbolTable.lookup(function)
         check_type(function, ParallelFunction, NeutralFunction)
 
         if not len(arguments) == len(function.parameters):
-            raise CompilerException("The parallel function '%s' takes %s parameters but %s were given" % \
-                    (function.name, len(function.parameters), len(arguments)), self)
+            raise CompilerException("The parallel function %s(%s) takes %s parameters but %s were given" % \
+                    (function.name, ', '.join(map(lambda x: x[1], function.parameters)), len(function.parameters), len(arguments)), self)
 
 
         return parallel_function_call_template % { 'function_name' : function.name,

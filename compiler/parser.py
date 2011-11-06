@@ -82,7 +82,14 @@ data_type = data_type_2d | data_type_3d
 int_window2d_declaration = Token('IntWindow2d') >> Type
 real_window2d_declaration = Token('RealWindow2d') >> Type
 color_window2d_declaration = Token('ColorWindow2d') >> Type
-window_type = real_window2d_declaration | int_window2d_declaration | color_window2d_declaration
+window_type_2d = real_window2d_declaration | int_window2d_declaration | color_window2d_declaration
+
+int_window3d_declaration = Token('IntWindow3d') >> Type
+real_window3d_declaration = Token('RealWindow3d') >> Type
+color_window3d_declaration = Token('ColorWindow3d') >> Type
+window_type_3d = real_window3d_declaration | int_window3d_declaration | color_window3d_declaration
+
+window_type = window_type_2d | window_type_3d
 
 int_declaration = Token('Int') >> Type
 real_declaration = Token('Real') >> Type
