@@ -45,7 +45,7 @@ void printArray(const thrust::host_vector<T> &vector, const Size3d &size) {
     for (int z=0; z<size.depth(); z++) {
         for (int y=0; y<size.height(); y++) {
             for (int x=0; x<size.width(); x++) {
-                int i = z*(size.width()+size.height()) + y*size.width() + x;
+                int i = z*(size.width()*size.height()) + y*size.width() + x;
                 std::cout << ((vector[i] == 0) ? "." : stringFromInt(vector[i])) << " ";
              }
              std::cout << std::endl;

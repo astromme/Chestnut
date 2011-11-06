@@ -39,7 +39,7 @@ struct WALNUT_EXPORT Window {
 
   __device__
   T& at(int x_offset=0, int y_offset=0, int z_offset=0) {
-    return array.data[array.calculateIndex(m_xLocation, m_yLocation, m_zLocation, x_offset, y_offset, m_zLocation)];
+    return array.data[array.calculateIndex(m_xLocation, m_yLocation, m_zLocation, x_offset, y_offset, z_offset)];
   }
 
   __device__ T& center()           { return at(); }
