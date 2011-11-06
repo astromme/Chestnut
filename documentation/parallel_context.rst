@@ -71,3 +71,20 @@ This makes more sense when the other arrays have different dimensions than the a
 In this case one parallel thread is started for each element in the output matrix. That thread is responsible for figuring out how to combine the inputs to create its output. In CUDA the programmer would have to manually determine how to partition the thread space but in Chestnut it is simplified into the foreach loop.
 
 
+Functions
+=========
+
+A number of functions are only valid within a parallel context.
+
+
+.. function:: location(stream_variable)
+
+   Allows access to the grid location of the stream_variable within a parallel
+   context. Returns the appropriate location type, i.e. IntLocation2d or
+   RealLocation1d.
+
+.. function:: window(stream_variable)
+
+   Returns a window into the array centered at the stream variable. Useful for
+   neighbor access. See the documentation for *Window1d*, *Window2d*, *Window3d*
+
