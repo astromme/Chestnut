@@ -136,9 +136,8 @@ def check_type(symbol, *requiredTypes):
 
 def check_dimensions_are_equal(leftData, rightData):
     assert type(leftData) == type(rightData) == Data
-    if (not leftData.width == rightData.width) or (not leftData.height == rightData.height):
-        raise CompilerException("Error, '%s' (%s, %s) and '%s' (%s, %s) have different dimensions." % \
-         (rightData.name, rightData.width, rightData.height, leftData.name, leftData.width, leftData.height))
+    if (not leftData.width == rightData.width) or (not leftData.height == rightData.height) or (not leftData.depth == rightData.depth):
+        raise CompilerException("Error, '{0}' ({0}.width, {0}.height, {0}.depth) and '{1}' ({1}.width, {1}.height, {1}.depth) have different dimensions.".format(leftData, rightData))
 
 
 class Type(str):
@@ -224,6 +223,7 @@ class RuntimeWindow:
         self.y = y
 
     def prop(self, prop):
+        #TODO: Update for 3d
         properties = { 'topLeft' : self.topLeft,
                     'top' : self.top,
                     'topRight' : self.topRight,
@@ -1174,6 +1174,7 @@ class DataSort(ChestnutNode):
             print('Warning: functions in reduce() calls are not implemented yet')
             return
 
+        #TODO: support 3d
         temp = input.value.copy().reshape(input.height*input.width)
         temp.sort()
         return temp.reshape(input.height, input.width)
@@ -1367,6 +1368,7 @@ class ParallelContext(ChestnutNode):
 
         array = output.array.copy()
 
+        #TODO: support 3d
         for y in xrange(output.height):
             for x in xrange(output.width):
                 args = map(lambda arg: RuntimeWindow(x, y, arg), arguments)

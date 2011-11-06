@@ -100,13 +100,13 @@ width = integer
 height = integer
 depth = integer
 
-unopened_size_block = (width & comma & height & symbol(']')) ** make_error('no [ before {out_rest!s}') & symbol(']')
-unclosed_size_block = (symbol('[') & width & comma & height) ** make_error('Datablock size specification is missing a closing ]')
+unopened_size_block = (width & Optional(~comma & height & Optional(~comma & depth)) & symbol(']')) ** make_error('no [ before {out_rest!s}') & symbol(']')
+unclosed_size_block = (symbol('[') & width & Optional(~comma & height & Optional(~comma & depth))) ** make_error('Datablock size specification is missing a closing ]')
 
 size = Or(
         (~symbol('[') & width
-                      & Optional(~comma & height)
-                      & Optional(~comma & depth)
+                      & Optional(~comma & height
+                        & Optional(~comma & depth))
        & ~symbol(']')) ** with_line(Size),
 
         unopened_size_block,
