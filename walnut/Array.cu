@@ -136,14 +136,17 @@ bool Array<T>::writeToFile(const QString &fileName) {
 
     QString header = QString("%1Array%2d[width=%3, height=%4]\n").arg("Real", "2", QString::number(width), QString::number(height));
     file.write(header.toAscii());
-    for (int y=0; y<height; y++) {
-        QStringList row;
-        for (int x=0; x<width; x++) {
-            row.append((stringFromElement(host_data[calculateIndex(x, y, 0)])));
-        }
-        file.write(row.join(", ").toAscii());
-        if (y < height-1) {
-            file.write(",");
+    for (int z=0; z<depth; z++) {
+        for (int y=0; y<height; y++) {
+            QStringList row;
+            for (int x=0; x<width; x++) {
+                row.append((stringFromElement(host_data[calculateIndex(x, y, z)])));
+            }
+            file.write(row.join(", ").toAscii());
+            if (y < height-1) {
+                file.write(",");
+            }
+            file.write("\n");
         }
         file.write("\n");
     }
