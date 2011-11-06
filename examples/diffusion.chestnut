@@ -1,0 +1,84 @@
+Real pi = 3.1415926535897932384626;
+
+Int NX = 64;
+
+Int nx = NX;
+Int ny = NX;
+Int nz = NX;
+
+RealArray3d grid[64, 64, 64];
+
+Int count = 0;
+Real time = 0;
+
+Real l = 1.0;
+Real kappa = 0.1;
+
+Real dx;
+Real dy;
+Real dz;
+dx = dy = dz = l/nx;
+
+Real kx;
+Real ky;
+Real kz;
+kx = ky = kz = 2.0 * pi;
+
+Real dt = 0.1*dx*dx / kappa;
+
+Real ce = kappa*dt/(dx*dx); // constant east
+Real cw = kappa*dt/(dx*dx); // constant west
+Real cn = kappa*dt/(dy*dy); // constant north
+Real cs = kappa*dt/(dy*dy); // constant south
+Real ca = kappa*dt/(dz*dz); // constant above
+Real cb = kappa*dt/(dz*dz); // constant below
+Real cc = 1.0 - (ce + cw + cn + cs + ca + cb);
+
+Real ax = exp(-kappa*time*(kx*kx));
+Real ay = exp(-kappa*time*(ky*ky));
+Real az = exp(-kappa*time*(kz*kz));
+
+//IntArray2d grid_display[64, 64];
+//
+//foreach pixel in grid_display
+//  pixel = grid_display[location(pixel).x, location(pixel).y, 0];
+//end
+
+// Initialize the array
+foreach element in grid
+    Int pos = index(element);
+    Real x = dx*(location(element).x+0.5);
+    Real y = dy*(location(element).y+0.5);
+    Real z = dz*(location(element).z+0.5);
+
+    element = 0.125
+              * (1.0 - ax*cos(kx*x))
+              * (1.0 - ay*cos(ky*y))
+              * (1.0 - az*cos(kz*z));
+
+end
+
+print('============= start ===============');
+print('===================================');
+
+// Run the diffusion kernel
+while (time + 0.5*dt < 0.1) { 
+    if (count && (count % 100 == 0)) {
+      print("time(%s)=%s", count, time + dt);
+    }
+
+    foreach element in grid
+        Int x = location(element).x;
+        Int y = location(element).y;
+        Int z = location(element).z;
+
+        RealWindow3d win = window(element);
+
+        element = cc*element + cw*win.west + ce*win.east 
+                            + cs*win.south + cn*win.north
+                            + cb*win.below + ca*win.above;
+    end
+
+    time = time + dt;
+    count = count + 1;
+}
