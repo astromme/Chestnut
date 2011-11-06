@@ -25,6 +25,8 @@
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/zip_iterator.h>
 
+#include "Sizes.h"
+
 namespace Walnut {
 
 // constant iterator information for the location in the array + the bounds
@@ -33,14 +35,18 @@ typedef thrust::counting_iterator<int> IndexIterator;
 
 typedef thrust::constant_iterator<int> WidthIterator;
 typedef thrust::constant_iterator<int> HeightIterator;
+typedef thrust::constant_iterator<int> DepthIterator;
 
-typedef thrust::tuple<IndexIterator, WidthIterator, HeightIterator> FunctionTuple;
+typedef thrust::tuple<IndexIterator, WidthIterator, HeightIterator, DepthIterator> FunctionTuple;
 
 // zipped iterator for the above window tuple
 typedef thrust::zip_iterator<FunctionTuple> FunctionIterator;
 
-FunctionIterator makeStartIterator(int width, int height);
-FunctionIterator makeEndIterator(int width, int height, FunctionIterator startIterator);
+FunctionIterator makeStartIterator(int width, int height=1, int depth=1);
+FunctionIterator makeStartIterator(const Size1d &size);
+FunctionIterator makeStartIterator(const Size2d &size);
+FunctionIterator makeStartIterator(const Size3d &size);
+FunctionIterator makeEndIterator(FunctionIterator startIterator, int width, int height=1, int depth=1);
 
 } // namespace Walnut
 

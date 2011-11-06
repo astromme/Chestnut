@@ -35,10 +35,12 @@ __device__ inline bool operator<(const Walnut::Color &left, const Walnut::Color 
 namespace Walnut {
 
 #define _index thrust::get<0>(_t)
-#define _x (thrust::get<0>(_t) % thrust::get<1>(_t))
-#define _y (thrust::get<0>(_t) / thrust::get<1>(_t))
 #define _width thrust::get<1>(_t)
 #define _height thrust::get<2>(_t)
+#define _depth thrust::get<3>(_t)
+#define _x (_index % _width)
+#define _y ((_index / _width) % _height)
+#define _z (_index / (_width * _height))
 
 template <typename T>
 struct WALNUT_EXPORT Array
@@ -60,7 +62,7 @@ struct WALNUT_EXPORT Array
 
   int length() const { return width * height * depth; }
 
-  __host__ __device__ Size2d size() const { return Size2d(width, height); }
+  __host__ __device__ Size3d size() const { return Size3d(width, height, depth); }
 
   const T* constData() const { return (const T*)data; }
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }

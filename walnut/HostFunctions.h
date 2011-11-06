@@ -27,6 +27,8 @@
 
 #include <thrust/host_vector.h>
 
+#include "Sizes.h"
+
 namespace Walnut {
 
 WALNUT_EXPORT std::string stringFromInt(int number);
@@ -36,6 +38,9 @@ WALNUT_EXPORT std::string stringFromInt(int number);
 */
 WALNUT_EXPORT template <typename T>
 void printArray2D(const thrust::host_vector<T> &vector, int width, int height);
+
+WALNUT_EXPORT template <typename T>
+void printArray(const thrust::host_vector<T> &vector, const Size3d &size);
 
 
 } // namespace Walnut

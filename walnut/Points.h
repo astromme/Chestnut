@@ -26,26 +26,30 @@ namespace Walnut {
 
 struct Point1d
 {
-  int32 x;
-  __device__ Point1d(int32 x_) : x(x_) {}
+  int32 m_x;
+  __host__ __device__ Point1d() : m_x(0) {}
+  __host__ __device__ Point1d(int32 x) : m_x(x) {}
+
+  __host__ __device__ int32& x() { return m_x; }
+  __host__ __device__ int32 x() const { return m_x; }
 };
 
-struct Point2d {
-  int32 m_x;
+struct Point2d : Point1d {
   int32 m_y;
-  __host__ __device__ Point2d(int32 x_=0, int32 y_=0) : m_x(x_), m_y(y_) {}
-  __host__ __device__ int32& x() { return m_x; }
-  __host__ __device__ int32& y() { return m_y; }
+  __host__ __device__ Point2d() : m_y(0) {}
+  __host__ __device__ Point2d(int32 x, int32 y) { m_x = x; m_y = y;}
 
-  __host__ __device__ int32 x() const { return m_x; }
+  __host__ __device__ int32& y() { return m_y; }
   __host__ __device__ int32 y() const { return m_y; }
 };
 
-struct Point3d {
-  int32 x;
-  int32 y;
-  int32 z;
-  __device__ Point3d(int32 x_, int32 y_, int32 z_) : x(x_), y(y_), z(z_) {}
+struct Point3d : Point2d{
+  int32 m_z;
+  __host__ __device__ Point3d() : m_z(0) {}
+  __host__ __device__ Point3d(int32 x, int32 y, int32 z) { m_x = x; m_y = y; m_z = z; }
+
+  __host__ __device__ int32& z() { return m_z; }
+  __host__ __device__ int32 z() const { return m_z; }
 };
 
 struct Point4d {

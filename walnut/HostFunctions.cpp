@@ -40,9 +40,23 @@ void printArray2D(const thrust::host_vector<T> &vector, int width, int height) {
   std::cout << std::endl;
 }
 
+template <typename T>
+void printArray(const thrust::host_vector<T> &vector, const Size3d &size) {
+    for (int z=0; z<size.depth(); z++) {
+        for (int y=0; y<size.height(); y++) {
+            for (int x=0; x<size.width(); x++) {
+                int i = z*(size.width()+size.height()) + y*size.width() + x;
+                std::cout << ((vector[i] == 0) ? "." : stringFromInt(vector[i])) << " ";
+             }
+             std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+}
 
 #define initPrintFunctionsWithType(T) \
-template void printArray2D(const thrust::host_vector<T> &vector, int width, int height);
+template void printArray2D(const thrust::host_vector<T> &vector, int width, int height); \
+template void printArray(const thrust::host_vector<T> &vector, const Size3d &size);
 
 initPrintFunctionsWithType(int);
 initPrintFunctionsWithType(char);

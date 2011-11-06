@@ -74,7 +74,7 @@ class Window(namedtuple('Window', ['name', 'number'])):
     def value(self, new_value):
         self._value = new_value
 
-class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
+class Data(namedtuple('Data', ['name', 'type', 'size'])):
     @property
     def cpp_name(self):
         return self.name
@@ -93,12 +93,8 @@ class Data(namedtuple('Data', ['name', 'type', 'width', 'height'])):
     def __create(self):
         self._array = numpy.zeros((self.height, self.width), dtype=numpy_type_map[self.type])
     @property
-    def size(self):
-        Size = namedtuple('Size', ['width', 'height'])
-        return Size(self.width, self.height)
-    @property
     def length(self):
-        return self.width * self.height
+        return self.size.length
     @property
     def array(self):
         return self.value

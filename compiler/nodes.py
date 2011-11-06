@@ -1,6 +1,7 @@
 from lepl import *
 from collections import namedtuple, defaultdict
 from templates import *
+import operator
 from symboltable import scalar_types, data_types
 from symboltable import SymbolTable, Scope, Keyword, StreamVariable, Variable, Window, Data, ParallelFunction, SequentialFunction, NeutralFunction, DisplayWindow
 import random, numpy
@@ -454,7 +455,7 @@ class DataDeclaration(ChestnutNode):
 
 
     def to_cpp(self, env=defaultdict(bool)):
-        symbolTable.add(Data(self.name, self.type, self.size.width, self.size.height))
+        symbolTable.add(Data(self.name, self.type, self.size))
         declaration = create_data(self.type, self.name, self.size)
 
         if not self.initialization:
@@ -464,6 +465,7 @@ class DataDeclaration(ChestnutNode):
             return '%s;\n%s' % (declaration, self.initialization.to_cpp(env))
 
     def evaluate(self, env):
+        #TODO: use arbitrary dimension
         (self.size.width, self.size.height)
         numpy_type_map[self.type]
         env['@device_memory_pool'].allocate
@@ -667,7 +669,7 @@ class DataDisplay(ChestnutNode):
         code = ""
         if not data.has_display:
             data.has_display = True
-            symbolTable.displayWindows.append(DisplayWindow(data.name, 'Chestnut Output [%s]' % data.name, data.width, data.height))
+            symbolTable.displayWindows.append(DisplayWindow(data.name, 'Chestnut Output [%s]' % data.name, data.size.width, data.size.height))
         code += display_template % display_env
         return code
 
@@ -677,12 +679,12 @@ class DataDisplay(ChestnutNode):
 print_template = """
 {
   // Create host vector to hold data
-  thrust::host_vector<%(type)s> hostData(%(length)s);
+  thrust::host_vector<%(type)s> hostData(%(data)s.size().length());
 
   // transfer data back to host
   %(data)s.copyTo(hostData);
 
-  printArray2D(hostData, %(width)s, %(height)s);
+  printArray(hostData, %(data)s.size());
 }
 """
 class DataPrint(ChestnutNode):
@@ -692,10 +694,7 @@ class DataPrint(ChestnutNode):
         data = symbolTable.lookup(data)
         check_type(data, Data)
         return print_template % { 'data' : data.name,
-                                  'type' : type_map[data.type],
-                                  'width' : data.width,
-                                  'height' : data.height,
-                                  'length' : data.width*data.height }
+                                  'type' : type_map[data.type] }
     def evaluate(self, env):
         print env[self[0]]
 
@@ -832,8 +831,32 @@ class FunctionCall(ChestnutNode):
 class Size(List):
     @property
     def width(self): return self[0]
+
     @property
+    @safe_index
     def height(self): return self[1]
+
+    @property
+    @safe_index
+    def depth(self): return self[2]
+
+    @property
+    def context(self): return self[len(self)-1]
+
+    @property
+    def dimension(self): return len(self)-1
+
+    @property
+    def length(self):
+        if self.dimension == 1:
+            return self.width
+        elif self.dimension == 2:
+            return self.width*self.height
+        elif self.dimension == 3:
+            return self.width*self.height*self.depth
+        else:
+            raise InternalException('Array of unknown dimension {0}'.format(self.dimension))
+
 
 class Parameter(List):
     @property
@@ -856,8 +879,10 @@ class Expressions(List):
 coordinates = {
         'x' : '_x',
         'y' : '_y',
+        'z' : '_z',
         'width' : '_width',
-        'height' : '_height' }
+        'height' : '_height',
+        'depth' : '_depth' }
 
 color_properties = { # Screen is apparently BGR not RGB
         'red' : 'z',
@@ -1036,9 +1061,19 @@ class Random(ChestnutNode):
 
 class ParallelLocation(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
-        if type(symbolTable.lookup(self[0])) is not StreamVariable:
+        var = symbolTable.lookup(self[0])
+        if type(var) is not StreamVariable:
             raise CompilerException("Trying to take the location of a normal (non-stream) variable '%s'. This doesn't work" % self[0])
-        return 'Point2d(_x, _y)'
+
+        dimension = var.array.size.dimension
+
+        if dimension == 1:
+            return 'Point1d(_x)'
+        elif dimension == 2:
+            return 'Point2d(_x, _y)'
+        elif dimension == 3:
+            return 'Point3d(_x, _y, _z)'
+
 
 class ParallelWindow(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
@@ -1047,7 +1082,7 @@ class ParallelWindow(ChestnutNode):
         if type(symbol) is not StreamVariable:
             raise CompilerException("Trying to take the window of a normal (non-stream) variable '%s'. This doesn't work" % self[0])
 
-        return '%s(%s, _x, _y)' % (chestnut_to_c[datatype_to_windowtype[symbol.array.type]], symbol.array.name)
+        return '%s(%s, _x, _y, _z)' % (chestnut_to_c[datatype_to_windowtype[symbol.array.type]], symbol.array.name)
 
 reduce_template = """\
 thrust::reduce({input_data}.thrustPointer(), {input_data}.thrustEndPointer())\
@@ -1180,7 +1215,7 @@ struct %(function_name)s {
 """
 parallel_context_call = """\
 {
-    FunctionIterator iterator = makeStartIterator(%(size_name)s.width(), %(size_name)s.height());
+    FunctionIterator iterator = makeStartIterator(%(size_name)s);
 
     %(temp_arrays)s
 
@@ -1220,7 +1255,7 @@ class ParallelContext(ChestnutNode):
                 raise CompilerException("%s %s should be an array" % (data.type, data.name), self)
 
 
-            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='Window2d<%s>(%s, _x, _y).center()'
+            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='Window<%s>(%s, _x, _y, _z).center()'
                             % (chestnut_to_c[data.type], data.name)))
 
             symbolTable.add(data)
@@ -1266,7 +1301,7 @@ class ParallelContext(ChestnutNode):
                 function_parameters.append('Array<%s> __original_values_for_%s' % (chestnut_to_c[symbol.type], symbol.array.name))
                 struct_member_initializations.append('_original_values_for_%(name)s(__original_values_for_%(name)s)' % { 'name' : symbol.array.name })
 
-                copies += '%s = %s;\n' % (symbol.cpp_name, 'Window2d<%s>(_original_values_for_%s, _x, _y).center()' % (chestnut_to_c[symbol.type], symbol.array.name))
+                copies += '%s = %s;\n' % (symbol.cpp_name, 'Window<%s>(_original_values_for_%s, _x, _y, _z).center()' % (chestnut_to_c[symbol.type], symbol.array.name))
 
 
         new_names = []

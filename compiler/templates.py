@@ -33,9 +33,17 @@ type_map = {
         'Point2d' : 'Point2d',
         'Point3d' : 'Point3d',
         'Point4d' : 'Point4d',
-        'IntWindow2d' : 'Window2d<int>',
-        'RealWindow2d' : 'Window2d<float>',
-        'ColorWindow2d' : 'Window2d<color>',
+        'IntWindow1d'   : 'Window<int>',
+        'RealWindow1d'  : 'Window<float>',
+        'ColorWindow1d' : 'Window<color>',
+
+        'IntWindow2d'   : 'Window<int>',
+        'RealWindow2d'  : 'Window<float>',
+        'ColorWindow2d' : 'Window<color>',
+
+        'IntWindow3d'   : 'Window<int>',
+        'RealWindow3d'  : 'Window<float>',
+        'ColorWindow3d' : 'Window<color>',
         }
 
 data_to_scalar = {
@@ -56,9 +64,17 @@ data_to_scalar = {
 chestnut_to_c = type_map
 
 datatype_to_windowtype = {
-        'IntArray2d' : 'IntWindow2d',
-        'RealArray2d' : 'RealWindow2d',
+        'IntArray1d'    : 'IntWindow1d',
+        'RealArray1d'   : 'RealWindow1d',
+        'ColorWindow1d' : 'ColorWindow1d',
+
+        'IntArray2d'    : 'IntWindow2d',
+        'RealArray2d'   : 'RealWindow2d',
         'ColorWindow2d' : 'ColorWindow2d',
+
+        'IntArray3d'    : 'IntWindow3d',
+        'RealArray3d'   : 'RealWindow3d',
+        'ColorWindow3d' : 'ColorWindow3d',
         }
 
 
@@ -88,13 +104,13 @@ dtype_to_ctype = {
 
 
 data_create_template = """\
-Array<%(type)s> %(name)s = _allocator.arrayWithSize<%(type)s>(%(width)s, %(height)s);
+Array<%(type)s> %(name)s = _allocator.arrayWithSize<%(type)s>(%(dimensions)s);
 """
 def create_data(type_, name, size):
-  return data_create_template % { 'type' : type_map[type_],
-                                  'name' : name,
-                                  'width' : size.width,
-                                  'height' : size.height }
+    dimensions = size[0:size.dimension]
+    return data_create_template % { 'type' : type_map[type_],
+                                    'name' : name,
+                                    'dimensions' : ', '.join(map(str, dimensions)) }
 
 
 data_release_template = """\

@@ -43,6 +43,7 @@ struct Size3d {
 struct Size2d {
   int32 m_width;
   int32 m_height;
+  __host__ __device__ Size2d(const Size3d &other) { m_width = other.width(); m_height = other.height(); }
   __host__ __device__ Size2d(int32 width_, int32 height_) : m_width(width_), m_height(height_) {}
   __host__ __device__ inline int32 length() const { return m_width * m_height; }
 
@@ -57,9 +58,15 @@ struct Size2d {
 
 struct Size1d
 {
-  int32 width;
-  __host__ __device__ Size1d(int32 width_) : width(width_) {}
-  int32 length() const { return width; }
+  int32 m_width;
+  __host__ __device__ Size1d(const Size3d &other) { m_width = other.width(); }
+  __host__ __device__ Size1d(const Size2d &other) { m_width = other.width(); }
+  __host__ __device__ Size1d(int32 width) : m_width(width) {}
+
+  __host__ __device__ inline int32& width() { return m_width; }
+  __host__ __device__ inline int32 width() const { return m_width; }
+
+  int32 length() const { return m_width; }
 };
 
 

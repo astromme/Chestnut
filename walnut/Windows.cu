@@ -21,8 +21,6 @@
 
 namespace Walnut {
 
-//WALNUT_INIT_STRUCT(Window1d);
-WALNUT_INIT_STRUCT(Window2d);
-//WALNUT_INIT_STRUCT(Window3d);
+WALNUT_INIT_STRUCT(Window);
 
 }

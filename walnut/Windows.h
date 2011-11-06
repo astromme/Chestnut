@@ -26,30 +26,54 @@
 namespace Walnut {
 
 template <typename T>
-struct WALNUT_EXPORT Window2d {
+struct WALNUT_EXPORT Window {
 
   Array<T> array;
 
   int m_xLocation;
   int m_yLocation;
+  int m_zLocation;
 
-  __device__ Window2d(Array<T> &data, int x, int y) : array(data), m_xLocation(x), m_yLocation(y) {}
-  __device__ Window2d(const Window2d<T> &other) : array(other.array), m_xLocation(other.m_xLocation), m_yLocation(other.m_yLocation) {}
+  __device__ Window(Array<T> &data, int x, int y=0, int z=0) : array(data), m_xLocation(x), m_yLocation(y), m_zLocation(z) {}
+  __device__ Window(const Window<T> &other) : array(other.array), m_xLocation(other.m_xLocation), m_yLocation(other.m_yLocation), m_zLocation(other.m_zLocation) {}
 
   __device__
-  T& at(int x_offset, int y_offset) {
-    return array.data[array.calculateIndex(m_xLocation, m_yLocation, 0, x_offset, y_offset, 0)];
+  T& at(int x_offset=0, int y_offset=0, int z_offset=0) {
+    return array.data[array.calculateIndex(m_xLocation, m_yLocation, m_zLocation, x_offset, y_offset, m_zLocation)];
   }
 
-  __device__ T& topLeft()     { return at(-1, -1); }
-  __device__ T& top()         { return at( 0, -1); }
-  __device__ T& topRight()    { return at( 1, -1); }
-  __device__ T& left()        { return at(-1,  0); }
-  __device__ T& center()      { return at( 0,  0); }
-  __device__ T& right()       { return at( 1,  0); }
-  __device__ T& bottomLeft()  { return at(-1,  1); }
-  __device__ T& bottom()      { return at( 0,  1); }
-  __device__ T& bottomRight() { return at( 1,  1); }
+  __device__ T& center()           { return at(); }
+  __device__ T& left()             { return at(-1); }
+  __device__ T& right()            { return at( 1); }
+
+  __device__ T& north()            { return at( 0, -1); }
+  __device__ T& northEast()        { return at( 1, -1); }
+  __device__ T& east()             { return at( 1,  0); }
+  __device__ T& southEast()        { return at( 1,  1); }
+  __device__ T& south()            { return at( 0,  1); }
+  __device__ T& southWest()        { return at(-1,  1); }
+  __device__ T& west()             { return at(-1,  0); }
+  __device__ T& northWest()        { return at(-1, -1); }
+
+  __device__ T& aboveCenter()      { return at( 0,  0, -1); }
+  __device__ T& aboveNorth()       { return at( 0, -1, -1); }
+  __device__ T& aboveNorthEast()   { return at( 1, -1, -1); }
+  __device__ T& aboveEast()        { return at( 1,  0, -1); }
+  __device__ T& aboveSouthEast()   { return at( 1,  1, -1); }
+  __device__ T& aboveSouth()       { return at( 0,  1, -1); }
+  __device__ T& aboveSouthWest()   { return at(-1,  1, -1); }
+  __device__ T& aboveWest()        { return at(-1,  0, -1); }
+  __device__ T& aboveNorthWest()   { return at(-1, -1, -1); }
+
+  __device__ T& belowCenter()      { return at( 0,  0, 1); }
+  __device__ T& belowNorth()       { return at( 0, -1, 1); }
+  __device__ T& belowNorthEast()   { return at( 1, -1, 1); }
+  __device__ T& belowEast()        { return at( 1,  0, 1); }
+  __device__ T& belowSouthEast()   { return at( 1,  1, 1); }
+  __device__ T& belowSouth()       { return at( 0,  1, 1); }
+  __device__ T& belowSouthWest()   { return at(-1,  1, 1); }
+  __device__ T& belowWest()        { return at(-1,  0, 1); }
+  __device__ T& belowNorthWest()   { return at(-1, -1, 1); }
 
 };
 

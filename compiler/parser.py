@@ -70,7 +70,14 @@ string = string_single_quote | string_double_quote
 int2d_declaration = Token('IntArray2d') >> Type
 real2d_declaration = Token('RealArray2d') >> Type
 color2d_declaration = Token('ColorArray2d') >> Type
-data_type = real2d_declaration | int2d_declaration | color2d_declaration
+data_type_2d = real2d_declaration | int2d_declaration | color2d_declaration
+
+int3d_declaration = Token('IntArray3d') >> Type
+real3d_declaration = Token('RealArray3d') >> Type
+color3d_declaration = Token('ColorArray3d') >> Type
+data_type_3d = real3d_declaration | int3d_declaration | color3d_declaration
+
+data_type = data_type_2d | data_type_3d
 
 int_window2d_declaration = Token('IntWindow2d') >> Type
 real_window2d_declaration = Token('RealWindow2d') >> Type
@@ -91,12 +98,17 @@ number = integer | real | keyword('yes') >> Bool | keyword('no') >> Bool | keywo
 
 width = integer
 height = integer
+depth = integer
 
 unopened_size_block = (width & comma & height & symbol(']')) ** make_error('no [ before {out_rest!s}') & symbol(']')
 unclosed_size_block = (symbol('[') & width & comma & height) ** make_error('Datablock size specification is missing a closing ]')
 
 size = Or(
-        (~symbol('[') & width & ~comma & height & ~symbol(']')) ** with_line(Size),
+        (~symbol('[') & width
+                      & Optional(~comma & height)
+                      & Optional(~comma & depth)
+       & ~symbol(']')) ** with_line(Size),
+
         unopened_size_block,
         unclosed_size_block
         )

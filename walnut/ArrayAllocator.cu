@@ -39,8 +39,8 @@ ArrayAllocator::~ArrayAllocator() {
 }
 
 template <typename T>
-Array<T> ArrayAllocator::arrayWithSize(int width, int height) {
-  ArrayLengthInBytes arrayLength = width*height*sizeof(T);
+Array<T> ArrayAllocator::arrayWithSize(int width, int height, int depth) {
+  ArrayLengthInBytes arrayLength = width*height*depth*sizeof(T);
   DeviceMemoryPointer dataPointer = 0;
 
   // Ok, do the dumb thing, if there isn't already a free entry of this size, create a new one
@@ -53,7 +53,7 @@ Array<T> ArrayAllocator::arrayWithSize(int width, int height) {
 
   m_usedMemory.insert(dataPointer, arrayLength);
 
-  return Array<T>((T*)dataPointer, width, height);
+  return Array<T>((T*)dataPointer, width, height, depth);
 }
 
 template <typename T>
@@ -63,7 +63,7 @@ void ArrayAllocator::releaseArray(const Array<T> &array) {
 }
 
 #define initAllocationsWithType(T) \
-template Array<T> ArrayAllocator::arrayWithSize(int width, int height); \
+template Array<T> ArrayAllocator::arrayWithSize(int width, int height, int depth); \
 template void ArrayAllocator::releaseArray(const Array<T> &array) \
 
 initAllocationsWithType(int8);

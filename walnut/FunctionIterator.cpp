@@ -21,17 +21,30 @@
 
 namespace Walnut {
 
-FunctionIterator makeStartIterator(int width, int height) {
+FunctionIterator makeStartIterator(int width, int height, int depth) {
 
   IndexIterator  indexIterator(0);
   WidthIterator  widthIterator(width);
   HeightIterator heightIterator(height);
+  DepthIterator  depthIterator(depth);
 
-  return FunctionIterator(FunctionTuple(indexIterator, widthIterator, heightIterator));
+  return FunctionIterator(FunctionTuple(indexIterator, widthIterator, heightIterator, depthIterator));
 }
 
-FunctionIterator makeEndIterator(int width, int height, FunctionIterator startIterator) {
-  return startIterator + width*height;
+FunctionIterator makeStartIterator(const Size1d &size) {
+    return makeStartIterator(size.width());
+}
+
+FunctionIterator makeStartIterator(const Size2d &size) {
+    return makeStartIterator(size.width(), size.height());
+}
+
+FunctionIterator makeStartIterator(const Size3d &size) {
+    return makeStartIterator(size.width(), size.height(), size.depth());
+}
+
+FunctionIterator makeEndIterator(FunctionIterator startIterator, int width, int height, int depth) {
+  return startIterator + width*height*depth;
 }
 
 } // namespace Walnut
