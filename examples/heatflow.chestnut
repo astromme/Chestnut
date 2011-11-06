@@ -28,7 +28,7 @@ parallel Real heat(Real data, Point2d location, Int timestep) {
 
 parallel Real heat_flow(RealWindow2d data, Real c0, Real c1) {
   Real new_data = c0*data.center;
-  new_data = new_data + c1*(data.left + data.right + data.top + data.bottom);
+  new_data = new_data + c1*(data.west + data.east + data.north + data.south);
 
   new_data = min(1.0, new_data);
   return max(0.0, new_data);

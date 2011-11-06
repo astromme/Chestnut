@@ -1,7 +1,7 @@
 parallel Int game_of_life(IntWindow2d element) {
-  Int neighbor_count = element.topLeft    + element.top       + element.topRight +
-                       element.left       + 0                 + element.right +
-                       element.bottomLeft + element.bottom    + element.bottomRight;
+  Int neighbor_count = element.northWest + element.north + element.northEast +
+                       element.west      + 0             + element.east +
+                       element.southWest + element.south + element.southEast;
   Int state;
   Int alive = element.center;
 
