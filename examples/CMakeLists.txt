@@ -4,6 +4,7 @@ find_package(Chestnut)
 
 include_directories(${CHESTNUT_INCLUDE_DIRS})
 
+chestnut_add_executable(3d 3d.chestnut)
 #chestnut_add_executable(file_io file_io.chestnut)
 chestnut_add_executable(gradient gradient.chestnut)
 chestnut_add_executable(heatflow heatflow.chestnut)

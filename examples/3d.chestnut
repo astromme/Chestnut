@@ -1,0 +1,23 @@
+IntArray3d grid[5, 2, 2];
+
+foreach element in grid
+  element = location(element).x;
+end
+
+print('::x positions');
+print(grid);
+
+foreach element in grid
+  element = location(element).y;
+end
+
+print('::y positions');
+print(grid);
+
+foreach element in grid
+  element = location(element).z;
+end
+
+print('::z positions');
+print(grid);
+
