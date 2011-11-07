@@ -493,6 +493,8 @@ class ObjectDeclaration(ChestnutNode):
                                                              functions=''))
         return ''
 
+host_function_declaration_template = """\
+__host__ %(type)s %(function_name)s(%(parameters)s);"""
 host_function_template = """\
 __host__ %(type)s %(function_name)s(%(parameters)s) %(block)s
 """
@@ -513,10 +515,11 @@ class SequentialFunctionDeclaration(ChestnutNode):
                         'parameters' : ', '.join(map(lambda p: '{0} {1}'.format(p.type, p.name), tuple(parameters))),
                         'block' : block.to_cpp(env) }
 
-        host_function = host_function_template % environment
+        declaration = host_function_declaration_template % environment
+        function = host_function_template % environment
 
         symbolTable.removeScope()
-        return host_function
+        return declaration, function
 
     def evaluate(self, env):
         type_, name, parameters, block, context = self
@@ -535,6 +538,8 @@ class SequentialFunctionDeclaration(ChestnutNode):
 
         return result
 
+device_function_declaration_template = """\
+__device__ %(type)s %(function_name)s(%(parameters)s);"""
 device_function_template = """\
 __device__ %(type)s %(function_name)s(%(parameters)s) %(block)s
 """
@@ -557,12 +562,12 @@ class ParallelFunctionDeclaration(ChestnutNode):
                         'parameters' : ', '.join(map(lambda (type, name): '%s %s' % (type, name), tuple(parameters))),
                         'block' : block.to_cpp(env) }
 
-        device_function = device_function_template % environment
-
+        declaration = device_function_declaration_template % environment
+        function = device_function_template % environment
 
         del env['@in_parallel_context']
         symbolTable.removeScope()
-        return device_function
+        return declaration, function
 
     def evaluate(self, env):
         type_, name, parameters, block, context = self
@@ -657,7 +662,8 @@ class DataDisplay(ChestnutNode):
             functor = display_functor_template.format(display_function_name=display_function.name,
                                                       input_data_type=data_to_scalar[data.type])
 
-            symbolTable.parallelContexts.append(functor)
+            if functor not in symbolTable.parallelContexts:
+                symbolTable.parallelContexts.append(functor)
 
             display_function = '_color_convert__{}'.format(display_function.name)
         else:
