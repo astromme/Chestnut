@@ -48,16 +48,6 @@ from builtins import built_in_functions
 for function in built_in_functions:
     symbolTable.add(function)
 
-cuda_directory='/usr/local/cuda/'
-cuda_compiler=cuda_directory+'bin/nvcc'
-
-cuda_compile_pass1 = """%(cuda_compiler)s -M -D__CUDACC__ %(input_file)s -o %(input_file)s.o.NVCC-depend -m64 -Xcompiler ,\"-g\" -DNVCC -I/usr/local/cuda/include -I/usr/local/cuda/include -I/usr/include -I /Library/Frameworks/QtGui.framework/Versions/4/Headers -I /Library/Frameworks/QtCore.framework/Versions/4/Headers -I ."""
-
-cuda_compile_pass2 = """%(cuda_compiler)s %(input_file)s -c -o %(input_file)s.o -m64 -Xcompiler ,\"-g\" -DNVCC -I/usr/local/cuda/include -I/usr/local/cuda/include -I/usr/include -I /Library/Frameworks/QtGui.framework/Versions/4/Headers -I /Library/Frameworks/QtCore.framework/Versions/4/Headers -I ."""
-
-cuda_compile_pass3 = """/usr/bin/c++ -O2 -g -Wl,-search_paths_first -headerpad_max_install_names  ./%(input_file)s.o -o %(output_file)s /usr/local/cuda/lib/libcudart.dylib -Wl,-rpath -Wl,/usr/local/cuda/lib /usr/local/cuda/lib/libcuda.dylib -I . -L . -lwalnut -framework OpenGL -framework QtGui -framework QtOpenGL -framework QtCore"""
-
-
 display_init = """\
 DisplayWindow _%(name)s_display(QSize(%(width)s, %(height)s));
 _%(name)s_display.show();
@@ -151,28 +141,6 @@ def main():
 
     with open(output_file, 'w') as f:
       f.write(thrust_code)
-
-
-    #env = { 'cuda_compiler' : cuda_compiler,
-    #        'input_file' : output_file+'.cu',
-    #        'output_file' : output_file }
-
-    #print('compiling...')
-    #pass1 = subprocess.Popen(shlex.split(cuda_compile_pass1 % env))
-    #pass1.wait()
-    #print('stage one complete')
-
-    #pass2 = subprocess.Popen(shlex.split(cuda_compile_pass2 % env))
-    #pass2.wait()
-    #print('stage two complete')
-
-    #pass3 = subprocess.Popen(shlex.split(cuda_compile_pass3 % env))
-    #pass3.wait()
-    #print('stage three complete')
-
-    ##os.remove(output_file+'.cu')
-    #os.remove(output_file+'.cu.o')
-    #os.remove(output_file+'.cu.o.NVCC-depend')
 
 
 if __name__ == '__main__':
