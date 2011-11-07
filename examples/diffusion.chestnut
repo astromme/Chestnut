@@ -1,3 +1,4 @@
+// Originally from https://github.com/naoyam/physis/blob/develop/examples/diffusion/diffusion3d_physis.c
 Real pi = 3.1415926535897932384626;
 
 Int NX = 64;
@@ -34,9 +35,6 @@ Real ca = kappa*dt/(dz*dz); // constant above
 Real cb = kappa*dt/(dz*dz); // constant below
 Real cc = 1.0 - (ce + cw + cn + cs + ca + cb);
 
-Real ax = exp(-kappa*time*(kx*kx));
-Real ay = exp(-kappa*time*(ky*ky));
-Real az = exp(-kappa*time*(kz*kz));
 
 //IntArray2d grid_display[64, 64];
 //
@@ -44,22 +42,52 @@ Real az = exp(-kappa*time*(kz*kz));
 //  pixel = grid_display[location(pixel).x, location(pixel).y, 0];
 //end
 
-// Initialize the array
-foreach element in grid
-    Int pos = index(element);
-    Real x = dx*(location(element).x+0.5);
-    Real y = dy*(location(element).y+0.5);
-    Real z = dz*(location(element).z+0.5);
+sequential RealArray3d initialize(RealArray3d array, Real kappa,
+                          Real kx, Real ky, Real kz,
+                          Real dx, Real dy, Real dz,
+                          Real time) {
+    Real ax = exp(-kappa*time*(kx*kx));
+    Real ay = exp(-kappa*time*(ky*ky));
+    Real az = exp(-kappa*time*(kz*kz));
 
-    element = 0.125
-              * (1.0 - ax*cos(kx*x))
-              * (1.0 - ay*cos(ky*y))
-              * (1.0 - az*cos(kz*z));
+    // Initialize the array
+    foreach element in array
+        Int pos = index(element);
+        Real x = dx*(location(element).x+0.5);
+        Real y = dy*(location(element).y+0.5);
+        Real z = dz*(location(element).z+0.5);
 
-end
+        element = 0.125
+                  * (1.0 - ax*cos(kx*x))
+                  * (1.0 - ay*cos(ky*y))
+                  * (1.0 - az*cos(kz*z));
 
-print('============= start ===============');
-print('===================================');
+    end
+    return array;
+}
+
+sequential Real accuracy(RealArray3d experimental, RealArray3d answer) {
+    RealArray3d squared_errors[64, 64, 64];
+
+    foreach error in squared_errors, e in experimental, a in answer
+        error = (e-a) * (e-a);
+    end
+
+    return sqrt(reduce(squared_errors)/(64*64*64));
+}
+
+grid = initialize(grid, kappa, kx, ky, kz, dx, dy, dz, time);
+
+parallel Color green(Real input) {
+  Color c;
+  c.red = 0;
+  c.green = input*1024*1024;
+  c.blue = 0;
+  c.opacity = 255;
+  return c;
+}
+
+display(grid, green);
 
 // Run the diffusion kernel
 while (time + 0.5*dt < 0.1) { 
@@ -82,3 +110,11 @@ while (time + 0.5*dt < 0.1) {
     time = time + dt;
     count = count + 1;
 }
+
+RealArray3d answer[64, 64, 64];
+answer = initialize(answer, kappa, kx, ky, kz, dx, dy, dz, time);
+
+display(answer, green);
+
+print("error was %s", accuracy(grid, answer));
+
