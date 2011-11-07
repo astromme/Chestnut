@@ -22,6 +22,8 @@ preamble = """\
 
 using namespace Walnut;
 
+ArrayAllocator _allocator;
+
 """
 
 main_template = """
@@ -30,7 +32,7 @@ int main(int argc, char* argv[])
 {
   %(app_statement)s
   srand(NULL);
-  ArrayAllocator _allocator;
+  _allocator = ArrayAllocator();
 
 %(declarations)s
 %(main_code)s
