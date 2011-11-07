@@ -80,6 +80,7 @@ struct WALNUT_EXPORT Array
   void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.begin()); }
   void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.begin()); }
 
+  // note... swapping arrays means that any copies of this Array<T> are invalid.
   void swapDataWith(Array<T> &other) {
     T *temp = data;
     data = other.data;
