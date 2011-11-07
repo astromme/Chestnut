@@ -17,8 +17,6 @@
  *   51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "ArrayAllocator.h"
-
 #include <cuda.h>
 #include <QDebug>
 
@@ -57,22 +55,14 @@ Array<T> ArrayAllocator::arrayWithSize(int width, int height, int depth) {
 }
 
 template <typename T>
+Array<T> ArrayAllocator::arrayWithSize(const Size3d &size) {
+    return arrayWithSize<T>(size.width(), size.height(), size.depth());
+}
+
+template <typename T>
 void ArrayAllocator::releaseArray(const Array<T> &array) {
   ArrayLengthInBytes arrayLength = m_usedMemory.take((DeviceMemoryPointer)(array.constData()));
   m_freeMemory.insert(arrayLength, (DeviceMemoryPointer)(array.constData()));
 }
-
-#define initAllocationsWithType(T) \
-template Array<T> ArrayAllocator::arrayWithSize(int width, int height, int depth); \
-template void ArrayAllocator::releaseArray(const Array<T> &array) \
-
-initAllocationsWithType(int8);
-initAllocationsWithType(int16);
-initAllocationsWithType(int32);
-initAllocationsWithType(int64);
-initAllocationsWithType(real32);
-initAllocationsWithType(real64);
-initAllocationsWithType(Color);
-
 
 } // namespace Walnut

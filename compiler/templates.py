@@ -8,44 +8,6 @@ def indent(code, indent_first_line=True):
         code = '  ' + code
     return code.replace('\n', '\n  ')
 
-
-type_map = {
-        'Int' : 'int',
-        'IntArray1d' : 'int',
-        'IntArray2d' : 'int',
-        'IntArray3d' : 'int',
-        'Real' : 'float',
-        'RealArray1d' : 'float',
-        'RealArray2d' : 'float',
-        'RealArray3d' : 'float',
-        'Color' : 'Color',
-        'ColorArray1d' : 'Color',
-        'ColorArray2d' : 'Color',
-        'ColorArray3d' : 'Color',
-        'Bool' : 'bool',
-        'BoolArray1d' : 'bool',
-        'BoolArray2d' : 'bool',
-        'BoolArray3d' : 'bool',
-        'Size1d' : 'Size1d',
-        'Size2d' : 'Size2d',
-        'Size3d' : 'Size3d',
-        'Point1d' : 'Point1d',
-        'Point2d' : 'Point2d',
-        'Point3d' : 'Point3d',
-        'Point4d' : 'Point4d',
-        'IntWindow1d'   : 'Window<int>',
-        'RealWindow1d'  : 'Window<float>',
-        'ColorWindow1d' : 'Window<color>',
-
-        'IntWindow2d'   : 'Window<int>',
-        'RealWindow2d'  : 'Window<float>',
-        'ColorWindow2d' : 'Window<color>',
-
-        'IntWindow3d'   : 'Window<int>',
-        'RealWindow3d'  : 'Window<float>',
-        'ColorWindow3d' : 'Window<color>',
-        }
-
 data_to_scalar = {
         'IntArray1d' : 'Int',
         'IntArray2d' : 'Int',
@@ -60,8 +22,6 @@ data_to_scalar = {
         'BoolArray2d' : 'Bool',
         'BoolArray3d' : 'Bool',
         }
-
-chestnut_to_c = type_map
 
 datatype_to_windowtype = {
         'IntArray1d'    : 'IntWindow1d',
@@ -108,16 +68,21 @@ Array<%(type)s> %(name)s = _allocator.arrayWithSize<%(type)s>(%(dimensions)s);
 """
 def create_data(type_, name, size):
     dimensions = size[0:size.dimension]
-    return data_create_template % { 'type' : type_map[type_],
+    return data_create_template % { 'type' : data_to_scalar[type_],
                                     'name' : name,
                                     'dimensions' : ', '.join(map(str, dimensions)) }
+
+def create_data_like_data(name, like_data):
+    return data_create_template % { 'type' : data_to_scalar[like_data.type],
+                                    'name' : name,
+                                    'dimensions' : '{0.name}.size()'.format(like_data) }
 
 
 data_release_template = """\
 _allocator.releaseArray(%(name)s);
 """
 def release_data(type_, name):
-    return data_release_template % { 'type' : type_map[type_],
+    return data_release_template % { 'type' : data_to_scalar[type_],
                                      'name' : name }
 
 data_swap_template = """\

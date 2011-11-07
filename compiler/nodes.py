@@ -142,7 +142,7 @@ def check_dimensions_are_equal(leftData, rightData):
 
 class Type(str):
     def to_cpp(self, env=None):
-        return type_map[self]
+        return str(self)
     def evaluate(self, env):
         return
 
@@ -485,7 +485,7 @@ class ObjectDeclaration(ChestnutNode):
         member_variables = []
 
         for type, name in members:
-            member_variables.append('%s %s;' % (chestnut_to_c[type], name))
+            member_variables.append('%s %s;' % (type, name))
 
         symbolTable.add(Object(name=object_name, members=members))
         symbolTable.structures.append(object_template.format(name=object_name,
@@ -503,11 +503,14 @@ class SequentialFunctionDeclaration(ChestnutNode):
         symbolTable.add(SequentialFunction(name, type_, parameters, node=self))
         symbolTable.createScope()
         for parameter in parameters:
-            symbolTable.add(Variable(name=parameter.name, type=parameter.type))
+            if parameter.type in scalar_types:
+                symbolTable.add(Variable(name=parameter.name, type=parameter.type))
+            if parameter.type in data_types:
+                symbolTable.add(Data(name=parameter.name, type=parameter.type, size=None))
 
         environment = { 'function_name' : name,
                         'type' : type_,
-                        'parameters' : ', '.join(map(lambda type, name: '%s %s' % (type, name), tuple(parameters))),
+                        'parameters' : ', '.join(map(lambda p: '{0} {1}'.format(p.type, p.name), tuple(parameters))),
                         'block' : block.to_cpp(env) }
 
         host_function = host_function_template % environment
@@ -550,8 +553,8 @@ class ParallelFunctionDeclaration(ChestnutNode):
             symbolTable.add(Variable(name=parameter.name, type=parameter.type))
 
         environment = { 'function_name' : name,
-                        'type' : chestnut_to_c[type_],
-                        'parameters' : ', '.join(map(lambda (type, name): '%s %s' % (chestnut_to_c[type], name), tuple(parameters))),
+                        'type' : type_,
+                        'parameters' : ', '.join(map(lambda (type, name): '%s %s' % (type, name), tuple(parameters))),
                         'block' : block.to_cpp(env) }
 
         device_function = device_function_template % environment
@@ -652,7 +655,7 @@ class DataDisplay(ChestnutNode):
 
 
             functor = display_functor_template.format(display_function_name=display_function.name,
-                                                      input_data_type=chestnut_to_c[data.type])
+                                                      input_data_type=data_to_scalar[data.type])
 
             symbolTable.parallelContexts.append(functor)
 
@@ -660,7 +663,7 @@ class DataDisplay(ChestnutNode):
         else:
             display_function = '_chestnut_default_color_conversion'
 
-        template_types = '%s' % type_map[data.type]
+        template_types = str(data.type)
 
         display_env = { 'input' : data.name,
                         'template_types' : template_types,
@@ -694,7 +697,7 @@ class DataPrint(ChestnutNode):
         data = symbolTable.lookup(data)
         check_type(data, Data)
         return print_template % { 'data' : data.name,
-                                  'type' : type_map[data.type] }
+                                  'type' : data_to_scalar[data.type] }
     def evaluate(self, env):
         print env[self[0]]
 
@@ -964,14 +967,14 @@ class ArrayReference(ChestnutNode):
 
         if type(symbol) == Data:
             # TODO: Support 1d and 3d. Assuming 2d for now.
-            if len(references) > 2:
-                raise CompilerException("Too many arguments to the array lookup, there should only be 2 (%s[x, y])" % symbol.name, self)
-            elif len(references) < 2:
-                raise CompilerException("Too few arguments to the array lookup, there should only be 2 (%s[x, y])" % symbol.name, self)
+            if len(references) > 3:
+                raise CompilerException("Too many arguments to the array lookup, there should only be between 1 and 3 (i.e. %s[x, y, z])" % symbol.name, self)
+            elif len(references) < 1:
+                raise CompilerException("Too few arguments to the array lookup, there should be between 1 and 3 (i.e. %s[x, y, z])" % symbol.name, self)
             #check_expression_type(arg1)
             #check_expression_type(arg2)
 
-            return '%s.at(%s, %s)' % (symbol.cpp_name, references[0].to_cpp(env), references[1].to_cpp(env))
+            return '%s.at(%s)' % (symbol.cpp_name, ', '.join(cpp_tuple(references, env)))
 
         else:
             raise CompilerException("%s should be an array if you want to do %s[x, y, z] lookups on it" % symbol.name, self)
@@ -1068,14 +1071,7 @@ class ParallelLocation(ChestnutNode):
         if type(var) is not StreamVariable:
             raise CompilerException("Trying to take the location of a normal (non-stream) variable '%s'. This doesn't work" % self[0])
 
-        dimension = var.array.size.dimension
-
-        if dimension == 1:
-            return 'Point1d(_x)'
-        elif dimension == 2:
-            return 'Point2d(_x, _y)'
-        elif dimension == 3:
-            return 'Point3d(_x, _y, _z)'
+        return 'Point3d(_x, _y, _z)'
 
 
 class ParallelWindow(ChestnutNode):
@@ -1085,7 +1081,7 @@ class ParallelWindow(ChestnutNode):
         if type(symbol) is not StreamVariable:
             raise CompilerException("Trying to take the window of a normal (non-stream) variable '%s'. This doesn't work" % self[0])
 
-        return '%s(%s, _x, _y, _z)' % (chestnut_to_c[datatype_to_windowtype[symbol.array.type]], symbol.array.name)
+        return '%s(%s, _x, _y, _z)' % (datatype_to_windowtype[symbol.array.type], symbol.array.name)
 
 reduce_template = """\
 thrust::reduce({input_data}.thrustPointer(), {input_data}.thrustEndPointer())\
@@ -1259,13 +1255,13 @@ class ParallelContext(ChestnutNode):
                 raise CompilerException("%s %s should be an array" % (data.type, data.name), self)
 
 
-            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='Window<%s>(%s, _x, _y, _z).center()'
-                            % (chestnut_to_c[data.type], data.name)))
+            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='%s(%s, _x, _y, _z).center()'
+                            % (datatype_to_windowtype[data.type], data.name)))
 
             symbolTable.add(data)
 
-            struct_member_variables.append('Array<%s> %s;' % (chestnut_to_c[data.type], data.name))
-            function_parameters.append('Array<%s> _%s' % (chestnut_to_c[data.type], data.name))
+            struct_member_variables.append('%s %s;' % (data.type, data.name))
+            function_parameters.append('%s _%s' % (data.type, data.name))
             struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : data.name })
             requested_variables.append(data.name)
 
@@ -1284,12 +1280,12 @@ class ParallelContext(ChestnutNode):
                 # We've got a variable that needs to be passed into this function
                 variable = symbolTable.lookup(variable)
                 if variable.type in data_types:
-                    struct_member_variables.append('Array<%s> %s;' % (chestnut_to_c[variable.type], variable.name))
-                    function_parameters.append('Array<%s> _%s' % (chestnut_to_c[variable.type], variable.name))
+                    struct_member_variables.append('%s %s;' % (variable.type, variable.name))
+                    function_parameters.append('%s _%s' % (variable.type, variable.name))
                     struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : variable.name })
                 else:
-                    struct_member_variables.append('%s %s;' % (chestnut_to_c[variable.type], variable.name))
-                    function_parameters.append('%s _%s' % (chestnut_to_c[variable.type], variable.name))
+                    struct_member_variables.append('%s %s;' % (variable.type, variable.name))
+                    function_parameters.append('%s _%s' % (variable.type, variable.name))
                     struct_member_initializations.append('%(name)s(_%(name)s)' % { 'name' : variable.name})
 
                 requested_variables.append(variable.name)
@@ -1301,11 +1297,11 @@ class ParallelContext(ChestnutNode):
             if symbol and type(symbol) == StreamVariable and symbol not in outputs:
                 outputs.append(symbol)
 
-                struct_member_variables.append('Array<%s> _original_values_for_%s;' % (chestnut_to_c[symbol.type], symbol.array.name))
-                function_parameters.append('Array<%s> __original_values_for_%s' % (chestnut_to_c[symbol.type], symbol.array.name))
+                struct_member_variables.append('{0.type} _original_values_for_{0.name};'.format(symbol.array))
+                function_parameters.append('{0.type} __original_values_for_{0.name}'.format(symbol.array))
                 struct_member_initializations.append('_original_values_for_%(name)s(__original_values_for_%(name)s)' % { 'name' : symbol.array.name })
 
-                copies += '%s = %s;\n' % (symbol.cpp_name, 'Window<%s>(_original_values_for_%s, _x, _y, _z).center()' % (chestnut_to_c[symbol.type], symbol.array.name))
+                copies += '%s = %s;\n' % (symbol.cpp_name, '{1}(_original_values_for_{0.name}, _x, _y, _z).center()'.format(symbol.array, datatype_to_windowtype[symbol.array.type]))
 
 
         new_names = []
@@ -1316,7 +1312,7 @@ class ParallelContext(ChestnutNode):
             requested_variables.append(original_name)
             new_names.append(new_name)
 
-        temp_arrays = [create_data(output.array.type, name, output.array.size) for output, name in zip(outputs, new_names)]
+        temp_arrays = [create_data_like_data(name, output.array) for output, name in zip(outputs, new_names)]
         swaps = map(lambda (a, b): swap_data(a, b.array.name), zip(new_names, outputs))
         releases = [release_data(output.array.type, temp) for output, temp in zip(outputs, new_names)]
 

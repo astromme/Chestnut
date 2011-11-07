@@ -25,7 +25,6 @@ set(walnut_sources
     FunctionIterator.cpp
     HostFunctions.cpp
     DisplayWindow.cpp
-    ArrayAllocator.cu
     Array.cu
     Windows.cu
     )

@@ -2,6 +2,7 @@
 
 import re
 from nodes import *
+from symboltable import structure_types, scalar_types
 from lepl.stream.maxdepth import FullFirstMatchException
 
 
@@ -91,13 +92,8 @@ window_type_3d = real_window3d_declaration | int_window3d_declaration | color_wi
 
 window_type = window_type_2d | window_type_3d
 
-int_declaration = Token('Int') >> Type
-real_declaration = Token('Real') >> Type
-color_declaration = Token('Color') >> Type
-bool_declaration = Token('Bool') >> Type
-point2d_declaration = Token('Point2d') >> Type
-size2d_declaration = Token('Size2d') >> Type
-type_ = real_declaration | int_declaration | color_declaration | bool_declaration | point2d_declaration | size2d_declaration | window_type
+type_declarations = [(Token(type) >> Type) for type in scalar_types + structure_types]
+type_ = Or(*type_declarations) | window_type
 
 real = Token(UnsignedReal()) >> Real
 integer = Token(UnsignedInteger()) >> Integer
@@ -202,7 +198,7 @@ data_initialization = (~symbol('=') & expression) ** with_line(DataInitializatio
 
 variable_declaration = (type_ & identifier & Optional(initialization) & ~semi) ** with_line(VariableDeclaration)
 data_declaration = (data_type & identifier & size & Optional(data_initialization) & ~semi) ** with_line(DataDeclaration)
-sequential_function_declaration = (~Token('sequential') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(SequentialFunctionDeclaration)
+sequential_function_declaration = (~Token('sequential') & (type_ | data_type) & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(SequentialFunctionDeclaration)
 parallel_function_declaration = (~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(ParallelFunctionDeclaration)
 object_declaration = ~keyword('object') & identifier & ~symbol('{') & (((type_ & identifier & ~semi) > List)[0:] > List) & ~symbol('}') > ObjectDeclaration
 
@@ -211,10 +207,11 @@ function_call += (identifier & ~symbol('(') & expression_list & ~symbol(')')) **
 primary += function_call | identifier | property_list | array_reference
 
 ## Now we can define the last bits
-unclosed_block = (~symbol('{') & (statement | variable_declaration)[0:]) ** make_error('block is missing a closing }}')
+unclosed_block = (~symbol('{') & (statement | variable_declaration | data_declaration)[0:]) ** make_error('block is missing a closing }}')
+
 
 block += Or(
-        (~symbol('{') & (statement | variable_declaration)[0:] & ~symbol('}')) > Block,
+        (~symbol('{') & (statement | variable_declaration | data_declaration)[0:] & ~symbol('}')) > Block,
         unclosed_block
         )
 

@@ -28,6 +28,9 @@ struct Size3d {
   int32 m_width;
   int32 m_height;
   int32 m_depth;
+  __host__ __device__ Size3d() : m_width(0), m_height(0), m_depth(0) {}
+  //__host__ __device__ Size3d(const Size1d &size) : m_width(size.width()), m_height(1), m_depth(1) {}
+  //__host__ __device__ Size3d(const Size2d &size) : m_width(size.width()), m_height(size.height()), m_depth(1) {}
   __host__ __device__ Size3d(int32 width_, int32 height_, int32 depth_) : m_width(width_), m_height(height_), m_depth(depth_) {}
   __host__ __device__ inline int32 length() const { return m_width * m_height * m_depth; }
 

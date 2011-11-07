@@ -51,10 +51,10 @@ struct WALNUT_EXPORT Array
 
   typedef T Type;
 
-  __host__ __device__ Array() : data(0), height(0), width(0), depth(0) {}
+  __host__ __device__ Array() : data(0), width(0), height(0), depth(0) {}
+  __host__ __device__ Array(const Array &other) : data(other.data), width(other.width), height(other.height), depth(other.depth) {}
   __host__ __device__ Array(T *data_, int width_, int height_=1, int depth_=1) : data(data_), width(width_), height(height_), depth(depth_) {}
              Array(thrust::device_vector<T> &vector, int width, int height, int depth); // If vector is deleted, bad stuff happens
-             __host__ __device__ Array(const Array &other) : data(other.data), width(other.width), height(other.height), depth(other.depth) {}
 
   bool readFromFile(const QString &fileName);
   bool writeToFile(const QString &fileName);
@@ -101,6 +101,22 @@ struct WALNUT_EXPORT Array
   }
 
 };
+
+typedef Array<Int> IntArray1d;
+typedef Array<Int> IntArray2d;
+typedef Array<Int> IntArray3d;
+
+typedef Array<Real> RealArray1d;
+typedef Array<Real> RealArray2d;
+typedef Array<Real> RealArray3d;
+
+typedef Array<Color> ColorArray1d;
+typedef Array<Color> ColorArray2d;
+typedef Array<Color> ColorArray3d;
+
+typedef Array<Bool> BoolArray1d;
+typedef Array<Bool> BoolArray2d;
+typedef Array<Bool> BoolArray3d;
 
 } // namespace Walnut
 

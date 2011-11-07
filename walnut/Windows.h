@@ -78,6 +78,22 @@ struct WALNUT_EXPORT Window {
 
 };
 
+typedef Window<Int> IntWindow1d;
+typedef Window<Int> IntWindow2d;
+typedef Window<Int> IntWindow3d;
+
+typedef Window<Real> RealWindow1d;
+typedef Window<Real> RealWindow2d;
+typedef Window<Real> RealWindow3d;
+
+typedef Window<Color> ColorWindow1d;
+typedef Window<Color> ColorWindow2d;
+typedef Window<Color> ColorWindow3d;
+
+typedef Window<Bool> BoolWindow1d;
+typedef Window<Bool> BoolWindow2d;
+typedef Window<Bool> BoolWindow3d;
+
 }
 
 #endif // WINDOWS_H

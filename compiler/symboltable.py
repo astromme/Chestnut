@@ -4,16 +4,17 @@ from pycuda import gpuarray
 
 # Keywords supported by chestnut syntax
 # These are added to the symbol table
-scalar_types = ['Integer', 'Real', 'Color', 'Bool']
+scalar_types = ['Int', 'Real', 'Color', 'Bool']
 
 data_types = ['IntArray1d', 'IntArray2d', 'IntArray3d',
               'RealArray1d', 'RealArray2d', 'RealArray3d',
               'ColorArray1d', 'ColorArray2d', 'ColorArray3d']
 
-structure_types = ['Point1d', 'Point2d', 'Point3d',
+structure_types = ['Point1d', 'Point2d', 'Point3d', 'Point4d',
                    'Size1d', 'Size2d', 'Size3d',
+                   'IntWindow1d', 'RealWindow1d', 'ColorWindow1d',
                    'IntWindow2d', 'RealWindow2d', 'ColorWindow2d',
-                   'Window']
+                   'IntWindow3d', 'RealWindow3d', 'ColorWindow3d']
 
 reserved_words = [
             'parallel',

@@ -40,10 +40,14 @@
 
 namespace Walnut {
 
+typedef bool Bool;
+
 typedef char    int8;
 typedef short   int16;
 typedef int     int32;
 typedef long    int64;
+
+typedef int32 Int;
 
 typedef unsigned char    uint8;
 typedef unsigned short   uint16;
@@ -52,6 +56,8 @@ typedef unsigned long    uint64;
 
 typedef float   real32;
 typedef double  real64;
+
+typedef real32 Real;
 
 struct WALNUT_EXPORT complex {
   real32 real_part;

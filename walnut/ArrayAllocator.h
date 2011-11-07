@@ -22,6 +22,7 @@
 
 #include "walnut_global.h"
 #include "Array.h"
+#include "Sizes.h"
 
 #include <QMultiMap>
 
@@ -41,6 +42,9 @@ public:
     Array<T> arrayWithSize(int width, int height=1, int depth=1);
 
     template <typename T>
+    Array<T> arrayWithSize(const Size3d &size);
+
+    template <typename T>
     void releaseArray(const Array<T> &array);
 
 private:
@@ -49,5 +53,7 @@ private:
 };
 
 } // namespace Walnut
+
+#include "ArrayAllocator.cu"
 
 #endif // ARRAYALLOCATOR_H
