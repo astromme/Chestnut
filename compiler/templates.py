@@ -26,15 +26,18 @@ data_to_scalar = {
 datatype_to_windowtype = {
         'IntArray1d'    : 'IntWindow1d',
         'RealArray1d'   : 'RealWindow1d',
-        'ColorWindow1d' : 'ColorWindow1d',
+        'ColorArray1d'  : 'ColorWindow1d',
+        'BoolArray1d'   : 'BoolWindow1d',
 
         'IntArray2d'    : 'IntWindow2d',
         'RealArray2d'   : 'RealWindow2d',
-        'ColorWindow2d' : 'ColorWindow2d',
+        'ColorArray2d'  : 'ColorWindow2d',
+        'BoolArray2d'   : 'BoolWindow2d',
 
         'IntArray3d'    : 'IntWindow3d',
         'RealArray3d'   : 'RealWindow3d',
-        'ColorWindow3d' : 'ColorWindow3d',
+        'ColorArray3d'  : 'ColorWindow3d',
+        'BoolArray3d'   : 'BoolWindow3d',
         }
 
 
