@@ -57,37 +57,42 @@ _%(name)s_display.setWindowTitle("%(title)s");
 function_types = [SequentialFunctionDeclaration, ParallelFunctionDeclaration]
 
 def compile(ast):
-  declarations, functions = zip(*[func.to_cpp() for func in ast if type(func) in function_types])
-  main_declarations = []
-  main_function_statements = [obj.to_cpp() for obj in ast if type(obj) not in function_types]
+    function_pairs = [func.to_cpp() for func in ast if type(func) in function_types]
+    if len(function_pairs):
+        declarations, functions = zip(*function_pairs)
+    else:
+        declarations, functions = [], []
+
+    main_declarations = []
+    main_function_statements = [obj.to_cpp() for obj in ast if type(obj) not in function_types]
 
 
-  for window in symbolTable.displayWindows:
-      main_declarations.append(display_init % { 'name' : window.name,
-                                           'width' : window.width,
-                                           'height' : window.height,
-                                           'title' : window.title })
+    for window in symbolTable.displayWindows:
+        main_declarations.append(display_init % { 'name' : window.name,
+                                             'width' : window.width,
+                                             'height' : window.height,
+                                             'title' : window.title })
 
 
-  if len(main_declarations):
-    app_statement = 'QApplication _app(argc, argv);'
-    return_statement = 'return _app.exec();'
-  else:
-    app_statement = ''
-    return_statement = 'return 0;'
+    if len(main_declarations):
+      app_statement = 'QApplication _app(argc, argv);'
+      return_statement = 'return _app.exec();'
+    else:
+      app_statement = ''
+      return_statement = 'return 0;'
 
-  main_function = main_template % { 'main_declarations' : indent('\n'.join(main_declarations)),
-                                    'main_code' : indent('\n'.join(main_function_statements)),
-                                    'app_statement' : app_statement,
-                                    'return_statement' : return_statement }
+    main_function = main_template % { 'main_declarations' : indent('\n'.join(main_declarations)),
+                                      'main_code' : indent('\n'.join(main_function_statements)),
+                                      'app_statement' : app_statement,
+                                      'return_statement' : return_statement }
 
-  thrust_code = preamble + \
-                '\n'.join(symbolTable.structures) + \
-                '\n'.join(declarations) + \
-                '\n'.join(symbolTable.parallelContexts) + \
-                '\n'.join(functions) + main_function
+    thrust_code = preamble + \
+                  '\n'.join(symbolTable.structures) + \
+                  '\n'.join(declarations) + \
+                  '\n'.join(symbolTable.parallelContexts) + \
+                  '\n'.join(functions) + main_function
 
-  return thrust_code
+    return thrust_code
 
 def main():
     import sys, os
