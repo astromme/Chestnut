@@ -33,9 +33,9 @@ namespace Walnut {
 template <typename T>
 Array<T>::Array(thrust::device_vector<T> &vector, int width, int height, int depth) {
   data = thrust::raw_pointer_cast(&(vector[0]));
-  this->width = width;
-  this->height = height;
-  this->depth = depth;
+  this->m_width = width;
+  this->m_height = height;
+  this->m_depth = depth;
 }
 
 template <typename T>
@@ -57,6 +57,7 @@ bool Array<T>::readFromFile(const QString &fileName) {
     int dimension = firstLineMatcher.capturedTexts()[2].toInt();
     int width = firstLineMatcher.capturedTexts()[3].toInt();
     int height = firstLineMatcher.capturedTexts()[4].toInt();
+    int depth = 1;// firstLineMatcher.capturedTexts()[5].toInt();
 
     thrust::host_vector<T> host_data(width*height*depth);
 
@@ -103,19 +104,19 @@ bool Array<T>::writeToFile(const QString &fileName) {
         return false;
     }
 
-    thrust::host_vector<T> host_data(width*height*depth);
+    thrust::host_vector<T> host_data(width()*height()*depth());
     this->copyTo(host_data);
 
-    QString header = QString("%1Array%2d[width=%3, height=%4]\n").arg("Real", "2", QString::number(width), QString::number(height));
+    QString header = QString("%1Array%2d[width=%3, height=%4]\n").arg("Real", "2", QString::number(width()), QString::number(height()));
     file.write(header.toAscii());
-    for (int z=0; z<depth; z++) {
-        for (int y=0; y<height; y++) {
+    for (int z=0; z<depth(); z++) {
+        for (int y=0; y<height(); y++) {
             QStringList row;
-            for (int x=0; x<width; x++) {
+            for (int x=0; x<width(); x++) {
                 row.append((stringFromElement(host_data[calculateIndex(x, y, z)])));
             }
             file.write(row.join(", ").toAscii());
-            if (y < height-1) {
+            if (y < height()-1) {
                 file.write(",");
             }
             file.write("\n");

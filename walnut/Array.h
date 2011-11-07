@@ -45,27 +45,27 @@ template <typename T>
 struct WALNUT_EXPORT Array
 {
   T *data;
-  int width;
-  int height;
-  int depth;
+  int m_width;
+  int m_height;
+  int m_depth;
 
   typedef T Type;
 
-  __host__ __device__ Array() : data(0), width(0), height(0), depth(0) {}
-  __host__ __device__ Array(const Array &other) : data(other.data), width(other.width), height(other.height), depth(other.depth) {}
-  __host__ __device__ Array(T *data_, int width_, int height_=1, int depth_=1) : data(data_), width(width_), height(height_), depth(depth_) {}
+  __host__ __device__ Array() : data(0), m_width(0), m_height(0), m_depth(0) {}
+  __host__ __device__ Array(const Array &other) : data(other.data), m_width(other.m_width), m_height(other.m_height), m_depth(other.m_depth) {}
+  __host__ __device__ Array(T *data_, int width, int height=1, int depth=1) : data(data_), m_width(width), m_height(height), m_depth(depth) {}
              Array(thrust::device_vector<T> &vector, int width, int height, int depth); // If vector is deleted, bad stuff happens
 
   bool readFromFile(const QString &fileName);
   bool writeToFile(const QString &fileName);
 
-  int length() const { return width * height * depth; }
+  int length() const { return width() * height() * depth(); }
 
-  __host__ __device__ Size3d size() const { return Size3d(width, height, depth); }
+  __host__ __device__ Size3d size() const { return Size3d(width(), height(), depth()); }
 
   const T* constData() const { return (const T*)data; }
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }
-  thrust::device_ptr<T> thrustEndPointer() { return thrustPointer() + width*height*depth; }
+  thrust::device_ptr<T> thrustEndPointer() { return thrustPointer() + width()*height()*depth(); }
 
   void sort() { thrust::sort(this->thrustPointer(), this->thrustEndPointer()); }
 
@@ -75,10 +75,14 @@ struct WALNUT_EXPORT Array
     return output;
   }
 
-  void copyTo(Array<T> &array)                 { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.thrustPointer()); }
-  void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array); }
-  void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.begin()); }
-  void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width*height*depth, array.begin()); }
+  __host__ __device__ __inline__ int width()  const { return m_width; }
+  __host__ __device__ __inline__ int height() const { return m_height; }
+  __host__ __device__ __inline__ int depth()  const { return m_depth; }
+
+  void copyTo(Array<T> &array)                 { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array.thrustPointer()); }
+  void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array); }
+  void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array.begin()); }
+  void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array.begin()); }
 
   // note... swapping arrays means that any copies of this Array<T> are invalid.
   void swapDataWith(Array<T> &other) {
@@ -89,11 +93,11 @@ struct WALNUT_EXPORT Array
 
   __host__ __device__
   int calculateIndex(int x, int y, int z, int x_offset=0, int y_offset=0, int z_offset=0) const {
-    x = ((x + x_offset) + width)  % width;
-    y = ((y + y_offset) + height) % height;
-    z = ((z + z_offset) + depth) % depth;
+    x = ((x + x_offset) + width())  % width();
+    y = ((y + y_offset) + height()) % height();
+    z = ((z + z_offset) + depth()) % depth();
 
-    return z*width*height + y*width + x;
+    return z*width()*height() + y*width() + x;
   }
 
   __device__
