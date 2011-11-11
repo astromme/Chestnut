@@ -1,0 +1,7 @@
+virtualenv/setup.sh
+source virtualenv/bin/activate
+mkdir build
+cd build
+cmake ..
+make
+examples/diffusion
