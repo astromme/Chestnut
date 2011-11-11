@@ -1,11 +1,11 @@
 // Originally from https://github.com/naoyam/physis/blob/develop/examples/diffusion/diffusion3d_physis.c
 Real pi = 3.1415926535897932384626;
 
-Int NX = 64;
+Int N = 64;
 
-Int nx = NX;
-Int ny = NX;
-Int nz = NX;
+//Int nx = NX;
+//Int ny = NX;
+//Int nz = NX;
 
 RealArray3d grid[64, 64, 64];
 
@@ -18,7 +18,7 @@ Real kappa = 0.1;
 Real dx;
 Real dy;
 Real dz;
-dx = dy = dz = l/nx;
+dx = dy = dz = l/N;
 
 Real kx;
 Real ky;
@@ -26,6 +26,8 @@ Real kz;
 kx = ky = kz = 2.0 * pi;
 
 Real dt = 0.1*dx*dx / kappa;
+
+print('Time delta is %s', dt);
 
 Real ce = kappa*dt/(dx*dx); // constant east
 Real cw = kappa*dt/(dx*dx); // constant west
@@ -35,12 +37,7 @@ Real ca = kappa*dt/(dz*dz); // constant above
 Real cb = kappa*dt/(dz*dz); // constant below
 Real cc = 1.0 - (ce + cw + cn + cs + ca + cb);
 
-
-//IntArray2d grid_display[64, 64];
-//
-//foreach pixel in grid_display
-//  pixel = grid_display[location(pixel).x, location(pixel).y, 0];
-//end
+print("dx,y,z: %s, %s, %s\nkx,y,z: %s, %s, %s\nce: %s\ncw: %s\ncn: %s\ncs: %s\nca: %s\ncb: %s\ncc: %s\n", dx, dy, dz, kx, ky, kz, ce, cw, cn, cs, ca, cb, cc);
 
 sequential RealArray3d initialize(RealArray3d array, Real kappa,
                           Real kx, Real ky, Real kz,
@@ -52,7 +49,6 @@ sequential RealArray3d initialize(RealArray3d array, Real kappa,
 
     // Initialize the array
     foreach element in array
-        Int pos = index(element);
         Real x = dx*(location(element).x+0.5);
         Real y = dy*(location(element).y+0.5);
         Real z = dz*(location(element).z+0.5);
@@ -73,7 +69,7 @@ sequential Real accuracy(RealArray3d experimental, RealArray3d answer) {
         error = (e-a) * (e-a);
     end
 
-    return sqrt(reduce(squared_errors)/(64*64*64));
+    return sqrt(reduce(squared_errors)/squared_errors.length);
 }
 
 grid = initialize(grid, kappa, kx, ky, kz, dx, dy, dz, time);
@@ -87,6 +83,8 @@ parallel Color green(Real input) {
   return c;
 }
 
+//display(grid, green);
+print("Average of the grid is %s", reduce(grid)/grid.length);
 display(grid, green);
 
 // Run the diffusion kernel
@@ -101,11 +99,24 @@ while (time + 0.5*dt < 0.1) {
         Int z = location(element).z;
 
         RealWindow3d win = window(element);
+        
+        Real west; Real east; Real south; Real north; Real below; Real above;
 
-        element = cc*element + cw*win.west + ce*win.east 
-                            + cs*win.south + cn*win.north
-                            + cb*win.below + ca*win.above;
+        if (x == 0)             { west  = cw*win.center; } else { west  = cw*win.west; }
+        if (x == grid.width-1)  { east  = ce*win.center; } else { east  = ce*win.east; }
+        if (y == 0)             { north = cn*win.center; } else { north = cn*win.north; }
+        if (y == grid.height-1) { south = cs*win.center; } else { south = cs*win.south; }
+        if (z == 0)             { above = ca*win.center; } else { above = ca*win.above; }
+        if (z == grid.depth-1)  { below = cb*win.center; } else { below = cb*win.below; }
+
+        //element = win.center;
+
+        element = cc*win.center + west + east + north + south + above + below;
+        //element = 0.9 * win.center + west;
+
     end
+
+    //print("Average of the grid is %s", reduce(grid)/grid.length);
 
     time = time + dt;
     count = count + 1;
@@ -114,7 +125,20 @@ while (time + 0.5*dt < 0.1) {
 RealArray3d answer[64, 64, 64];
 answer = initialize(answer, kappa, kx, ky, kz, dx, dy, dz, time);
 
-display(answer, green);
+
+RealArray2d grid_display[64, 64];
+RealArray2d answer_display[64, 64];
+
+foreach grid_pixel in grid_display, answer_pixel in answer_display
+  Point2d pos = location(grid_pixel);
+  grid_pixel = grid[pos.x, pos.y, 0];
+  answer_pixel = answer[pos.x, pos.y, 0];
+end
+
+display(grid_display, green);
+display(answer_display, green);
 
 print("error was %s", accuracy(grid, answer));
+print("Average of the grid is %s", reduce(grid)/grid.length);
+print("Average of the answer is %s", reduce(answer)/answer.length);
 
