@@ -6,5 +6,4 @@ Semi-Ordered List
 - Have more automatic tests. Regression tests for performance and correctness
 - Updated GUI
 - +=, -=, *=, /= operators
-- Explicit 3D support
 - Sub-Array access
