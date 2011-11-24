@@ -1,9 +1,6 @@
-\documentclass[11pt,twocolumn]{article}
+\documentclass[11pt]{article}
 
 \input{preamble}
-
-\begin{document}
-\title{Creating the Chestnut Parallel Programming Language}
 
 %\author{
 %  Andrew Stromme \\                 
@@ -23,20 +20,54 @@
   Swarthmore, PA 19081 \\
   {\tt andrew.stromme@gmail.com}}
 
-\date{}
+\date{Month, 00, 2012}
+
+\begin{document}
+\title{Creating the Chestnut Parallel Programming Language}
+
+
+\pagestyle{empty} % Use for title page, or use
 \maketitle
+\clearpage\mbox{}
+
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{
+  \fancyhead{}
+  \fancyfoot{}
+}
+
+\tableofcontents
+\clearpage\mbox{}
+
+\fancypagestyle{plain}{
+  \fancyhead{}
+  \fancyfoot[c]{\thepage}
+}
 
 \input{abstract.tex}
-\input{intro.tex}
-\input{related_work.tex}
-\input{methods.tex}
-\input{results.tex}
-\input{analysis.tex}
-\input{futurework.tex}
-\input{conclusions.tex}
+
+\clearpage\mbox{}
+
+\pagestyle{plain} % No headers, just page numbers
+\setcounter{page}{1}
+
+
+\input{body.tex}
 
 \bibliographystyle{apacite}
 \bibliography{references}
+
+\clearpage\mbox{}
+
+\appendix
+\noappendicestocpagenum
+\addappheadtotoc
+
+% Adjustments headers
+%\pagestyle{fancy}
+%\fancyhead[LO]{\leftmark}
+%\fancyhead[RE]{\emph{Appendix \thechapter}}
+%\renewcommand{\headrulewidth}{0.5pt}
 
 \input{appendix.tex}
 
