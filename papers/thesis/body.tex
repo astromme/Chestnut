@@ -1,17 +1,56 @@
 
 \section{Introduction}
 
-Students are often introduced to parallel programming with the concept of heavyweight processes or threads. With this introduction students are encouraged to think in terms of how threads communicate with each other. This works well for concepts such as the producer-consumer problem and for parent-child models but a more simple parallel model is sufficient for a wide array of problem domains.
+Students are often introduced to parallel programming with the concept of
+heavyweight processes or threads. With this introduction students are
+encouraged to think in terms of how threads communicate with each other. This
+works well for concepts such as the producer-consumer problem and for
+parent-child models but a more simple parallel model is sufficient for a wide
+array of problem domains.
 
-We observe that often the same operation is performed to each element in a large array of data. This can be seen from simple calculations (add 4 to each element of an array) to more complex situations such as generating an updated array value by some combination of the neighboring points (this is used in simulations such as heat flow models). In traditional sequential implementations of these computations there is a core operation that is performed many times within one or more loops. The entire computation can be parallelized with a simple parallel model when updating each element can be performed independently of updating any other element.
+We observe that often the same operation is performed to each element in a
+large array of data. This can be seen from simple calculations (add 4 to each
+element of an array) to more complex situations such as generating an updated
+array value by some combination of the neighboring points (this is used in
+simulations such as heat flow models). In traditional sequential
+implementations of these computations there is a core operation that is
+performed many times within one or more loops. The entire computation can be
+parallelized with a simple parallel model when updating each element can be
+performed independently of updating any other element.
 
-The Chestnut parallel model assumes that a program exists as sequential code with small self-contained blocks of parallel code interspersed throughout the program. Parallel blocks, or contexts, exist to update arrays with new values in parallel. When declarating a parallel context the programmer specifices a foreach loop based on some array; one iteration of the loop is run for each element in the array. Each iteration of this loop is performed in a separate thread in parallel with all other iterations. Each thread has access to the state of all arrays as they were before the loop started. This means that even if one thread modifies a value in an array within a parallel context all other threads within this context can safely use the same location in the array; they will get the old values instead. There is an implicit synchronization barrier at the end of each parallel context where all threads must finish their computations before the sequential code following the parallel contex can resume. After the parallel context the values of any arrays that have been modified now reflect the new values rather than the pre-parallel-context values. Subsequent array accesses get the new values.
+The Chestnut parallel model assumes that a program exists as sequential code
+with small self-contained blocks of parallel code interspersed throughout the
+program. Parallel blocks, or contexts, exist to update arrays with new values
+in parallel. When declarating a parallel context the programmer specifices a
+foreach loop based on some array; one iteration of the loop is run for each
+element in the array. Each iteration of this loop is performed in a separate
+thread in parallel with all other iterations. Each thread has access to the
+state of all arrays as they were before the loop started. This means that even
+if one thread modifies a value in an array within a parallel context all other
+threads within this context can safely use the same location in the array; they
+will get the old values instead. There is an implicit synchronization barrier
+at the end of each parallel context where all threads must finish their
+computations before the sequential code following the parallel contex can
+resume. After the parallel context the values of any arrays that have been
+modified now reflect the new values rather than the pre-parallel-context
+values. Subsequent array accesses get the new values.
 
-This parallel model fits the graphics card well--typically parallel contexts will perform the same operation across all threads, a condition which is needed for the processors in a graphics card to be fully utilized.
+This parallel model fits the graphics card well--typically parallel contexts
+will perform the same operation across all threads, a condition which is needed
+for the processors in a graphics card to be fully utilized.
 
-A difficult part with any parallel computation is the specification of the parallelism. In general Chestnut programs will specify their parallelism based on the output arrays--one computation is one for each element in the output array, combining the necessary inputs. For an example matrix multiplication application the foreach loop would iterate over the output array and each thread would access the necessary row and column of the input arrays to perform the computations necessary to compute that output value. 
+A difficult part with any parallel computation is the specification of the
+parallelism. In general Chestnut programs will specify their parallelism based
+on the output arrays--one computation is one for each element in the output
+array, combining the necessary inputs. For an example matrix multiplication
+application the foreach loop would iterate over the output array and each
+thread would access the necessary row and column of the input arrays to perform
+the computations necessary to compute that output value. 
 
-Talk about chestnut being research into a simplification of the GPU general purpose programming model. Locality is important, simple programs are simple. Simulations, visualizations. Visualizations stay on the GPU, and pixel rasterization uses the same language.
+Talk about chestnut being research into a simplification of the GPU general
+purpose programming model. Locality is important, simple programs are simple.
+Simulations, visualizations. Visualizations stay on the GPU, and pixel
+rasterization uses the same language.
 
 
 \section{Background}
@@ -48,9 +87,22 @@ Talk about chestnut being research into a simplification of the GPU general purp
 
 \section{Chestnut}
 
-Chestnut is presented as a framework for parallel computing. The Chestnut language is C-style imperative language that can be used to write sequential code interspersed with parallel contexts. This language can be compiled to C++ source code with the Chestnut compiler. This compiler performs source to source translations and makes heavy use of the Walnut library. Walnut is a C++ library which is built on top of CUDA and Thrust and is used to provide a Chestnut-like API at the C++ level. Currently Walnut is designed to be used internally by the Chestnut compiler but future work could expand its reach to a normal C++ library to be used directly by programmers. One the top of all of this infrastructure is the Chestnut designer which is a gui programming tool that exposes the power of the Chestnut parallel model and uses a drag and drop interface.
+Chestnut is presented as a framework for parallel computing. The Chestnut
+language is C-style imperative language that can be used to write sequential
+code interspersed with parallel contexts. This language can be compiled to C++
+source code with the Chestnut compiler. This compiler performs source to source
+translations and makes heavy use of the Walnut library. Walnut is a C++ library
+which is built on top of CUDA and Thrust and is used to provide a Chestnut-like
+API at the C++ level. Currently Walnut is designed to be used internally by the
+Chestnut compiler but future work could expand its reach to a normal C++
+library to be used directly by programmers. One the top of all of this
+infrastructure is the Chestnut designer which is a gui programming tool that
+exposes the power of the Chestnut parallel model and uses a drag and drop
+interface.
 
-Description of the parts of chestnut including the core language syntax, the paradigms, the chestnut designer gui and the chestnut compiler implementation (with its underlying Walnut library).
+Description of the parts of chestnut including the core language syntax, the
+paradigms, the chestnut designer gui and the chestnut compiler implementation
+(with its underlying Walnut library).
 
 \subsection{Chestnut Language}
 
@@ -137,7 +189,9 @@ graphs? Maybe merged into the next section?
 
 \section{Future Work}
 
-Work on the desginer. Work on supporting some of the missing functionality. Language for scientific programming vs language for learning about parallel programming. Support for OpenCL backends (\& AMD GPUs)
+Work on the desginer. Work on supporting some of the missing functionality.
+Language for scientific programming vs language for learning about parallel
+programming. Support for OpenCL backends (\& AMD GPUs)
 
 
 
