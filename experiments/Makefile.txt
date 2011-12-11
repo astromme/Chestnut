@@ -1,0 +1,57 @@
+#TARGET=gridadd
+#TARGET=gameoflife
+#TARGET=threadadd
+
+TARGET=temp
+
+CFLAGS = -g -G
+
+#VISILIBS = -lglut -lGL -lGLU /usr/lib/libGLEW.so.1.5.2
+VISILIBS = -lglut -lGL -lGLU -lGLEW
+
+all: ${TARGET} threadadd gridadd gameoflife dotproduct heattransfer gol_opengl glut_simple  gol_myopengllib  gol simple_mygl
+
+${TARGET}: ${TARGET}.cu
+	nvcc  ${CFLAGS}  -o ${TARGET} ${TARGET}.cu 
+
+threadadd: threadadd.cu
+	nvcc ${CFLAGS} -o threadadd threadadd.cu 
+
+gridadd: gridadd.cu
+	nvcc ${CFLAGS} -o gridadd gridadd.cu 
+
+gameoflife: gameoflife.cu
+	nvcc ${CFLAGS} -o gameoflife gameoflife.cu 
+
+dotproduct: dotproduct.cu
+	nvcc ${CFLAGS} -o dotproduct dotproduct.cu 
+
+heattransfer: heattransfer.cu
+	nvcc ${CFLAGS} -o heattransfer heattransfer.cu 
+
+gol_opengl: gol_opengl.cu
+	nvcc ${CFLAGS} -o gol_opengl gol_opengl.cu ${VISILIBS}
+
+glut_simple:  glut_simple.c
+	gcc -o glut_simple glut_simple.c ${VISILIBS}
+
+gol: libmyopengllib.a gol_myopengllib.cu 
+	nvcc ${CFLAGS} -o gol gol_myopengllib.cu -L. -lmyopengllib  ${VISILIBS}
+
+#	nvcc ${CFLAGS} -o gol gol_myopengllib.cu -L. -lmyopengllib  -lglut -lGL -lGLU -lGLEW
+myopengllib.o: myopengllib.cu
+	nvcc ${CFLAGS} -c myopengllib.cu  ${VISILIBS}
+
+libmyopengllib.a: myopengllib.o
+	/usr/bin/ar -rvs libmyopengllib.a  myopengllib.o 
+
+gol_myopengllib: myopengllib.cu gol_myopengllib.cu
+	nvcc ${CFLAGS} -o gol_myopengllib myopengllib.cu gol_myopengllib.cu   ${VISILIBS}
+	
+
+simple_mygl: simple_mygl.cu  libmyopengllib.a
+	 nvcc ${CFLAGS} -o simple_mygl simple_mygl.cu -L. -lmyopengllib   ${VISILIBS}
+	 
+
+clean:
+	${RM} ${TARGET} threadadd gridadd gameoflife dotproduct heattransfer gol_opengl glut_simple gol_myopengllib simple_mygl gol libmyopengllib.a 
