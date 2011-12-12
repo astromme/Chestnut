@@ -35,4 +35,5 @@ while (iteration < 10000) {
   foreach pixel in mandelbrot_display
     pixel = mandelbrot(location(pixel), mandelbrot_display.size, left, right, top, bottom);
   end
+  iteration = iteration + 1;
 }
