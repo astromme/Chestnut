@@ -27,7 +27,7 @@ Real right = 1;
 Real top = 1;
 Real bottom = -1;
 
-IntArray2d mandelbrot_display[875, 500];
+IntArray2d mandelbrot_display[1024, 768];
 
 
 Int iteration = 0;
