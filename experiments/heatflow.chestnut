@@ -6,42 +6,19 @@ parallel Real heat_flow(RealWindow2d data, Real c0, Real c1) {
   return max(0.0, new_data);
 }
 
-parallel Color convert_color(Real value) {
-  Color output;
+Real c0 = 0.6;
+Real c1 = 0.1; // 4 elements make 0.4
 
-  if (value == 1) {
-    output.red = output.blue = output.green = 255;
-    output.opacity = 255;
-  } else {
-    output.red = value*255;
-    output.green = 0;
-    output.blue = 0;
-    output.opacity = 255;
-  }
+IntArray2d heat_stencil[1000, 1000];
+RealArray2d heat_data[1000, 1000];
 
-  return output;
-}
-
-Real kappa = 0.2;
-Real delta_t = 1;
-Real delta_x = 1;
-
-Real c0 = 1 - 4 * kappa * delta_t / delta_x;
-Real c1 = kappa * delta_t / delta_x;
-
-c0 = 0.6;
-c1 = 0.1; // 4 elements make 0.4
-
-IntArray2d heat_stencil[65, 36] = read('heat.data');
-RealArray2d heat_data[65, 36];
-
-foreach point in heat_data
+foreach point in heat_data, s in heat_stencil
+  s = 0;
   point = 0;
 end
 
 Int iteration = 0;
 while (iteration < 10000) {
-
   foreach point in heat_data, stencil in heat_stencil 
 
     point = heat_flow(window(point), c0, c1);
@@ -52,8 +29,6 @@ while (iteration < 10000) {
       point = 0;
     }
   end
-
-  display(heat_data, convert_color);
 
   iteration = iteration + 1;
 }

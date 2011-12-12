@@ -11,7 +11,7 @@ This snippet sets every element in `some_array` to the value 0. This code is run
 
 Parallel contexts can contain multiple statements and even function calls. In general anything that is a valid statement is valid inside of a parallel context. The notable exceptions are that functions marked as sequential can't be called and parallel contexts can't be nested. For example here is a parallel context that squares each element in an array using a parallel function and then multiples that result by 2 before placing it back in the array::
 
-  parallel int square(int value) { 
+  parallel Int square(int value) { 
       return value * value; 
   }
   

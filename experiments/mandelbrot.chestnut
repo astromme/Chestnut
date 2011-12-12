@@ -22,15 +22,6 @@ parallel Int mandelbrot(Point2d location, Size2d arraySize, Real xleft, Real xri
     return iteration; // diverged in some number of iterations
 }
 
-parallel Color orange_convert(Int value) {
-  Color c;
-  c.red = min(255, 15*value);
-  c.green = c.red / 2;
-  c.blue = 0;
-  c.opacity = 255;
-  return c;
-}
-
 Real left = -2.5;
 Real right = 1;
 Real top = 1;
@@ -38,10 +29,10 @@ Real bottom = -1;
 
 IntArray2d mandelbrot_display[875, 500];
 
-foreach pixel in mandelbrot_display
-  pixel = mandelbrot(location(pixel), mandelbrot_display.size, left, right, top, bottom);
-end
 
-display(mandelbrot_display, orange_convert);
-
-
+Int iteration = 0;
+while (iteration < 10000) {
+  foreach pixel in mandelbrot_display
+    pixel = mandelbrot(location(pixel), mandelbrot_display.size, left, right, top, bottom);
+  end
+}
