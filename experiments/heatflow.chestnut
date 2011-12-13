@@ -9,8 +9,8 @@ parallel Real heat_flow(RealWindow2d data, Real c0, Real c1) {
 Real c0 = 0.6;
 Real c1 = 0.1; // 4 elements make 0.4
 
-IntArray2d heat_stencil[1000, 1000];
-RealArray2d heat_data[1000, 1000];
+IntArray2d heat_stencil[1024, 768];
+RealArray2d heat_data[1024, 768];
 
 foreach point in heat_data, s in heat_stencil
   s = 0;
