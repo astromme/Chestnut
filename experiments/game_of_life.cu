@@ -12,6 +12,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <curand_kernel.h>
+#include <curand.h>
 
 
 #define HANDLE_ERROR(a, msg) \
@@ -25,7 +27,6 @@
 
 #define M 500
 #define N 500
-
 
 /**************** sequential GOL ************************/
 int get_num_neighbors(int matrix[][M], int n, int x, int y) {
@@ -78,6 +79,37 @@ void seq_gameoflife(int matrix[][M], int next_matrix[][M], int n) {
 
 
 /**************** GPU GOL ************************/
+__device__ unsigned int hash(unsigned int a) {
+    a = (a+0x7ed55d16) + (a<<12);
+    a = (a^0xc761c23c) ^ (a>>19);
+    a = (a+0x165667b1) + (a<<5);
+    a = (a+0xd3a2646c) ^ (a<<9);
+    a = (a+0xfd7046c5) + (a<<3);
+    a = (a^0xb55a4f09) ^ (a>>16);
+    return a;
+}
+
+
+__global__ void init_gameoflife(int *curr, int blocks_only) {
+  curandState __random_state;
+  if (blocks_only) {
+    int row = blockIdx.x;  
+    int col = blockIdx.y;
+    
+    int offset = col + row*M;
+    curand_init(hash(offset), 0, 0, &__random_state);
+    curr[offset] = curand_uniform(&__random_state);
+
+  } else {
+    int row = threadIdx.y + blockIdx.y*blockDim.y;  
+    int col = threadIdx.x + blockIdx.x*blockDim.x;  
+    
+    int offset = col + row*M;
+    curand_init(hash(offset), 0, 0, &__random_state);
+    curr[offset] = curand_uniform(&__random_state);
+  }
+}
+
 /* 
  * GPU version: does one round of game of life using wrap-around neighbors  
  */
@@ -199,6 +231,7 @@ int main (int argc, char *argv[])  {
   if(argc > 4) {
     blocks_only = atoi(argv[4]);
   }
+
 
 #ifdef ndef
   // andrew's initilization code
