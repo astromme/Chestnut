@@ -1,4 +1,14 @@
-// game of life
+/* game of life
+ * lots of command line options:
+ * ./gameoflife <number_iterations> <0:CUDA|1:CPU>  \
+ *              <1:printing|0:none> [1: blocks only GPU version]
+ *
+ * ./gameoflife 10000 1 0   # seqential version, 10000 iterations, no output 
+ * ./gameoflife 10000 0 1   # GPU fast version, 10000 iterations,  output 
+ * ./gameoflife 10000 0 0 1  # GPU slow version, 10000 iterations, no  output 
+ *
+ * (newhall, 2011)
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -121,12 +131,8 @@ __global__ void  gameoflife(int *curr, int *next, int blocks_only) {
           }
       } // for j
     }
-    //x = threadIdx.x + blockIdx.x*blockDim.x;
-    //y = threadIdx.y + blockIdx.y*blockDim.y;
-    //offset = x + y*blockDim.x*gridDim.x;
     row = threadIdx.y + blockIdx.y*blockDim.y;
     col = threadIdx.x + blockIdx.x*blockDim.x;
-    //offset = col + row*blockDim.y*gridDim.y;
     offset = col + row*M;
   }
 
@@ -177,22 +183,24 @@ int matrix[N][M], next_matrix[N][M];
 int main (int argc, char *argv[])  {
 
   int *dev_grid, *dev_next, i,j, val, iters;
-  int sequential = 0, blocks_only=0;
+  int sequential = 0, blocks_only=0, print_before_after=0;
 
   if(argc < 3) {
-    printf("usage: ./gameoflife num_iterations <1:seq|0:gpu> [1:blocks only gpu]\n");
+    printf("usage: ./gameoflife num_iterations <1:seq|0:gpu> <1:print|0:noprint> [1:blocks only gpu]\n");
     exit(1);
   }
   iters = atoi(argv[1]);
-  if(iters %2 != 0) {
+  if(iters % 2 != 0) {
     printf("Error: number of iterstions, %d, must be even\n", iters);
     exit(1);
   }
   sequential = atoi(argv[2]);
-  if(argc > 3) {
-    blocks_only = atoi(argv[3]);
+  print_before_after = atoi(argv[3]);
+  if(argc > 4) {
+    blocks_only = atoi(argv[4]);
   }
 
+#ifdef ndef
   // andrew's initilization code
   for (i=0; i < N; i++) {
      for (j=0; j < M; j++) {
@@ -202,8 +210,8 @@ int main (int argc, char *argv[])  {
          //matrix[i][j] = 0;  // for test pattern
      }
   }
+#endif
 
-#ifdef ndef
   // mine
   // initialize game board 
   //srand( (unsigned)time(NULL) );
@@ -220,14 +228,13 @@ int main (int argc, char *argv[])  {
   matrix[4][5] = 1;
   matrix[5][5] = 1;
   matrix[6][5] = 1;
-#endif
-
-  printf("Starting point game board\n");
-  printgameboard(matrix, N);
-  printf("\n");
-
+  if(print_before_after) {
+    printf("Starting point game board\n");
+    printgameboard(matrix, N);
+    printf("\n");
+  }
   if(sequential) {  // run sequential version
-    printf("sequential version iters = %d\n\n", iters);
+    printf("sequential version  size=%dx%d iters =%d\n\n", M,N, iters);
       for(i=0; i < iters; i++) {
         if(i%2==0) {
           seq_gameoflife(matrix, next_matrix, N);
@@ -237,7 +244,6 @@ int main (int argc, char *argv[])  {
       }
 
   } else {  // run GPU  version
-    printf("GPU version iters = %d\n\n", iters);
     // allocate memory space on GPU
     HANDLE_ERROR(cudaMalloc((void**)&dev_grid, sizeof(int)*N*M),
         "malloc dev_grid") ;
@@ -250,6 +256,8 @@ int main (int argc, char *argv[])  {
           cudaMemcpyHostToDevice), "copy dev_grid to GPU") ;
 
     if(blocks_only) {
+      printf("GPU slow version (blks only) size=%dx%d iters =%d\n\n", 
+          M,N, iters);
       dim3 slowgrid(N,M);  
       for(i=0; i < iters; i++) {
         if(i%2==0) {
@@ -257,17 +265,24 @@ int main (int argc, char *argv[])  {
         } else {
           gameoflife<<<slowgrid,1>>>(dev_next, dev_grid,1);
         }
-        cudaThreadSynchronize();
+        // TODO: we don't need to call cudaThreadSycnhronize after
+        // each step since the kernel call doesn't return until
+        // all calling threads have finished it.  right?
+        // cudaThreadSynchronize();
       }
     }
     else {
-      dim3 grid(16,16);  // only 512 threads total per grid
+      printf("GPU fast version (blks of thr blks) size=%dx%d iters =%d\n\n", 
+          M,N, iters);
+      //printf("the fast way %dx%d (MxN): %dx%d blocks of (16,16) threads\n",
+      //    M, N, (M+15)/16,  (N+15)/16);
+      dim3 threads(16,16);  // only 512 threads total per grid
       dim3 blocks((M+15)/16, (N+15)/16);
       for(i=0; i < iters; i++) {
         if(i%2==0) {
-          gameoflife<<<blocks,grid>>>(dev_grid, dev_next,0);
+          gameoflife<<<blocks,threads>>>(dev_grid, dev_next,0);
         } else {
-          gameoflife<<<blocks,grid>>>(dev_next, dev_grid,0);
+          gameoflife<<<blocks,threads>>>(dev_next, dev_grid,0);
         }
       }
     }
@@ -278,8 +293,10 @@ int main (int argc, char *argv[])  {
     cudaFree(dev_grid);
     cudaFree(dev_next);
   } 
-
-  printf("After %d iterations:\n", iters);
-  printgameboard(matrix, N);
+  printf("%d\n", matrix[0][0]);
+  if(print_before_after) {
+    printf("After %d iterations:\n", iters);
+    printgameboard(matrix, N);
+  }
   return 0;
 }
