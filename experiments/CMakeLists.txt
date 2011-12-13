@@ -11,7 +11,7 @@ cuda_add_executable(game_of_life_cuda game_of_life.cu)
 
 chestnut_add_executable(mandelbrot_chestnut mandelbrot.chestnut)
 cuda_add_executable(mandelbrot_cuda mandelbrot.cu)
-#add_executable(mandelbrot_sequential mandelbrot.cpp)
+add_executable(mandelbrot_sequential mandelbrot.cpp)
 
 chestnut_add_executable(matrix_multiply_chestnut matrix_multiply.chestnut)
 cuda_add_executable(matrix_multiply_cuda matrix_multiply.cu)
