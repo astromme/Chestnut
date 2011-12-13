@@ -113,12 +113,21 @@ int main(int argc, char* argv[]) {
   float *dev_b;
   float *dev_c;
 
+  /*
   int width_a = 64*BLOCK_SIZE;
   int height_a = 32*BLOCK_SIZE;
   int width_b = height_a;
   int height_b = 48*BLOCK_SIZE;
   int width_c = width_a;
   int height_c = height_b;
+  */
+
+  int width_a = 512;
+  int height_a = 512;
+  int width_b = 512;
+  int height_b = 512;
+  int width_c = 512;
+  int height_c = 512;
 
   // allocate memory space on GPU
   HANDLE_ERROR(cudaMalloc((void**)&dev_a, sizeof(float)*width_a*height_a),
@@ -133,7 +142,7 @@ int main(int argc, char* argv[]) {
   dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
   dim3 dimGrid(width_b / dimBlock.x, height_a / dimBlock.y);
   // Launch the device computation
-  for (int i=0; i<1000; i++) {
+  for (int i=0; i<100; i++) {
 		Muld<<<dimGrid, dimBlock>>>(dev_a, dev_b, width_a, width_b, dev_c);
   }
   

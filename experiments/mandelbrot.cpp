@@ -4,8 +4,8 @@
 #include <iostream>
 
 // must be multiples of 16
-#define width 1024
-#define height 768
+#define width 512
+#define height 512
 
 int mandelbrot(int grid_x, int grid_y, float left, float right, float top, float bottom) {
   // Scale coordinates to be in the given window

@@ -1,6 +1,9 @@
-RealArray2d a[1024, 512];
-RealArray2d b[512, 768];
-RealArray2d c[1024, 768];
+//RealArray2d a[1024, 512];
+//RealArray2d b[512, 768];
+//RealArray2d c[1024, 768];
+RealArray2d a[512, 512];
+RealArray2d b[512, 512];
+RealArray2d c[512, 512];
 
 foreach e in a
   e = location(e).x + location(e).y;
@@ -13,7 +16,7 @@ end
 //print(a);
 //print(b);
 
-Int iterations = 500;
+Int iterations = 100;
 while (iterations > 0) {
   foreach e in c
     Int i = 0;

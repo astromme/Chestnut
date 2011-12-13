@@ -15,7 +15,7 @@ add_executable(mandelbrot_sequential mandelbrot.cpp)
 
 chestnut_add_executable(matrix_multiply_chestnut matrix_multiply.chestnut)
 cuda_add_executable(matrix_multiply_cuda matrix_multiply.cu)
-#add_executable(matrix_multiply_sequential matrix_multiply.cpp)
+add_executable(matrix_multiply_sequential matrix_multiply.cpp)
 
 chestnut_add_executable(heatflow_chestnut heatflow.chestnut)
 cuda_add_executable(heatflow_cuda heatflow.cu)
