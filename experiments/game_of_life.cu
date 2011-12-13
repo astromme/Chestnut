@@ -90,23 +90,27 @@ __device__ unsigned int hash(unsigned int a) {
 }
 
 
-__global__ void init_gameoflife(int *curr, int blocks_only) {
+// if to_rand is non-zero: initialized to a random value
+// otherwise initialize to 0
+__global__ void init_gameoflife(int *curr, int blocks_only, int to_rand) {
   curandState __random_state;
+  int offset, row, col;
   if (blocks_only) {
-    int row = blockIdx.x;  
-    int col = blockIdx.y;
-    
-    int offset = col + row*M;
-    curand_init(hash(offset), 0, 0, &__random_state);
-    curr[offset] = curand_uniform(&__random_state);
+    row = blockIdx.x;  
+    col = blockIdx.y;
+  }  else {
+    row = threadIdx.y + blockIdx.y*blockDim.y;  
+    col = threadIdx.x + blockIdx.x*blockDim.x;  
+  }
 
-  } else {
-    int row = threadIdx.y + blockIdx.y*blockDim.y;  
-    int col = threadIdx.x + blockIdx.x*blockDim.x;  
-    
-    int offset = col + row*M;
-    curand_init(hash(offset), 0, 0, &__random_state);
-    curr[offset] = curand_uniform(&__random_state);
+  offset = col + row*M;
+  if(offset < N*M) {
+    if(to_rand) {
+      curand_init(hash(offset), 0, 0, &__random_state);
+      curr[offset] = curand_uniform(&__random_state) < 0.25;
+    } else {
+      curr[offset] = 0;
+    }
   }
 }
 
@@ -245,6 +249,7 @@ int main (int argc, char *argv[])  {
   }
 #endif
 
+#ifdef ndef
   // mine
   // initialize game board 
   //srand( (unsigned)time(NULL) );
@@ -256,6 +261,7 @@ int main (int argc, char *argv[])  {
          //matrix[i][j] = 0;  // for test pattern
      }
   }
+#endif
 
   // alternating test pattern when rest of matrix is 0 
   matrix[4][5] = 1;
@@ -284,14 +290,19 @@ int main (int argc, char *argv[])  {
         "malloc dev_next") ;
 
 
+#ifdef ndef
     // copy a and b to GPU 
     HANDLE_ERROR (cudaMemcpy(dev_grid, matrix, sizeof(int)*N*M, 
           cudaMemcpyHostToDevice), "copy dev_grid to GPU") ;
+#endif
 
     if(blocks_only) {
       printf("GPU slow version (blks only) size=%dx%d iters =%d\n\n", 
           M,N, iters);
       dim3 slowgrid(N,M);  
+      // initialize on gpu to all zeros
+      init_gameoflife<<<slowgrid, 1>>>(dev_grid, 1, 0); 
+
       for(i=0; i < iters; i++) {
         if(i%2==0) {
           gameoflife<<<slowgrid,1>>>(dev_grid, dev_next,1);
@@ -307,10 +318,15 @@ int main (int argc, char *argv[])  {
     else {
       printf("GPU fast version (blks of thr blks) size=%dx%d iters =%d\n\n", 
           M,N, iters);
+      // initialize on gpu to all zeros
       //printf("the fast way %dx%d (MxN): %dx%d blocks of (16,16) threads\n",
       //    M, N, (M+15)/16,  (N+15)/16);
       dim3 threads(16,16);  // only 512 threads total per grid
       dim3 blocks((M+15)/16, (N+15)/16);
+
+      // initialize on gpu to all zeros
+      init_gameoflife<<<blocks,threads>>>(dev_grid, 0, 0); 
+
       for(i=0; i < iters; i++) {
         if(i%2==0) {
           gameoflife<<<blocks,threads>>>(dev_grid, dev_next,0);
