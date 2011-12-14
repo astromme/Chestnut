@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
   dim3 dimGrid(width_b / dimBlock.x, height_a / dimBlock.y);
   // Launch the device computation
   for (int i=0; i<100; i++) {
-		Muld<<<dimGrid, dimBlock>>>(dev_a, dev_b, width_a, width_b, dev_c);
+    Muld<<<dimGrid, dimBlock>>>(dev_a, dev_b, width_a, width_b, dev_c);
   }
   
   //Mul(dev_a, dev_b, height_a, width_a, width_b, dev_c);

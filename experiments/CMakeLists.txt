@@ -19,4 +19,4 @@ add_executable(matrix_multiply_sequential matrix_multiply.cpp)
 
 chestnut_add_executable(heatflow_chestnut heatflow.chestnut)
 cuda_add_executable(heatflow_cuda heatflow.cu)
-#add_executable(heatflow_sequential heatflow.cpp)
+add_executable(heatflow_sequential heatflow.cpp)

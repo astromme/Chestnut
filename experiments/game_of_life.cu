@@ -107,7 +107,7 @@ __global__ void init_gameoflife(int *curr, int blocks_only, int to_rand) {
   if(offset < N*M) {
     if(to_rand) {
       curand_init(hash(offset), 0, 0, &__random_state);
-      curr[offset] = curand_uniform(&__random_state) < 0.25;
+      curr[offset] = curand_uniform(&__random_state) < (float)0.25 ? 1:0;
     } else {
       curr[offset] = 0;
     }

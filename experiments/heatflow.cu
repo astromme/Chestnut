@@ -17,6 +17,21 @@
 // must be multiples of 16
 #define width 1024
 #define height 768
+__global__ void initdata(float *stencil, float *data) {
+
+  int x = threadIdx.x + blockIdx.x*blockDim.x;  
+  int y = threadIdx.y + blockIdx.y*blockDim.y;  
+
+  data[x+y] = 0;
+  if((x > 10 && x < 20) && (y > 50 && y < 60)) {
+    stencil[x+y] = 1;
+  } else if((x>500 && x < 510) && (y > 400 && y < 410)) {
+    stencil[x+y] = 2;
+  } else {
+    stencil[x+y] = 0;
+  }
+
+}
 
 __global__ void heatflow(float *stencil, float *data, float c0, float c1) {
 
@@ -55,10 +70,11 @@ int main (int argc, char *argv[])  {
   HANDLE_ERROR(cudaMalloc((void**)&dev_heat, sizeof(int)*width*height),
       "malloc dev_heat") ;
 
-  //TODO: Initialize array contents
 
   dim3 grid(16,16);  // only 512 threads total per grid
   dim3 blocks(width/16, height/16);
+  // Initialize array contents
+  initdata<<<blocks,grid>>>(dev_stencil, dev_heat);
 
   for (int i=0; i<10000; i++) {
     heatflow<<<blocks,grid>>>(dev_stencil, dev_heat, c0, c1);
