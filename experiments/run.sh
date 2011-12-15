@@ -9,9 +9,8 @@ echo " "
 echo "Sequential:  512x512, 10000 iterations, 100 inner iters"
 for ((i=0; i < $NUMEXPER; i++))
 do
- echo "$i"
+  time mandelbrot_sequential 
 done
-time mandelbrot_sequential 
 echo " "
 echo "Chestnut: "
 for ((i=0; i < $NUMEXPER; i++))
