@@ -20,3 +20,13 @@ add_executable(matrix_multiply_sequential matrix_multiply.cpp)
 chestnut_add_executable(heatflow_chestnut heatflow.chestnut)
 cuda_add_executable(heatflow_cuda heatflow.cu)
 add_executable(heatflow_sequential heatflow.cpp)
+
+
+
+chestnut_add_executable(bigGOL_chestnut big_gol.chestnut)
+chestnut_add_executable(bigheat_chestnut bigheatflow.chestnut)
+chestnut_add_executable(bigmandelbrot_chestnut bigmandelbrot.chestnut)
+chestnut_add_executable(bigmatrixmult_chestnut bigmm.chestnut) 
+cuda_add_executable(bigmatrixmult_cuda bigmm.cu) 
+cuda_add_executable(bigheat_cuda bigheatflow.cu) 
+cuda_add_executable(bigmanelbrot bigmandelbrot.cu)

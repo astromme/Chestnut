@@ -14,10 +14,11 @@ foreach e in b
   e = location(e).x + location(e).y;
 end
 */
+
 //print(a);
 //print(b);
 
-Int iterations = 100;
+Int iterations = 10000;
 while (iterations > 0) {
   foreach e in c
     Int i = 0;

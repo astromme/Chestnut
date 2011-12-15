@@ -1,0 +1,43 @@
+parallel Int game_of_life(IntWindow2d element) {
+  Int neighbor_count = element.northWest + element.north + element.northEast +
+                       element.west      + 0             + element.east +
+                       element.southWest + element.south + element.southEast;
+  Int state;
+  Int alive = element.center;
+
+  if (alive) {
+    if (neighbor_count <= 1) {
+      state = 0; // dies from loneliness
+    } else if (neighbor_count >= 4) {
+      state = 0; // dies from overpopulation
+    } else {
+      state = 1; // lives
+    }
+  } else { // if dead
+    if (neighbor_count == 3) {
+      state = 1; // perfect conditions
+    } else {
+      state = 0; // stays dead
+    }
+  }
+  return state;  
+}
+
+IntArray2d life_data[500, 500];
+
+foreach cell in life_data
+  //cell = (random() < 0.25);
+  cell = 0;
+end
+
+// Run 100,000 iterations of this game of life
+Int iteration = 0;
+while (iteration < 100000) {
+  foreach cell in life_data
+    cell = game_of_life(window(cell));
+  end
+
+  iteration = iteration + 1;
+}
+
+
