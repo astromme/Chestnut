@@ -34,7 +34,7 @@ while (iteration < 10000) {
 
     if (stencil == 1) {
       point = 1;
-    } else if (stencil == -1) {
+    } else if (stencil == 2) {
       point = 0;
     }
   end
