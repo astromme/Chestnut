@@ -38,9 +38,16 @@ Real bottom = -1;
 
 IntArray2d mandelbrot_display[875, 500];
 
-foreach pixel in mandelbrot_display
-  pixel = mandelbrot(location(pixel), mandelbrot_display.size, left, right, top, bottom);
-end
+for (Int i=0; i<100000; i+=1) {
+  foreach pixel in mandelbrot_display
+    pixel = mandelbrot(location(pixel), mandelbrot_display.size, left, right, top, bottom);
+  end
+
+  left = left * 0.99;
+  right = right * 0.99;
+  top = top * 0.99;
+  bottom = bottom * 0.99;
+}
 
 display(mandelbrot_display, orange_convert);
 

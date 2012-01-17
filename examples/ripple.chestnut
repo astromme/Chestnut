@@ -21,16 +21,10 @@ parallel Color orange_convert(Int value) {
 
 IntArray2d ripple_image[500, 500];
 
-Int iteration = 0;
-Int iterations = 10000;
-
-while (iteration < iterations) {
+for (Int i; i<100000; i+=1) {
   foreach pixel in ripple_image
-    pixel = ripple(location(pixel), ripple_image.size, iteration);
+    pixel = ripple(location(pixel), ripple_image.size, i);
   end
 
   display(ripple_image, orange_convert);
-
-  iteration = iteration + 1;
 }
-
