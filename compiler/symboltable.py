@@ -12,9 +12,9 @@ data_types = ['IntArray1d', 'IntArray2d', 'IntArray3d',
 
 structure_types = ['Point1d', 'Point2d', 'Point3d', 'Point4d',
                    'Size1d', 'Size2d', 'Size3d',
-                   'IntWindow1d', 'RealWindow1d', 'ColorWindow1d',
-                   'IntWindow2d', 'RealWindow2d', 'ColorWindow2d',
-                   'IntWindow3d', 'RealWindow3d', 'ColorWindow3d']
+                   'Int1d', 'Real1d', 'Color1d',
+                   'Int2d', 'Real2d', 'Color2d',
+                   'Int3d', 'Real3d', 'Color3d']
 
 reserved_words = [
             'parallel',

@@ -33,9 +33,9 @@ syn keyword chestnutBranch		break continue
 
 syn keyword chestnutFunctionDecoration  parallel sequential
 
-syn keyword chestnutInts	       	Int   IntArray1d   IntArray2d   IntArray3d   IntWindow1d   IntWindow2d   IntWindow3d
-syn keyword chestnutReals               Real  RealArray1d  RealArray2d  RealArray3d  RealWindow1d  RealWindow2d  RealWindow3d
-syn keyword chestnutColors              Color ColorArray1d ColorArray2d ColorArray3d ColorWindow1d ColorWindow2d ColorWindow3d
+syn keyword chestnutInts	       	Int   IntArray1d   IntArray2d   IntArray3d   Int1d   Int2d   Int3d
+syn keyword chestnutReals               Real  RealArray1d  RealArray2d  RealArray3d  Real1d  Real2d  Real3d
+syn keyword chestnutColors              Color ColorArray1d ColorArray2d ColorArray3d Color1d Color2d Color3d
 syn keyword chestnutOtherTypes          Bool Point1d Point2d Point3d Size1d Size2d Size3d
 
 syn keyword chestnutStatement		return

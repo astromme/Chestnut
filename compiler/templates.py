@@ -24,20 +24,20 @@ data_to_scalar = {
         }
 
 datatype_to_windowtype = {
-        'IntArray1d'    : 'IntWindow1d',
-        'RealArray1d'   : 'RealWindow1d',
-        'ColorArray1d'  : 'ColorWindow1d',
-        'BoolArray1d'   : 'BoolWindow1d',
+        'IntArray1d'    : 'Int1d',
+        'RealArray1d'   : 'Real1d',
+        'ColorArray1d'  : 'Color1d',
+        'BoolArray1d'   : 'Bool1d',
 
-        'IntArray2d'    : 'IntWindow2d',
-        'RealArray2d'   : 'RealWindow2d',
-        'ColorArray2d'  : 'ColorWindow2d',
-        'BoolArray2d'   : 'BoolWindow2d',
+        'IntArray2d'    : 'Int2d',
+        'RealArray2d'   : 'Real2d',
+        'ColorArray2d'  : 'Color2d',
+        'BoolArray2d'   : 'Bool2d',
 
-        'IntArray3d'    : 'IntWindow3d',
-        'RealArray3d'   : 'RealWindow3d',
-        'ColorArray3d'  : 'ColorWindow3d',
-        'BoolArray3d'   : 'BoolWindow3d',
+        'IntArray3d'    : 'Int3d',
+        'RealArray3d'   : 'Real3d',
+        'ColorArray3d'  : 'Color3d',
+        'BoolArray3d'   : 'Bool3d',
         }
 
 

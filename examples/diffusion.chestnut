@@ -98,7 +98,7 @@ while (time + 0.5*dt < 0.1) {
         Int y = location(element).y;
         Int z = location(element).z;
 
-        RealWindow3d win = window(element);
+        Real3d win = window(element);
         
         Real west; Real east; Real south; Real north; Real below; Real above;
 

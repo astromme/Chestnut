@@ -1,4 +1,4 @@
-parallel Real heat_flow(RealWindow2d data, Real c0, Real c1) {
+parallel Real heat_flow(Real2d data, Real c0, Real c1) {
   Real new_data = c0*data.center;
   new_data = new_data + c1*(data.west + data.east + data.north + data.south);
 

@@ -1,4 +1,4 @@
-parallel Int game_of_life(IntWindow2d element) {
+parallel Int game_of_life(Int2d element) {
   Int neighbor_count = element.northWest + element.north + element.northEast +
                        element.west      + 0             + element.east +
                        element.southWest + element.south + element.southEast;
