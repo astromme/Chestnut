@@ -18,7 +18,6 @@
  */
 
 #include <cuda.h>
-#include <QDebug>
 
 namespace Walnut {
 

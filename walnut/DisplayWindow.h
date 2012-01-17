@@ -25,7 +25,6 @@
 
 #include <QWidget>
 #include <QPainter>
-#include <QDebug>
 
 #ifndef Q_WS_MAC
   #define GL_GLEXT_PROTOTYPES

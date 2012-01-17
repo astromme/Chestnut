@@ -18,15 +18,18 @@
  */
 
 #include "Array.h"
-#include "ArrayAllocator.h"
 #include "HostFunctions.h"
 
 #include <QFile>
 #include <QRegExp>
-#include <QDebug>
 #include <QStringList>
 
+#include <iostream>
+
 #include <thrust/host_vector.h>
+
+using std::cout;
+using std::endl;
 
 namespace Walnut {
 
@@ -43,15 +46,13 @@ bool Array<T>::readFromFile(const QString &fileName) {
     QFile file(fileName);
 
     if (!file.open(QFile::ReadOnly)) {
-        qDebug() << QString("Error Reading %1: %2").arg(fileName, file.errorString()).toAscii();
+        cout << QString("Error Reading %1: %2").arg(fileName, file.errorString()).toStdString() << endl;
         return false;
     }
 
     QByteArray firstLine = file.readLine().trimmed();
     QRegExp firstLineMatcher(QString("^\\s*(Int|Bool|Real)Array(1|2|3)d\\[width=([0-9]+), height=([0-9]+)\\]\\s*$").replace(' ', "\\s+"));
     firstLineMatcher.indexIn(firstLine);
-
-    qDebug() << firstLineMatcher.capturedTexts();
 
     QString type = firstLineMatcher.capturedTexts()[1];
     int dimension = firstLineMatcher.capturedTexts()[2].toInt();
@@ -74,7 +75,7 @@ bool Array<T>::readFromFile(const QString &fileName) {
         for (int i=0; i<elements.size()-1; i++) {
             if (pos >= width*height*depth) {
                 file.close();
-                qDebug() << "Array full with data left in file.";
+                cout << "Array full with data left in file." << endl;
                 break;
             }
 
@@ -100,7 +101,7 @@ bool Array<T>::writeToFile(const QString &fileName) {
     QFile file(fileName);
 
     if (!file.open(QFile::WriteOnly)) {
-        qDebug() << QString("Error Writing %1: %2").arg(fileName, file.errorString()).toAscii();
+        cout << QString("Error Writing %1: %2").arg(fileName, file.errorString()).toStdString() << endl;
         return false;
     }
 
@@ -130,4 +131,3 @@ bool Array<T>::writeToFile(const QString &fileName) {
 WALNUT_INIT_STRUCT(Array);
 
 } // namespace Walnut
-

@@ -24,7 +24,9 @@
 #include "Array.h"
 #include "Sizes.h"
 
+#include <QMap>
 #include <QMultiMap>
+
 
 typedef void* DeviceMemoryPointer;
 typedef void* HostMemoryPointer;
@@ -54,6 +56,7 @@ private:
 
 } // namespace Walnut
 
-#include "ArrayAllocator.cu"
+#include "ArrayAllocator.cpp"
 
 #endif // ARRAYALLOCATOR_H
+

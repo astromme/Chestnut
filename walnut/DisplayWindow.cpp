@@ -22,6 +22,11 @@
 
 #include <QDebug>
 
+#ifdef Q_WS_MAC
+    // Hack to get gluOrtho2D on OSX with Qt 4.8
+    #include <OpenGL/glu.h>
+#endif
+
 #include <cuda_gl_interop.h>
 
 using namespace Walnut;
