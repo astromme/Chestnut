@@ -20,6 +20,8 @@ def full_first_match_exception_init(filename):
 group2, group3_product, group4_sum, group5, group6, group7, group8 \
     = Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed()
 
+variable_declaration = Delayed()
+
 expression = Delayed()
 primary = Delayed()
 function_call = Delayed()
@@ -188,10 +190,15 @@ return_ = (~keyword('return') & expression & ~semi) ** with_line(Return)
 break_ = ( ~keyword('break') & ~semi) ** with_line(Break)
 if_ = (    ~keyword('if') & ~symbol('(') & expression & ~symbol(')') & statement & Optional(~keyword('else') & statement)) ** with_line(If)
 while_ = ( ~keyword('while') & ~symbol('(') & expression & ~symbol(')') & statement) ** with_line(While)
+for_ = ( ~keyword('for') & ~symbol('(') &
+                                 (expression & ~symbol(';') | variable_declaration) &
+                                 expression &
+                                 ~symbol(';') & expression &
+                           ~symbol(')') & statement) ** with_line(For)
 #semicolin_statement = Or(
 #                        Optional(return_ | break_) & ~semi,
 #                        Optional(return_ | break_) 
-statement += ~semi | parallel_context | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | block
+statement += ~semi | parallel_context | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | for_ | block
 
 #### Top Level Program Matching ####
 parameter_declaration = ((type_ | data_type ) & identifier) > Parameter
@@ -200,7 +207,7 @@ parameter_declaration_list = (parameter_declaration[0:, ~comma]) > Parameters
 initialization = (~symbol('=') & expression) ** with_line(VariableInitialization)
 data_initialization = (~symbol('=') & expression) ** with_line(DataInitialization)
 
-variable_declaration = (type_ & identifier & Optional(initialization) & ~semi) ** with_line(VariableDeclaration)
+variable_declaration += (type_ & identifier & Optional(initialization) & ~semi) ** with_line(VariableDeclaration)
 data_declaration = (data_type & identifier & size & Optional(data_initialization) & ~semi) ** with_line(DataDeclaration)
 sequential_function_declaration = (~Token('sequential') & (type_ | data_type) & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(SequentialFunctionDeclaration)
 parallel_function_declaration = (~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(ParallelFunctionDeclaration)

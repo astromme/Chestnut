@@ -1067,6 +1067,32 @@ class While(ChestnutNode):
             except InterpreterBreak:
                 break
 
+for_template = """\
+// FOR LOOP
+{0.initialization};
+while ({0.condition}) {{
+  {0.statement}
+  {0.step};
+}}
+// END FOR LOOP
+"""
+class For(ChestnutNode):
+    @property
+    def initialization(self): return self[0]
+
+    @property
+    def condition(self): return self[1]
+
+    @property
+    def step(self): return self[2]
+
+    @property
+    @safe_index
+    def statement(self): return self[3]
+
+    def to_cpp(self, env=defaultdict(bool)):
+        return for_template.format(For(cpp_tuple(self[:4], env)))
+
 random_device_template = """walnut_random()"""
 class Random(ChestnutNode):
     def to_cpp(self, env=defaultdict(bool)):
