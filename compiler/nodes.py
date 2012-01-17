@@ -390,6 +390,27 @@ class Assignment(List):
         symbol = env[self[0]]
         symbol.value = self[1].evaluate(env)
         return symbol.value
+
+class AssignPlus(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        output, expression = self
+        env = defaultdict(bool, env, data_to_assign=output)
+        return '%s += %s' % (output.to_cpp(env), expression.to_cpp(env))
+class AssignMinus(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        output, expression = self
+        env = defaultdict(bool, env, data_to_assign=output)
+        return '%s -= %s' % (output.to_cpp(env), expression.to_cpp(env))
+class AssignMul(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        output, expression = self
+        env = defaultdict(bool, env, data_to_assign=output)
+        return '%s *= %s' % (output.to_cpp(env), expression.to_cpp(env))
+class AssignDiv(List):
+    def to_cpp(self, env=defaultdict(bool)):
+        output, expression = self
+        env = defaultdict(bool, env, data_to_assign=output)
+        return '%s /= 1.0*%s' % (output.to_cpp(env), expression.to_cpp(env))
 # End Operators
 
 # Other structures

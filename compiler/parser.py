@@ -174,8 +174,12 @@ group7 += boolean_and | group6
 boolean_or = (group7 & ~symbol('|')[2] & group8) > BooleanOr
 group8 += boolean_or | group7
 
-assignment = ((identifier | property_list) & ~symbol('=') & expression) > Assignment
-expression += assignment | group8
+assignment   = ((identifier | property_list) & ~symbol('=') & expression) > Assignment
+assign_plus  = ((identifier | property_list) & ~symbol('+') & ~symbol('=') & expression) > AssignPlus
+assign_minus = ((identifier | property_list) & ~symbol('-') & ~symbol('=') & expression) > AssignMinus
+assign_mul   = ((identifier | property_list) & ~symbol('*') & ~symbol('=') & expression) > AssignMul
+assign_div   = ((identifier | property_list) & ~symbol('/') & ~symbol('=') & expression) > AssignDiv
+expression += assignment | assign_plus | assign_minus | assign_mul | assign_div | group8
 
 expression_list = expression[0:, ~comma] > Expressions
 
