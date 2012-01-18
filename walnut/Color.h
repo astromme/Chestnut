@@ -34,6 +34,16 @@ struct Color : uchar4 {
   __host__ __device__ inline uint8 green() const { return this->y; }
   __host__ __device__ inline uint8 red() const { return this->z; }
   __host__ __device__ inline uint8 opacity() const { return this->w; }
+
+  __host__ __device__ Color & operator+=(const Color &rhs) { x += rhs.x; y += rhs.y; z += rhs.z; w += rhs.w; return *this; }
+  __host__ __device__ Color & operator-=(const Color &rhs) { x -= rhs.x; y -= rhs.y; z -= rhs.z; w -= rhs.w; return *this; }
+  __host__ __device__ Color & operator*=(const Color &rhs) { x *= rhs.x; y *= rhs.y; z *= rhs.z; w *= rhs.w; return *this; }
+  __host__ __device__ Color & operator/=(const Color &rhs) { x /= rhs.x; y /= rhs.y; z /= rhs.z; w /= rhs.w; return *this; }
+
+  __host__ __device__ Color operator+(const Color &rhs) { Color result = *this; return (result += rhs); }
+  __host__ __device__ Color operator-(const Color &rhs) { Color result = *this; return (result -= rhs); }
+  __host__ __device__ Color operator*(const Color &rhs) { Color result = *this; return (result *= rhs); }
+  __host__ __device__ Color operator/(const Color &rhs) { Color result = *this; return (result /= rhs); }
 };
 
 }

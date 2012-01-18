@@ -1308,7 +1308,7 @@ class ParallelContext(ChestnutNode):
                 raise CompilerException("%s %s should be an array" % (data.type, data.name), self)
 
 
-            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='%s(%s, _x, _y, _z).center()'
+            symbolTable.add(StreamVariable(name=piece, type=data_to_scalar[data.type], array=data, cpp_name='%s(%s, _x, _y, _z)'
                             % (datatype_to_windowtype[data.type], data.name)))
 
             symbolTable.add(data)
@@ -1354,7 +1354,7 @@ class ParallelContext(ChestnutNode):
                 function_parameters.append('{0.type} __original_values_for_{0.name}'.format(symbol.array))
                 struct_member_initializations.append('_original_values_for_%(name)s(__original_values_for_%(name)s)' % { 'name' : symbol.array.name })
 
-                copies += '%s = %s;\n' % (symbol.cpp_name, '{1}(_original_values_for_{0.name}, _x, _y, _z).center()'.format(symbol.array, datatype_to_windowtype[symbol.array.type]))
+                copies += '%s = %s;\n' % (symbol.cpp_name, '{1}(_original_values_for_{0.name}, _x, _y, _z)'.format(symbol.array, datatype_to_windowtype[symbol.array.type]))
 
 
         new_names = []
