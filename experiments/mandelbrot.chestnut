@@ -31,11 +31,9 @@ Real bottom = -1;
 IntArray2d mandelbrot_display[512, 512];
 
 
-Int iteration = 0;
-while (iteration < 10000) {
+for (Int i=0; i<10000; i+=1) {
   foreach pixel in mandelbrot_display
     pixel = mandelbrot(location(pixel), 
     mandelbrot_display.size, left, right, top, bottom);
   end
-  iteration = iteration + 1;
 }

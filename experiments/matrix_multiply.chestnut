@@ -17,8 +17,7 @@ end
 //print(a);
 //print(b);
 
-Int iterations = 100;
-while (iterations > 0) {
+for (Int iteration=0; iteration<100; iteration+=1) {
   foreach e in c
     Int i = 0;
     e = 0;
@@ -27,7 +26,6 @@ while (iterations > 0) {
       i = i + 1;
     }
   end
-  iterations = iterations - 1;
 }
 
 //print(c);

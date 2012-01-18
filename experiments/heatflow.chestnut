@@ -25,9 +25,7 @@ foreach point in heat_data, s in heat_stencil
   point = 0;
 end
 
-Int iteration = 0;
-while (iteration < 10000) {
-
+for (Int i=0; i<10000; i+=1) {
   foreach point in heat_data, stencil in heat_stencil 
 
     point = heat_flow(window(point), c0, c1);
@@ -38,9 +36,4 @@ while (iteration < 10000) {
       point = 0;
     }
   end
-
-  iteration = iteration + 1;
 }
-
-
-

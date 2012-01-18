@@ -1,29 +1,25 @@
-RealArray2d matrix_a[1000, 500];
-RealArray2d matrix_b[500, 800];
-RealArray2d matrix_output[1000, 800];
+RealArray2d a[10, 5];
+RealArray2d b[5, 8];
+RealArray2d output[10, 8];
 
-foreach element in matrix_a
-  element = location(element).x + location(element).y;
+foreach element in a
+  element = element.x + element.y;
 end
 
-foreach element in matrix_b
-  element = location(element).x + location(element).y;
+foreach element in b
+  element = element.x + element.y;
 end
 
 //print(matrix_a);
 //print(matrix_b);
 
-Int iterations = 100;
-while (iterations > 0) {
-  foreach element in matrix_output
-    Int i = 0;
-    element = 0;
-    while (i < matrix_a.size.height) {
-      element = element + matrix_a[location(element).x, i] * matrix_b[i, location(element).y]; 
-      i = i + 1;
-    }
-  end
-  iterations = iterations - 1;
-}
+foreach e in output
+  e = 0;
+  for (Int i=0; i < a.height; i+=1) {
+    e = e + a[e.x, i] * b[i, e.y];
+  }
+end
+
+write(output, "output.data");
 
 //print(matrix_output);

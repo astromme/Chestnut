@@ -31,13 +31,8 @@ foreach cell in life_data
 end
 
 // Run 100,000 iterations of this game of life
-Int iteration = 0;
-while (iteration < 100000) {
+for (Int i=0; i<100000; i+=1) {
   foreach cell in life_data
     cell = game_of_life(window(cell));
   end
-
-  iteration = iteration + 1;
 }
-
-
