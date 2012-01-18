@@ -33,6 +33,6 @@ end
 // Run 100,000 iterations of this game of life
 for (Int i=0; i<100000; i+=1) {
   foreach cell in life_data
-    cell = game_of_life(window(cell));
+    cell = game_of_life(cell);
   end
 }

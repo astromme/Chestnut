@@ -23,7 +23,7 @@ for (Int iteration=0; iteration<10000; iteration+=1) {
     Int i = 0;
     e = 0;
     while (i < a.size.height) {
-      e = e + a[location(e).x, i] * b[i, location(e).y]; 
+      e = e + a[e.x, i] * b[i, e.y];
       i = i + 1;
     }
   end

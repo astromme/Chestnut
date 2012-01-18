@@ -3,7 +3,7 @@ parallel Int game_of_life(Int2d element) {
                        element.west      + 0             + element.east +
                        element.southWest + element.south + element.southEast;
   Int state;
-  Int alive = element.center;
+  Int alive = element;
 
   if (alive) {
     if (neighbor_count <= 1) {
@@ -33,6 +33,6 @@ end
 // Run 10,000 iterations of this game of life
 for (Int i=0; i<10000; i+=1) {
   foreach cell in life_data
-    cell = game_of_life(window(cell));
+    cell = game_of_life(cell);
   end
 }
