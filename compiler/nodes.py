@@ -933,6 +933,10 @@ class Property(List):
         # New property pseudo code
         property_cpp = expr.to_cpp(env)
 
+        # HACK: There should be a gneral property framework
+        if type(symbolTable.lookup(expr)) == StreamVariable and rest[0] in color_properties:
+            property_cpp += '.center()'
+
         for member_identifier in rest:
             #check_that_symbol_type_has_member(current_symbol_type, member_identifier) # need to implement
             #current_symbol_type = get_return_type_for_member(current_symbol_type, member_identifier) # need to implement
