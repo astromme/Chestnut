@@ -48,6 +48,9 @@ struct WALNUT_EXPORT Window {
   __device__ Window<T>   operator*(const Window<T> &rhs) { Window<T> result = *this; return (result *= rhs); }
   __device__ Window<T>   operator/(const Window<T> &rhs) { Window<T> result = *this; return (result /= rhs); }
 
+  __device__ operator T() { return this->center(); }
+  __device__ bool operator==(const T &rhs) { return this->center() == rhs; }
+  __device__ bool operator!=(const T &rhs) { return !(*this == rhs); }
   __device__ Window<T> & operator=(const T &rhs) { this->center() = rhs; return *this; }
   __device__ Window<T> & operator+=(const T &rhs) { this->center() += rhs; return *this; }
   __device__ Window<T> & operator-=(const T &rhs) { this->center() -= rhs; return *this; }
