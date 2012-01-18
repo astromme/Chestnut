@@ -1,5 +1,5 @@
 parallel Real heat_flow(Real2d data, Real c0, Real c1) {
-  Real new_data = c0*data.center;
+  Real new_data = c0*data;
   new_data = new_data + c1*(data.west + data.east + data.north + data.south);
 
   new_data = min(1.0, new_data);
@@ -42,7 +42,7 @@ end
 for (Int i=0; i<10000; i+=1) {
   foreach point in heat_data, stencil in heat_stencil 
 
-    point = heat_flow(window(point), c0, c1);
+    point = heat_flow(point, c0, c1);
 
     if (stencil == 1) {
       point = 1;

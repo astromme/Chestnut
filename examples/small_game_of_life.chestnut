@@ -39,19 +39,18 @@ end
 for (Int i=0; i<10000; i+=1) {
 
   foreach cell in life_data
-    cell = game_of_life(window(cell));
+    cell = game_of_life(cell);
   end
 
   foreach pixel in life_display
-    Point2d loc = location(pixel);
-    if (loc.x/8 == 0 || loc.y/8 == 0) {
+    if (pixel.x/8 == 0 || pixel.y/8 == 0) {
       pixel.red = 127;
       pixel.green = 127;
       pixel.blue = 127;
       pixel.opacity = 255;
     } else {
       pixel.red = 0;
-      pixel.green = life_data[loc.x/8, loc.y/8] * 255;
+      pixel.green = life_data[pixel.x/8, pixel.y/8] * 255;
       pixel.blue = 0;
       pixel.opacity = 255;
     }

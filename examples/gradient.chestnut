@@ -11,7 +11,7 @@ IntArray2d outputs[720, 480];
 
 for (Int i=0; i<10000; i+=1) {
   foreach pixel in outputs
-    Real percent = location(pixel).y  / outputs.size.height;
+    Real percent = pixel.y  / outputs.size.height;
     percent = percent * (abs(500 - (i % 1000)) / 500);
     pixel = percent * 255;
   end

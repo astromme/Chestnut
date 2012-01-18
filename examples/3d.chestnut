@@ -1,21 +1,21 @@
 IntArray3d grid[5, 2, 2];
 
 foreach element in grid
-  element = location(element).x;
+  element = element.x;
 end
 
 print('::x positions');
 print(grid);
 
 foreach element in grid
-  element = location(element).y;
+  element = element.y;
 end
 
 print('::y positions');
 print(grid);
 
 foreach element in grid
-  element = location(element).z;
+  element = element.z;
 end
 
 print('::z positions');

@@ -49,9 +49,9 @@ sequential RealArray3d initialize(RealArray3d array, Real kappa,
 
     // Initialize the array
     foreach element in array
-        Real x = dx*(location(element).x+0.5);
-        Real y = dy*(location(element).y+0.5);
-        Real z = dz*(location(element).z+0.5);
+        Real x = dx*(element.x+0.5);
+        Real y = dy*(element.y+0.5);
+        Real z = dz*(element.z+0.5);
 
         element = 0.125
                   * (1.0 - ax*cos(kx*x))
@@ -94,25 +94,23 @@ while (time + 0.5*dt < 0.1) {
     }
 
     foreach element in grid
-        Int x = location(element).x;
-        Int y = location(element).y;
-        Int z = location(element).z;
+        Int x = element.x;
+        Int y = element.y;
+        Int z = element.z;
 
-        Real3d win = window(element);
-        
         Real west; Real east; Real south; Real north; Real below; Real above;
 
-        if (x == 0)             { west  = cw*win.center; } else { west  = cw*win.west; }
-        if (x == grid.width-1)  { east  = ce*win.center; } else { east  = ce*win.east; }
-        if (y == 0)             { north = cn*win.center; } else { north = cn*win.north; }
-        if (y == grid.height-1) { south = cs*win.center; } else { south = cs*win.south; }
-        if (z == 0)             { above = ca*win.center; } else { above = ca*win.above; }
-        if (z == grid.depth-1)  { below = cb*win.center; } else { below = cb*win.below; }
+        if (x == 0)             { west  = cw*element.center; } else { west  = cw*element.west; }
+        if (x == grid.width-1)  { east  = ce*element.center; } else { east  = ce*element.east; }
+        if (y == 0)             { north = cn*element.center; } else { north = cn*element.north; }
+        if (y == grid.height-1) { south = cs*element.center; } else { south = cs*element.south; }
+        if (z == 0)             { above = ca*element.center; } else { above = ca*element.above; }
+        if (z == grid.depth-1)  { below = cb*element.center; } else { below = cb*element.below; }
 
-        //element = win.center;
+        //element = element;
 
-        element = cc*win.center + west + east + north + south + above + below;
-        //element = 0.9 * win.center + west;
+        element = cc*element + west + east + north + south + above + below;
+        //element = 0.9 * element + west;
 
     end
 
@@ -130,9 +128,8 @@ RealArray2d grid_display[64, 64];
 RealArray2d answer_display[64, 64];
 
 foreach grid_pixel in grid_display, answer_pixel in answer_display
-  Point2d pos = location(grid_pixel);
-  grid_pixel = grid[pos.x, pos.y, 0];
-  answer_pixel = answer[pos.x, pos.y, 0];
+  grid_pixel = grid[grid_pixel.x, grid_pixel.y, 0];
+  answer_pixel = answer[grid_pixel.x, grid_pixel.y, 0];
 end
 
 display(grid_display, green);

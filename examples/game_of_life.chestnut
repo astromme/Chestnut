@@ -44,7 +44,7 @@ end
 Int iteration = 0;
 while (iteration < 10000) {
   foreach cell in life_data
-    cell = game_of_life(window(cell));
+    cell = game_of_life(cell);
   end
 
   display(life_data, green_convert);

@@ -1,6 +1,6 @@
-parallel Int ripple(Point2d location, Size2d dimensions, Int current_time) {
-  Real x_offset = location.x - dimensions.width/2;
-  Real y_offset = location.y - dimensions.height/2;
+parallel Int ripple(Int2d element, Size2d dimensions, Int current_time) {
+  Real x_offset = element.x - dimensions.width/2;
+  Real y_offset = element.y - dimensions.height/2;
 
   Real distance = sqrtf(x_offset * x_offset + y_offset * y_offset);
 
@@ -23,7 +23,7 @@ IntArray2d ripple_image[500, 500];
 
 for (Int i; i<100000; i+=1) {
   foreach pixel in ripple_image
-    pixel = ripple(location(pixel), ripple_image.size, i);
+    pixel = ripple(pixel, ripple_image.size, i);
   end
 
   display(ripple_image, orange_convert);
