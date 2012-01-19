@@ -187,8 +187,11 @@ class SymbolTable:
 
     def lookup(self, name):
         for scope in self.table:
-            if name in scope:
-                return scope[name]
+            try:
+                if name in scope:
+                    return scope[name]
+            except TypeError: # unhashable type
+                return None
         return None
 
 class SymbolTableError(Exception):
