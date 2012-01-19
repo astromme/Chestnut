@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <cutil.h>
 
 #define HANDLE_ERROR(a, msg) \
   { \
@@ -141,10 +142,22 @@ int main(int argc, char* argv[]) {
   // the matrix dimensions are multiples of BLOCK_SIZE
   dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
   dim3 dimGrid(width_b / dimBlock.x, height_a / dimBlock.y);
+
+  double gpuTime;
+  unsigned int hTimer;
+  cutCreateTimer(&hTimer);
+  cutResetTimer(hTimer);
+  cutStartTimer(hTimer);
+
   // Launch the device computation
   for (int i=0; i<10000; i++) {
     Muld<<<dimGrid, dimBlock>>>(dev_a, dev_b, width_a, width_b, dev_c);
   }
+
+  cutStopTimer(hTimer);
+  gpuTime = cutGetTimerValue(hTimer);
+  
+  printf("gpu time was %0.2f ms\n", gpuTime);
   
   //Mul(dev_a, dev_b, height_a, width_a, width_b, dev_c);
 
