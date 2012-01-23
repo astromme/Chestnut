@@ -1276,7 +1276,9 @@ parallel_context_call = """\
 
     %(temp_arrays)s
 
+    cutStartTimer(_host_timer);
     thrust::for_each(iterator, iterator+%(size_name)s.length(), %(function)s(%(variables)s));
+    cutStopTimer(_host_timer);
 
     %(swaps)s
     %(releases)s

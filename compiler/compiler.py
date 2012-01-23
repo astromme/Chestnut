@@ -19,6 +19,7 @@ preamble = """\
 #include <thrust/sort.h>
 
 #include <limits.h>
+#include <cutil.h>
 
 using namespace Walnut;
 
@@ -31,11 +32,19 @@ main_template = """
 int main(int argc, char* argv[])
 {
   %(app_statement)s
+
+  // create gpu timer
+  unsigned int _host_timer;
+  cutCreateTimer(&_host_timer);
+  cutResetTimer(_host_timer);
+
   srand(NULL);
   _allocator = ArrayAllocator();
 
 %(main_declarations)s
 %(main_code)s
+
+  printf("time spent in kernels: %%0.2f ms\\n", cutGetTimerValue(_host_timer));
 
   %(return_statement)s
 }
