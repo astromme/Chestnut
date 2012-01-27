@@ -13,6 +13,10 @@ import pycuda.curandom
 from pycuda.elementwise import ElementwiseKernel
 from pycuda.reduction import ReductionKernel
 
+from jinja2 import Template, Environment, PackageLoader
+jinja = Environment(loader=PackageLoader('compiler', 'templates'))
+base_template = jinja.get_template('base.cpp')
+
 symbolTable = SymbolTable()
 global current_name_number
 current_name_number = 0
@@ -493,25 +497,25 @@ class DataDeclaration(ChestnutNode):
         env[self.name] = DeviceArray((self.size.width, self.size.height), dtype=numpy_type_map[self.type], allocator=env['@device_memory_pool'].allocate)
 
 
-object_template = """\
-struct {name} {{
-{member_variables}
-{functions}
-}};
-"""
+object_declaration_template = jinja.get_template('object_declaration.cpp')
 class ObjectDeclaration(ChestnutNode):
+    @property
+    def name(self): return self[0]
+
+    @property
+    def members(self): return self[1]
+
+    @property
+    def context(self): return self[2]
+
+    @property
+    def functions(self): return []
+
     def to_cpp(self, env=defaultdict(bool)):
-        object_name, members, context = self
+        cpp = object_declaration_template.render(object=self)
 
-        member_variables = []
-
-        for type, name in members:
-            member_variables.append('%s %s;' % (type, name))
-
-        symbolTable.add(Object(name=object_name, members=members))
-        symbolTable.structures.append(object_template.format(name=object_name,
-                                                             member_variables=indent('\n'.join(member_variables)),
-                                                             functions=''))
+        symbolTable.add(Object(name=self.name))
+        symbolTable.structures.append(cpp)
         return ''
 
 host_function_declaration_template = """\
