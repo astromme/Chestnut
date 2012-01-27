@@ -1,67 +1,12 @@
 #!/usr/bin/env python
 
-preamble = """\
-#include <QApplication> // OpenGL stuff on Linux forces this to come first
-
-#include <walnut/ArrayAllocator.h>
-#include <walnut/Array.h>
-#include <walnut/HostFunctions.h>
-#include <walnut/UtilityFunctors.h>
-#include <walnut/FunctionIterator.h>
-#include <walnut/DisplayWindow.h>
-#include <walnut/ColorKernels.h>
-
-#include <walnut/Sizes.h>
-#include <walnut/Points.h>
-#include <walnut/Windows.h>
-#include <walnut/Color.h>
-
-#include <thrust/sort.h>
-
-#include <limits.h>
-#include <cutil.h>
-
-using namespace Walnut;
-
-ArrayAllocator _allocator;
-
-"""
-
-main_template = """
-
-int main(int argc, char* argv[])
-{
-  %(app_statement)s
-
-  // create gpu timer
-  unsigned int _host_timer;
-  cutCreateTimer(&_host_timer);
-  cutResetTimer(_host_timer);
-
-  srand(NULL);
-  _allocator = ArrayAllocator();
-
-%(main_declarations)s
-%(main_code)s
-
-  printf("time spent in kernels: %%0.2f ms\\n", cutGetTimerValue(_host_timer));
-
-  %(return_statement)s
-}
-"""
+from jinja2 import Template, Environment, PackageLoader
+jinja = Environment(loader=PackageLoader('compiler', 'templates'))
+base_template = jinja.get_template('base.cpp')
 
 from parser import parse
 from nodes import *
 from builtins import built_in_functions
-
-for function in built_in_functions:
-    symbolTable.add(function)
-
-display_init = """\
-DisplayWindow _%(name)s_display(QSize(%(width)s, %(height)s));
-_%(name)s_display.show();
-_%(name)s_display.setWindowTitle("%(title)s");
-"""
 
 function_types = [SequentialFunctionDeclaration, ParallelFunctionDeclaration]
 
@@ -72,41 +17,19 @@ def compile(ast):
     else:
         declarations, functions = [], []
 
-    main_declarations = []
-    main_function_statements = [obj.to_cpp() for obj in ast if type(obj) not in function_types]
+    main_statements = [obj.to_cpp() for obj in ast if type(obj) not in function_types]
 
-
-    for window in symbolTable.displayWindows:
-        main_declarations.append(display_init % { 'name' : window.name,
-                                             'width' : window.width,
-                                             'height' : window.height,
-                                             'title' : window.title })
-
-
-    if len(main_declarations):
-      app_statement = 'QApplication _app(argc, argv);'
-      return_statement = 'return _app.exec();'
-    else:
-      app_statement = ''
-      return_statement = 'return 0;'
-
-    main_function = main_template % { 'main_declarations' : indent('\n'.join(main_declarations)),
-                                      'main_code' : indent('\n'.join(main_function_statements)),
-                                      'app_statement' : app_statement,
-                                      'return_statement' : return_statement }
-
-    thrust_code = preamble + \
-                  '\n'.join(symbolTable.structures) + \
-                  '\n'.join(declarations) + \
-                  '\n'.join(symbolTable.parallelContexts) + \
-                  '\n'.join(functions) + main_function
-
-    return thrust_code
+    return base_template.render(symbolTable=symbolTable,
+                                main_statements=main_statements,
+                                declarations=declarations,
+                                functions=functions)
 
 def main():
     import sys, os
     import shlex, subprocess
 
+    for function in built_in_functions:
+        symbolTable.add(function)
 
     if len(sys.argv) not in [2, 4]:
         print('Usage: %s input [-o output]' % sys.argv[0])

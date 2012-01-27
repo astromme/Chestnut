@@ -2,3 +2,4 @@ lepl
 pycuda
 sphinx
 pygments
+jinja2

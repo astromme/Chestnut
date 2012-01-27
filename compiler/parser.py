@@ -332,6 +332,9 @@ def parse_file(filename):
 def main():
     import sys
 
+    for function in built_in_functions:
+        symbolTable.add(function)
+
     if len(sys.argv) != 2:
         print('Usage: %s input' % sys.argv[0])
         sys.exit(1)
