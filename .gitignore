@@ -1,9 +1,12 @@
-build/
-qtcreator-build/
+/build/
+/build-python/
+/qtcreator-build/
+
 .DS_Store
 .*.swp
 .*.swo
 *.pyc
+*.swn
 CMakeLists.txt.user*
 *.xcworkspace
 xcuserdata/
