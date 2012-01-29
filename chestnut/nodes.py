@@ -1,6 +1,7 @@
+from .conversions import *
+
 from lepl import *
 from collections import namedtuple, defaultdict
-from templates import *
 import operator
 from symboltable import scalar_types, data_types
 from symboltable import SymbolTable, Scope, Keyword, StreamVariable, Variable, Window, Data, ParallelFunction, SequentialFunction, NeutralFunction, DisplayWindow
@@ -14,7 +15,7 @@ from pycuda.elementwise import ElementwiseKernel
 from pycuda.reduction import ReductionKernel
 
 from jinja2 import Template, Environment, PackageLoader
-jinja = Environment(loader=PackageLoader('compiler', 'templates'))
+jinja = Environment(loader=PackageLoader('chestnut', 'templates'))
 base_template = jinja.get_template('base.cpp')
 
 symbolTable = SymbolTable()

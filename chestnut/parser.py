@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import re
-from nodes import *
-from symboltable import structure_types, scalar_types
+from .nodes import *
+from .symboltable import structure_types, scalar_types
+from .builtins import built_in_functions
+
 from lepl.stream.maxdepth import FullFirstMatchException
 
 

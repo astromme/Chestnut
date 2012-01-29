@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 from jinja2 import Template, Environment, PackageLoader
-jinja = Environment(loader=PackageLoader('compiler', 'templates'))
+jinja = Environment(loader=PackageLoader('chestnut', 'templates'))
 base_template = jinja.get_template('base.cpp')
 
-from parser import parse
-from nodes import *
-from builtins import built_in_functions
+from .parser import parse
+from .nodes import *
+from .builtins import built_in_functions
 
 function_types = [SequentialFunctionDeclaration, ParallelFunctionDeclaration]
 
