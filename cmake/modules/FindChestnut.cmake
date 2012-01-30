@@ -77,6 +77,11 @@ mark_as_advanced(CUDA_CUT_LIBRARY)
 set(CUDA_CUT_LIBRARIES ${CUDA_CUT_LIBRARY})
 ### end find cutil library
 
+if (CUDA_CUT_INCLUDE_DIR AND CUDA_CUT_LIBRARY)
+else()
+    message(FATAL_ERROR "Can't find the cutil library")
+endif (CUDA_CUT_INCLUDE_DIR AND CUDA_CUT_LIBRARY)
+
 include_directories(${CUDA_CUT_INCLUDE_DIR})
 ###### END HACK ######
 
