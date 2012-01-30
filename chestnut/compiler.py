@@ -41,7 +41,7 @@ def main():
         print("Sorry, your input file %s doesn't end with .chestnut or .ch" % input_file)
 
     if len(sys.argv) == 2:
-        output_file = os.path.basename('.'.join(splits[0:-1]))
+        output_file = os.path.basename('.'.join(splits[0:-1])) + '.cu'
     else:
         output_file = sys.argv[3]
 
