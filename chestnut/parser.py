@@ -298,7 +298,11 @@ def remove_multi_line_comments(text):
 # And then my code for removing single line comments. much more consise!
 def remove_single_line_comments(code):
   comment_remover = (Regexp(r'//[^\n]*') >> whitespace | Any())[:, ...]
-  return comment_remover.parse(code)[0]
+  try:
+    return comment_remover.parse(code)[0]
+  except IndexError:
+    return '' # we ain't gots no code (empty file)
+
 
 def parse(original_code, from_file='unknown file'):
   FullFirstMatchException.__init__ = full_first_match_exception_init(from_file)
