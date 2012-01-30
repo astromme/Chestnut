@@ -86,16 +86,17 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include(${QT_USE_FILE})
 
 macro(CHESTNUT_ADD_EXECUTABLE target SOURCE)
-include_directories(${WALNUT_INCLUDE_DIR})
-include_directories(${THRUST_INCLUDE_DIR})
-add_custom_command(
-  OUTPUT  ${SOURCE}.cu
-  COMMAND ${CHESTNUT_COMPILER}
-  ARGS    ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE} -o ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE}.cu
-  DEPENDS ${SOURCE}
-)
-set_property(SOURCE ${SOURCE}.cu APPEND PROPERTY OBJECT_DEPENDS ${SOURCE}.chestnut)
+  include_directories(${WALNUT_INCLUDE_DIR})
+  include_directories(${THRUST_INCLUDE_DIR})
 
-cuda_add_executable(${target} ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE}.cu)
-target_link_libraries(${target} ${WALNUT_LIBRARY} ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARY} ${CUDA_CUT_LIBRARIES})
+  add_custom_command(
+    OUTPUT  ${SOURCE}.cu
+    COMMAND ${CHESTNUT_COMPILER}
+    ARGS    ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE} -o ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE}.cu
+    DEPENDS ${SOURCE}
+  )
+  set_property(SOURCE ${SOURCE}.cu APPEND PROPERTY OBJECT_DEPENDS ${SOURCE}.chestnut)
+
+  cuda_add_executable(${target} ${CMAKE_CURRENT_BINARY_DIR}/${SOURCE}.cu)
+  target_link_libraries(${target} ${WALNUT_LIBRARY} ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARY} ${CUDA_CUT_LIBRARIES})
 endmacro(CHESTNUT_ADD_EXECUTABLE target SOURCE)
