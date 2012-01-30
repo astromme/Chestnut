@@ -45,6 +45,10 @@ set(walnut_headers
     Color.h
     )
 
+set(walnut_templates
+    ArrayAllocator.cpp
+    )
+
 set(walnut_ui
     )
 
@@ -58,5 +62,5 @@ qt4_add_resources(walnut_resources ${walnut_resource_files})
 cuda_add_library(walnut SHARED ${walnut_sources} ${walnut_headers} ${walnut_mocs} ${walnut_ui} ${walnut_resources})
 target_link_libraries(walnut ${QT_LIBRARIES} ${QT_QTOPENGL_LIBRARY} ${OPENGL_LIBRARIES})
 
-
-
+install(TARGETS walnut DESTINATION lib)
+install(FILES ${walnut_headers} ${walnut_templates} DESTINATION "include/walnut")

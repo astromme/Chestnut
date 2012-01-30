@@ -11,7 +11,7 @@ setup(name='chestnut-compiler',
       url='http://chestnutcode.org/',
       packages=['chestnut', 'chestnut.templates'],
       package_data={'chestnut' : ['templates/*.cpp']},
-      scripts = ['scripts/chestnut-compiler',
-                 'scripts/chestnut-parser'],
+      #scripts = ['scripts/chestnut-compiler',
+      #           'scripts/chestnut-parser'],
       long_description="""The Chestnut Compiler"""
      )

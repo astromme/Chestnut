@@ -76,4 +76,4 @@ qt4_add_resources(designer_resources ${designer_resource_files})
 add_executable(chestnut-designer ${designer_sources} ${designer_mocs} ${designer_ui} ${designer_resources})
 target_link_libraries(chestnut-designer ${QT_LIBRARIES})
 
-
+install(TARGETS chestnut-designer DESTINATION bin)

@@ -2,23 +2,38 @@ find_package(CUDA REQUIRED)
 find_package(Thrust REQUIRED)
 find_package(Qt4 REQUIRED)
 
-FIND_PATH(WALNUT_INCLUDE_DIR walnut/walnut_global.h)
+find_path(WALNUT_INCLUDE_DIR
+    HINTS /usr/include /usr/local/include
+    NAMES walnut/walnut_global.h
+    DOC "Walnut headers")
+
+if (CHESTNUT_USE_INTERNAL_LIBRARY)
+    set(WALNUT_LIBRARY walnut)
+else()
+    set(WALNUT_NAMES ${WALNUT_NAMES} walnut)
+    find_library(WALNUT_LIBRARY NAMES ${WALNUT_NAMES})
+endif (CHESTNUT_USE_INTERNAL_LIBRARY)
+
+if (WALNUT_INCLUDE_DIR AND WALNUT_LIBRARY)
+    list(REMOVE_DUPLICATES WALNUT_INCLUDE_DIR)
+
+    # Create the symlink to avoid cuda complaining about kernel launches from system files
+    execute_process(COMMAND ${CMAKE_COMMAND} -E
+        create_symlink
+        ${WALNUT_INCLUDE_DIR}/walnut
+        ${CMAKE_BINARY_DIR}/walnut)
+else()
+    message(FATAL_ERROR "Couldn't find the walnut library and headers")
+endif (WALNUT_INCLUDE_DIR AND WALNUT_LIBRARY)
+
 set(WALNUT_INCLUDE_DIRS ${WALNUT_INCLUDE_DIR})
 set(CHESTNUT_INCLUDE_DIRS ${WALNUT_INCLUDE_DIR})
 
-if (CHESTNUT_USE_INTERNAL_LIBRARY)
-  set(WALNUT_LIBRARY walnut)
-else()
-  SET(WALNUT_NAMES ${WALNUT_NAMES} walnut)
-  FIND_LIBRARY(WALNUT_LIBRARY NAMES ${WALNUT_NAMES})
-endif (CHESTNUT_USE_INTERNAL_LIBRARY)
-
-
 find_program(CHESTNUT_COMPILER 
              NAMES chestnut-compiler
-             PATHS $ENV{CHESTNUT_COMPILER_DIR} ${CHESTNUT_COMPILER_DIR}
-             DOC "The chestnut-compiler executable for the Chestnut installation to use"
-             )
+             PATHS $ENV{CHESTNUT_COMPILER_DIR} ${CHESTNUT_COMPILER_DIR} /usr/bin /usr/local/bin
+                   /usr/local/share/python
+             DOC "The chestnut-compiler executable for the Chestnut installation to use")
 
 if(CHESTNUT_COMPILER)
   message("Using Chestnut Compiler ${CHESTNUT_COMPILER}")
