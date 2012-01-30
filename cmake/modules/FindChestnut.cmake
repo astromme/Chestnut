@@ -52,39 +52,6 @@ MARK_AS_ADVANCED(WALNUT_INCLUDE_DIR WALNUT_LIBRARY)
 #find_package(Walnut REQUIRED)
 #set(WALNUT_LIBRARIES "-L ${CMAKE_CURRENT_BINARY_DIR}" "-lwalnut")
 
-###### HACK TO FIND CUTIL Library ######
-#find_path(CUDA_CUT_INCLUDE_DIR
-#  cutil.h
-#  PATHS ${CUDA_SDK_SEARCH_PATH}
-#  PATH_SUFFIXES "common/inc"
-#  DOC "Location of cutil.h"
-#  NO_DEFAULT_PATH
-#  )
-#
-#set(cuda_cutil_name cutil_x86_64)
-#
-#find_library(CUDA_CUT_LIBRARY
-#  NAMES cutil ${cuda_cutil_name}
-#  PATHS ${CUDA_SDK_SEARCH_PATH}
-#  # The new version of the sdk shows up in common/lib, but the old one is in lib
-#  PATH_SUFFIXES "common/lib" "lib"
-#  DOC "Location of cutil library"
-#  NO_DEFAULT_PATH
-#  )
-## Now search system paths
-#find_library(CUDA_CUT_LIBRARY NAMES cutil ${cuda_cutil_name} DOC "Location of cutil library")
-#mark_as_advanced(CUDA_CUT_LIBRARY)
-#set(CUDA_CUT_LIBRARIES ${CUDA_CUT_LIBRARY})
-#### end find cutil library
-#
-#if (CUDA_CUT_INCLUDE_DIR AND CUDA_CUT_LIBRARY)
-#else()
-#    message(FATAL_ERROR "Can't find the cutil library")
-#endif (CUDA_CUT_INCLUDE_DIR AND CUDA_CUT_LIBRARY)
-#
-#include_directories(${CUDA_CUT_INCLUDE_DIR})
-###### END HACK ######
-
 set(CUDA_BUILD_EMULATION OFF)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})

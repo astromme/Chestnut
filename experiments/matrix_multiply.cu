@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
-#include <cutil.h>
 
 #define HANDLE_ERROR(a, msg) \
   { \
@@ -144,21 +143,10 @@ int main(int argc, char* argv[]) {
   dim3 dimGrid(width_b / dimBlock.x, height_a / dimBlock.y);
   // Launch the device computation
 
-  double gpuTime;
-  unsigned int hTimer;
-  cutCreateTimer(&hTimer);
-  cutResetTimer(hTimer);
-  cutStartTimer(hTimer);
-
   for (int i=0; i<100; i++) {
     Muld<<<dimGrid, dimBlock>>>(dev_a, dev_b, width_a, width_b, dev_c);
   }
 
-  cutStopTimer(hTimer);
-  gpuTime = cutGetTimerValue(hTimer);
-  
-  printf("gpu time was %0.2f ms\n", gpuTime);
-  
   //Mul(dev_a, dev_b, height_a, width_a, width_b, dev_c);
 
   cudaFree(dev_a);
