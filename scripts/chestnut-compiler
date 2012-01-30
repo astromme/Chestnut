@@ -1,6 +1,6 @@
 #!/bin/bash
 
 # add this python path so that in-source compiles work
-PYTHONPATH="$(dirname $0):$PYTHONPATH"
+export PYTHONPATH="$(dirname $0):$PYTHONPATH"
 
 python -mchestnut.compiler $@
