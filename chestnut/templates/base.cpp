@@ -21,9 +21,6 @@
 #include <thrust/sort.h>
 
 #include <limits.h>
-
-// used for timing
-#include <cutil.h>
 {% endblock %}
 
 {% block using %}
@@ -66,10 +63,6 @@ int main(int argc, char* argv[]) {
   QApplication _app(argc, argv);
   {% endif %}
 
-  // create gpu timer
-  cutCreateTimer(&_host_timer);
-  cutResetTimer(_host_timer);
-
   srand(NULL);
   _allocator = ArrayAllocator();
 
@@ -89,8 +82,6 @@ int main(int argc, char* argv[]) {
   {{line}}
   {% endfor %}
   {% endblock %}
-
-  printf("time spent in kernels: %0.2f ms\n", cutGetTimerValue(_host_timer));
 
   {% if symbolTable.displayWindows|length > 0 %}
   // run until user closes window or quits
