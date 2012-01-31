@@ -1,6 +1,59 @@
-#!/bin/bash
+#!/usr/bin/env python
 
-# add this python path so that in-source compiles work
-export PYTHONPATH="$(dirname $0):$PYTHONPATH"
+def main():
+    import sys
 
-python -mchestnut.parser $@
+    if len(sys.argv) != 2:
+        print('Usage: %s input' % sys.argv[0])
+        sys.exit(1)
+
+
+    try:
+        with open(sys.argv[1], 'r') as f:
+            original_code = ''.join(f.readlines())
+    except IOError as e:
+        print e
+        sys.exit(1)
+
+    #########################################################################
+    # At this point we load in the chestnut modules. We delay this to improve
+    # program response time for the error cases above because it takes a long
+    # time (seconds) to compile the lepl regular expressions.
+
+    from chestnut.parser import remove_single_line_comments, \
+                                remove_multi_line_comments, \
+                                full_first_match_exception_init, \
+                                FullFirstMatchException, \
+                                parser
+    from chestnut.nodes import symbolTable
+    from chestnut.builtins import built_in_functions
+
+    for function in built_in_functions:
+        symbolTable.add(function)
+
+    code = remove_multi_line_comments(original_code)
+    code = remove_single_line_comments(code)
+
+    FullFirstMatchException.__init__ = full_first_match_exception_init(sys.argv[1])
+    try:
+        print(parser(code)[0])
+    except FullFirstMatchException, e:
+        code = original_code.split('\n')
+        lineno = e.kargs['lineno']
+
+        def valid_line(lineno):
+            return lineno > 0 and lineno < len(code)
+
+        import textwrap
+        print 'Error:'
+        print '\n'.join(map(lambda s: '    ' + s, textwrap.wrap(str(e), 76)))
+        print 'Context:'
+        for offset in [-2, -1, 0, 1, 2]:
+            if valid_line(lineno+offset):
+                if offset == 0: print '  ->',
+                else: print '    ',
+                print '%s: ' % (lineno+offset) + code[lineno+offset - 1]
+        sys.exit(1)
+
+if __name__ == '__main__':
+  main()
