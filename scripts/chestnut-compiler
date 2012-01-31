@@ -1,6 +1,74 @@
-#!/bin/bash
+#!/usr/bin/env python
 
-# add this python path so that in-source compiles work
-export PYTHONPATH="$(dirname $0):$PYTHONPATH"
+def main():
+    import sys, os
+    import shlex, subprocess
 
-python -mchestnut.compiler $@
+    if len(sys.argv) not in [2, 4]:
+        print('Usage: %s input_filename [-o output_filename.cu]' % sys.argv[0])
+        sys.exit(1)
+
+    input_file = sys.argv[1]
+    splits = input_file.split('.')
+    if splits[-1] not in ['chestnut', 'ch']:
+        print("Sorry, your input file %s doesn't end with .chestnut or .ch" % input_file)
+
+    if len(sys.argv) == 2:
+        output_file = os.path.basename('.'.join(splits[0:-1])) + '.cu'
+    else:
+        output_file = sys.argv[3]
+
+    try:
+        with open(input_file, 'r') as f:
+            code = ''.join(f.readlines())
+    except IOError as e:
+        print e
+        sys.exit(1)
+
+    #########################################################################
+    # At this point we load in the chestnut modules. We delay this to improve
+    # program response time for the error cases above because it takes a long
+    # time (seconds) to compile the lepl regular expressions.
+
+    from chestnut.compiler import compile, CompilerException
+    from chestnut.parser import parse, FullFirstMatchException
+    from chestnut.nodes import symbolTable
+    from chestnut.builtins import built_in_functions
+
+    for function in built_in_functions:
+        symbolTable.add(function)
+
+    # Time to get an AST, but that might fail and we want nice lines + context information
+    try:
+        ast = parse(code, from_file=input_file)
+    except FullFirstMatchException, e:
+        code_lines = code.split('\n')
+        lineno = e.kargs['lineno']
+
+        def valid_line(lineno):
+            return lineno > 0 and lineno < len(code_lines)
+
+        import textwrap
+        print 'Error:'
+        print '\n'.join(map(lambda s: '    ' + s, textwrap.wrap(str(e), 76)))
+        print 'Context:'
+        for offset in [-2, -1, 0, 1, 2]:
+            if valid_line(lineno+offset):
+                if offset == 0: print '  ->',
+                else: print '    ',
+                print '%s: ' % (lineno+offset) + code_lines[lineno+offset - 1]
+        sys.exit(1)
+
+    # Time to compile to C++ code, but that might fail and we want nice error messages
+    try:
+        thrust_code = compile(ast)
+    except CompilerException as e:
+        print e
+        sys.exit(1)
+
+    with open(output_file, 'w') as f:
+      f.write(thrust_code)
+
+
+if __name__ == '__main__':
+  main()
