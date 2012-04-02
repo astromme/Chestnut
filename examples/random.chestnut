@@ -1,0 +1,7 @@
+RealArray2d numbers[10, 1];
+
+foreach number in numbers
+  number = random();
+end
+
+write(numbers, "numbers.out");

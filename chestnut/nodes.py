@@ -1385,8 +1385,8 @@ class ParallelContext(ChestnutNode):
         else:
             struct_member_variables = function_parameters = struct_member_initializations = ''
 
-        if list_contains_function(statements, 'random'):
-            random_initializer = "curandState __random_state;\ncurand_init(hash(_index), 0, 0, &__random_state);\n"
+        if list_contains_function(statements, 'random'): #TODO: fix random
+            random_initializer = "curandState __random_state;\ncurand_init(1234 /* seed */, hash(_index), 0, &__random_state);\n"
         else:
             random_initializer = ''
 
