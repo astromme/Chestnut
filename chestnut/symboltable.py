@@ -2,19 +2,26 @@ from collections import namedtuple
 import numpy
 from pycuda import gpuarray
 
-# Keywords supported by chestnut syntax
-# These are added to the symbol table
+def combinations(ones, twos):
+    for a in ones:
+        for b in twos:
+            yield a, b
+
+def array_type(scalar_type, dimension):
+    return '{0}Array{1}d'.format(scalar_type, dimension)
+
+def array_element_type(scalar_type, dimension):
+    return '{0}{1}d'.format(scalar_type, dimension)
+
 scalar_types = ['Int', 'Real', 'Color', 'Bool']
 
-data_types = ['IntArray1d', 'IntArray2d', 'IntArray3d',
-              'RealArray1d', 'RealArray2d', 'RealArray3d',
-              'ColorArray1d', 'ColorArray2d', 'ColorArray3d']
+dimensions = ['1', '2', '3']
 
-structure_types = ['Point1d', 'Point2d', 'Point3d', 'Point4d',
-                   'Size1d', 'Size2d', 'Size3d',
-                   'Int1d', 'Real1d', 'Color1d',
-                   'Int2d', 'Real2d', 'Color2d',
-                   'Int3d', 'Real3d', 'Color3d']
+# IntArray1d, ColorArray2d, etc...
+array_types = [array_type(t, d) for t, d in combinations(scalar_types, dimensions)]
+
+# Int1d, Color2d, etc...
+array_element_types = [array_element_type(t, d) for t, d in combinations(scalar_types, dimensions)]
 
 reserved_words = [
             'parallel',
@@ -30,7 +37,7 @@ reserved_words = [
             'return',
             ]
 
-keywords = scalar_types + data_types + structure_types + reserved_words
+keywords = scalar_types + array_types + array_element_types + reserved_words
 
 
 numpy_type_map = { 'int2d' : numpy.int32,
@@ -43,10 +50,15 @@ DisplayWindow = namedtuple('DisplayWindow', ['name', 'title', 'width', 'height']
 Keyword = namedtuple('Keyword', ['name'])
 SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'node'])
 ParallelFunction = namedtuple('ParallelFunction', ['name', 'type', 'parameters', 'node'])
-NeutralFunction = namedtuple('NeutralFunction', ['name', 'type', 'parameters', 'node'])
+
 Object = namedtuple('Object', ['name'])
 
-class StreamVariable(namedtuple('StreamVariable', ['name', 'type', 'array', 'cpp_name'])): pass
+class NeutralFunction(namedtuple('NeutralFunction', ['name', 'type', 'parameters', 'node'])):
+    @property
+    def cpp_name(self):
+        return self.name
+
+class ArrayElement(namedtuple('ArrayElement', ['name', 'type', 'array', 'cpp_name'])): pass
 
 
 class Variable(namedtuple('Variable', ['name', 'type'])):
@@ -75,7 +87,7 @@ class Window(namedtuple('Window', ['name', 'number'])):
     def value(self, new_value):
         self._value = new_value
 
-class Data(namedtuple('Data', ['name', 'type', 'size'])):
+class Array(namedtuple('Array', ['name', 'type', 'size'])):
     @property
     def cpp_name(self):
         return self.name
@@ -130,11 +142,25 @@ class EntryExistsError(Exception):
     return "Error, %s already exists in this scope" % self.name
 
 class CompileTimeScope(dict):
-  def add(self, entry):
-    if entry.name in self:
-        raise EntryExistsError(entry.name)
-    self[entry.name] = entry
-    return entry
+    def add(self, entry):
+        if entry.name in self:
+            raise EntryExistsError(entry.name)
+        self[entry.name] = entry
+        return entry
+
+    def insert(self, name, entry):
+        if name in self:
+            raise EntryExistsError(name)
+        self[name] = entry
+        return entry
+
+    def remove(self, name):
+        if name in self:
+            del self[name]
+
+
+class CompileTimeParallelScope(CompileTimeScope):
+    pass
 
 class Scope(dict):
     def __init__(self, parent=None):
@@ -155,12 +181,15 @@ class Scope(dict):
 
             return self.parent[name]
 
-class SymbolTable:
+class SymbolTable(object):
     def __init__(self):
+        self.unique_counter = 0
         self.table = []
         self.structures = []
         self.displayWindows = []
         self.parallelContexts = []
+        self.parallelFunctionDeclarations = []
+        self.sequentialFunctionDeclarations = []
         self.createScope() # global scope
 
         for word in keywords:
@@ -172,11 +201,34 @@ class SymbolTable:
             result += str(entry) + "\n"
         return result
 
+    def uniqueNumber(self):
+        self.unique_counter += 1
+        return str(self.unique_counter)
+
     def add(self, entry):
         return self.currentScope.add(entry)
 
+    def insert(self, name, entry):
+        return self.currentScope.insert(name, entry)
+
+    def remove(self, name):
+        return self.currentScope.remove(name)
+
+    @property
+    def in_parallel_context(self):
+        try:
+            return isinstance(self.currentScope, CompileTimeParallelScope)
+        except IndexError: # no scopes yet
+            return False
+
     def createScope(self):
-      self.table.insert(0, CompileTimeScope())
+        if self.in_parallel_context:
+            return self.createParallelScope()
+
+        self.table.insert(0, CompileTimeScope())
+
+    def createParallelScope(self):
+        self.table.insert(0, CompileTimeParallelScope())
 
     def removeScope(self):
         self.table.pop(0)

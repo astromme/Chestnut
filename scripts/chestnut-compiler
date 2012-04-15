@@ -2,7 +2,6 @@
 
 def main():
     import sys, os
-    import shlex, subprocess
 
     if len(sys.argv) not in [2, 4]:
         print('Usage: %s input_filename [-o output_filename.cu]' % sys.argv[0])
@@ -30,13 +29,10 @@ def main():
     # program response time for the error cases above because it takes a long
     # time (seconds) to compile the lepl regular expressions.
 
-    from chestnut.compiler import compile, CompilerException
+    from chestnut.backends.walnut import WalnutBackend
+    from chestnut.exceptions import CompilerException
     from chestnut.parser import parse, FullFirstMatchException
-    from chestnut.nodes import symbolTable
-    from chestnut.builtins import built_in_functions
-
-    for function in built_in_functions:
-        symbolTable.add(function)
+    from chestnut.symboltable import SymbolTable
 
     # Time to get an AST, but that might fail and we want nice lines + context information
     try:
@@ -61,7 +57,8 @@ def main():
 
     # Time to compile to C++ code, but that might fail and we want nice error messages
     try:
-        thrust_code = compile(ast)
+        backend = WalnutBackend()
+        thrust_code = backend.compile(ast)
     except CompilerException as e:
         print e
         sys.exit(1)

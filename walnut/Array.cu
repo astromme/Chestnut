@@ -42,12 +42,12 @@ Array<T>::Array(thrust::device_vector<T> &vector, int width, int height, int dep
 }
 
 template <typename T>
-bool Array<T>::readFromFile(const QString &fileName) {
+Array<T>& Array<T>::readFromFile(const QString &fileName) {
     QFile file(fileName);
 
     if (!file.open(QFile::ReadOnly)) {
         cout << QString("Error Reading %1: %2").arg(fileName, file.errorString()).toStdString() << endl;
-        return false;
+        return *this;
     }
 
     QByteArray firstLine = file.readLine().trimmed();
@@ -93,16 +93,16 @@ bool Array<T>::readFromFile(const QString &fileName) {
 
     // copy to device
     thrust::copy(host_data.begin(), host_data.end(), this->thrustPointer());
-    return true;
+    return *this;
 }
 
 template <typename T>
-bool Array<T>::writeToFile(const QString &fileName) {
+Array<T>& Array<T>::writeToFile(const QString &fileName) {
     QFile file(fileName);
 
     if (!file.open(QFile::WriteOnly)) {
         cout << QString("Error Writing %1: %2").arg(fileName, file.errorString()).toStdString() << endl;
-        return false;
+        return *this;
     }
 
     thrust::host_vector<T> host_data(width()*height()*depth());
@@ -125,7 +125,7 @@ bool Array<T>::writeToFile(const QString &fileName) {
         file.write("\n");
     }
     file.close();
-    return true;
+    return *this;
 }
 
 WALNUT_INIT_STRUCT(Array);

@@ -27,6 +27,10 @@
 #include <thrust/sort.h>
 #include <thrust/device_vector.h>
 
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
 __device__ inline bool operator<(const Walnut::Color &left, const Walnut::Color &right) {
   return left.red() + left.green() + left.blue() + left.opacity() < right.red() + right.green() + right.blue() + right.opacity();
 }
@@ -56,16 +60,21 @@ struct WALNUT_EXPORT Array
   __host__ __device__ Array(T *data_, int width, int height=1, int depth=1) : data(data_), m_width(width), m_height(height), m_depth(depth) {}
              Array(thrust::device_vector<T> &vector, int width, int height, int depth); // If vector is deleted, bad stuff happens
 
-  bool readFromFile(const QString &fileName);
-  bool writeToFile(const QString &fileName);
+  Array<T>& readFromFile(const QString &fileName);
+  Array<T>& writeToFile(const QString &fileName);
 
   int length() const { return width() * height() * depth(); }
 
   __host__ __device__ Size3d size() const { return Size3d(width(), height(), depth()); }
 
   const T* constData() const { return (const T*)data; }
+
   thrust::device_ptr<T> thrustPointer() { return thrust::device_ptr<T>(data); }
+  thrust::device_ptr<T> thrustPointer() const { return thrust::device_ptr<T>(data); }
+
   thrust::device_ptr<T> thrustEndPointer() { return thrustPointer() + width()*height()*depth(); }
+  thrust::device_ptr<T> thrustEndPointer() const { return thrustPointer() + width()*height()*depth(); }
+
 
   void sort() { thrust::sort(this->thrustPointer(), this->thrustEndPointer()); }
 
@@ -79,10 +88,10 @@ struct WALNUT_EXPORT Array
   __host__ __device__ __inline__ int height() const { return m_height; }
   __host__ __device__ __inline__ int depth()  const { return m_depth; }
 
-  void copyTo(Array<T> &array)                 { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array.thrustPointer()); }
-  void copyTo(thrust::device_ptr<T> &array)    { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array); }
-  void copyTo(thrust::device_vector<T> &array) { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array.begin()); }
-  void copyTo(thrust::host_vector<T> &array)   { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array.begin()); }
+  void copyTo(Array<T> &array)                 const { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array.thrustPointer()); }
+  void copyTo(thrust::device_ptr<T> &array)    const { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array); }
+  void copyTo(thrust::device_vector<T> &array) const { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array.begin()); }
+  void copyTo(thrust::host_vector<T> &array)   const { thrust::copy(thrustPointer(), thrustPointer()+width()*height()*depth(), array.begin()); }
 
   // note... swapping arrays means that any copies of this Array<T> are invalid.
   void swapDataWith(Array<T> &other) {
@@ -104,6 +113,30 @@ struct WALNUT_EXPORT Array
   T& at(int x, int y=0, int z=0) {
     return data[calculateIndex(x, y, z)];
   }
+
+ 
+  friend __host__ std::ostream& operator<<(std::ostream& os, const Array<T>& obj)
+  {
+    // Create host vector to hold data
+    thrust::host_vector<T> hostArray(obj.size().length());
+
+    // transfer data back to host
+    obj.copyTo(hostArray);
+
+    //TODO: Convert this to something that reutrns a string, then we're good.
+    for (int z=0; z<obj.size().depth(); z++) {
+        for (int y=0; y<obj.size().height(); y++) {
+            for (int x=0; x<obj.size().width(); x++) {
+                int i = z*(obj.size().width()*obj.size().height()) + y*obj.size().width() + x;
+                os << ((hostArray[i] == 0) ? "." : stdStringFromElement(hostArray[i])) << " ";
+             }
+             os << std::endl;
+        }
+        os << std::endl;
+    }
+
+    return os;
+  }  
 
 };
 

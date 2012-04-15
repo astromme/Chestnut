@@ -28,15 +28,15 @@ namespace Walnut {
 template <typename T>
 struct WALNUT_EXPORT Window {
 
-  Array<T> array;
+  Array<T> m_array;
 
   int m_xLocation;
   int m_yLocation;
   int m_zLocation;
 
-  __device__ Window() { m_xLocation = m_yLocation = m_zLocation = 0; array = Array<T>(); }
-  __device__ Window(Array<T> &data, int x, int y=0, int z=0) : array(data), m_xLocation(x), m_yLocation(y), m_zLocation(z) {}
-  __device__ Window(const Window<T> &other) : array(other.array), m_xLocation(other.m_xLocation), m_yLocation(other.m_yLocation), m_zLocation(other.m_zLocation) {}
+  __device__ Window() { m_xLocation = m_yLocation = m_zLocation = 0; m_array = Array<T>(); }
+  __device__ Window(Array<T> &data, int x, int y=0, int z=0) : m_array(data), m_xLocation(x), m_yLocation(y), m_zLocation(z) {}
+  __device__ Window(const Window<T> &other) : m_array(other.m_array), m_xLocation(other.m_xLocation), m_yLocation(other.m_yLocation), m_zLocation(other.m_zLocation) {}
 
   __device__ Window<T> & operator=(const Window<T> &rhs) { this->center() = rhs.center(); return *this; }
   __device__ Window<T> & operator+=(const Window<T> &rhs) { this->center() += rhs.center(); return *this; }
@@ -47,6 +47,8 @@ struct WALNUT_EXPORT Window {
   __device__ Window<T>   operator-(const Window<T> &rhs) { Window<T> result = *this; return (result -= rhs); }
   __device__ Window<T>   operator*(const Window<T> &rhs) { Window<T> result = *this; return (result *= rhs); }
   __device__ Window<T>   operator/(const Window<T> &rhs) { Window<T> result = *this; return (result /= rhs); }
+
+  __device__ Array<T>& array() { return this->m_array; }
 
   __device__ operator T() { return this->center(); }
   __device__ bool operator==(const T &rhs) { return this->center() == rhs; }
@@ -64,12 +66,12 @@ struct WALNUT_EXPORT Window {
 
   __device__
   T& at(int x_offset=0, int y_offset=0, int z_offset=0) {
-    return array.data[array.calculateIndex(m_xLocation, m_yLocation, m_zLocation, x_offset, y_offset, z_offset)];
+    return m_array.data[m_array.calculateIndex(m_xLocation, m_yLocation, m_zLocation, x_offset, y_offset, z_offset)];
   }
 
   __device__
   T at(int x_offset=0, int y_offset=0, int z_offset=0) const {
-    return array.data[array.calculateIndex(m_xLocation, m_yLocation, m_zLocation, x_offset, y_offset, z_offset)];
+    return m_array.data[m_array.calculateIndex(m_xLocation, m_yLocation, m_zLocation, x_offset, y_offset, z_offset)];
   }
 
   __device__ Int x() const             { return m_xLocation; }
