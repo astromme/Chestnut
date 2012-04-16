@@ -494,7 +494,7 @@ _app.processEvents();
             #check_expression_type(arg1)
             #check_expression_type(arg2)
 
-            template = jinja.from_string("{{name}}.at({references|cpp_list|join(', ')}})")
+            template = jinja.from_string("{{name}}.at({{references|cpp_list|join(', ')}})")
             return template.render(name=symbol.cpp_name, references=references)
 
         else:
