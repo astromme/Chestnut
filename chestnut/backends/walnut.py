@@ -195,6 +195,8 @@ class WalnutBackend(object):
         # TODO: Potentially change symbols here in some way to make them not
         # clash with other walnut/cuda stuff
         symbol = self.symbols.lookup(str(node))
+        if not symbol:
+            raise CompilerException("Symbol %s has not been declared" % node) #TODO... make symbols ChetsnutNodes
         try:
             return symbol.cpp_name
         except AttributeError:
