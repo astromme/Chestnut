@@ -96,6 +96,9 @@ int main(int argc, char* argv[]) {
   // run until user closes window or quits
   return _app.exec();
   {%- else %}
+  // Synchronize the threads because apparently kernels get aborted if we
+  // return 0 without synchronizing?
+  cudaThreadSynchronize();
   // quit once done with computations
   return 0;
   {%- endif %}
