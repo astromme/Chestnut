@@ -6,7 +6,11 @@ find_package(Chestnut)
 include_directories(${CHESTNUT_INCLUDE_DIRS})
 
 chestnut_add_executable(game_of_life_chestnut game_of_life.chestnut)
-cuda_add_executable(game_of_life_cuda game_of_life.cu)
+chestnut_add_executable(game_of_life_chestnut_800x800 game_of_life_800x800.chestnut)
+chestnut_add_executable(game_of_life_chestnut_400x400 game_of_life_400x400.chestnut)
+cuda_add_executable(game_of_life_cuda_500x500 game_of_life.cu)
+cuda_add_executable(game_of_life_cuda_800x800 game_of_life_800x800.cu)
+cuda_add_executable(game_of_life_cuda_400x400 game_of_life_400x400.cu)
 #add_executable(game_of_life game_of_life.cpp)
 
 chestnut_add_executable(mandelbrot_chestnut mandelbrot.chestnut)

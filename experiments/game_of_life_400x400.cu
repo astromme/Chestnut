@@ -25,8 +25,8 @@
     } \
   }
 
-#define M 4096
-#define N 4096
+#define M 400
+#define N 400
 
 /**************** sequential GOL ************************/
 int get_num_neighbors(int matrix[][M], int n, int x, int y) {
@@ -349,3 +349,4 @@ int main (int argc, char *argv[])  {
   }
   return 0;
 }
+
