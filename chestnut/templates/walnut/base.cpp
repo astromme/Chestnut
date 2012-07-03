@@ -23,6 +23,8 @@
 #include <limits.h>
 {%- endblock %}
 
+{% include 'walnut/cuda_check_error.h' %}
+
 {% block using -%}
 // We don't care about namespace collisions so much here because we're
 // an end application, not a library
@@ -96,7 +98,7 @@ int main(int argc, char* argv[]) {
   // run until user closes window or quits
   return _app.exec();
   {%- else %}
-  // Synchronize the threads because apparently kernels get aborted if we
+  // Synchronize the threads because kernels get aborted if we
   // return 0 without synchronizing?
   cudaThreadSynchronize();
   // quit once done with computations
