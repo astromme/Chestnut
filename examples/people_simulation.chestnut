@@ -1,0 +1,33 @@
+Int n = 500;
+
+RealArray2d particle_diameters[n, 1];
+RealArray2d particle_has_exited[n, 1];
+RealArray2d particle_x_positions[n, 1];
+RealArray2d particle_y_positions[n, 1];
+
+Real theta;
+
+RealArray2d particle_x_velocities[n, 1];
+RealArray2d particle_y_velocities[n, 1];
+RealArray2d particle_velocity_vector_sums[n, 1];
+
+RealArray2d particle_desired_x_velocities[n, 1];
+RealArray2d particle_desired_y_velocities[n, 1];
+RealArray2d particle_desired_velocity_vector_sums[n, 1];
+
+Real default_velocity = 3.0;
+
+RealArray2d particle_x_accelerations[n, 1];
+RealArray2d particle_y_accelerations[n, 1];
+
+Real time = 0;
+Real time_delta = 0.005;
+Real tau = 0.5;
+
+Real width = 30;
+Real height = 30;
+
+Real exit_size = 2.0;
+Real exit_location = 0.5*width;
+
+Int exited_particles_count = 0;

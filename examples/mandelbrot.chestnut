@@ -1,7 +1,7 @@
-parallel Int mandelbrot(Int2d element, Size2d arraySize, Real xleft, Real xright, Real ytop, Real ybottom) {
+parallel Int mandelbrot(Int2d element, Real xleft, Real xright, Real ytop, Real ybottom) {
   // Scale coordinates to be in the given window
-  Real x0 = (element.x/arraySize.width) * (xright - xleft) + xleft;
-  Real y0 = (element.y/arraySize.height) * (ytop - ybottom) + ybottom;
+  Real x0 = (element.x/element.array.width) * (xright - xleft) + xleft;
+  Real y0 = (element.y/element.array.height) * (ytop - ybottom) + ybottom;
 
   Real x = 0;
   Real y = 0;
@@ -38,16 +38,14 @@ Real bottom = -1;
 
 IntArray2d mandelbrot_display[875, 500];
 
-for (Int i=0; i<100000; i+=1) {
-  foreach pixel in mandelbrot_display
-    pixel = mandelbrot(pixel, mandelbrot_display.size, left, right, top, bottom);
-  end
+foreach pixel in mandelbrot_display
+  pixel = mandelbrot(pixel, left, right, top, bottom);
+end
 
-  left = left * 0.99;
-  right = right * 0.99;
-  top = top * 0.99;
-  bottom = bottom * 0.99;
-}
+left = left * 0.99;
+right = right * 0.99;
+top = top * 0.99;
+bottom = bottom * 0.99;
 
 display(mandelbrot_display, orange_convert);
 

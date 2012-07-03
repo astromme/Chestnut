@@ -1,4 +1,5 @@
-from nodes import NeutralFunction, Parameter
+from .nodes import Parameter
+from .symboltable import NeutralFunction
 
 #SequentialFunction = namedtuple('SequentialFunction', ['name', 'type', 'parameters', 'ok_for_device', 'node'])
 

@@ -25,11 +25,6 @@ def main():
                                 full_first_match_exception_init, \
                                 FullFirstMatchException, \
                                 parser
-    from chestnut.nodes import symbolTable
-    from chestnut.builtins import built_in_functions
-
-    for function in built_in_functions:
-        symbolTable.add(function)
 
     code = remove_multi_line_comments(original_code)
     code = remove_single_line_comments(code)

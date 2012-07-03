@@ -1,0 +1,7 @@
+IntArray2d numbers[10, 3] = read("simple.data");
+Int sum = reduce(numbers);
+
+print(numbers);
+print("Average = %s", sum/numbers.length);
+
+write(numbers, "output.data");

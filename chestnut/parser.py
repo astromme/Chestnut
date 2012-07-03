@@ -2,9 +2,12 @@
 
 import re
 from .nodes import *
-from .symboltable import structure_types, scalar_types
 from .builtins import built_in_functions
 
+from . import symboltable
+
+from lepl import Delayed, Token, Or, And, UnsignedReal, UnsignedInteger, Optional, Regexp, Any
+from lepl import s_delta, s_fmt, s_deepest, sexpr_throw, make_error, sexpr_fold
 from lepl.stream.maxdepth import FullFirstMatchException
 
 
@@ -18,9 +21,8 @@ def full_first_match_exception_init(filename):
 
     return init
 
-# Some Delayed Stuff
-group2, group3_product, group4_sum, group5, group6, group7, group8 \
-    = Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed(), Delayed()
+# Delayed matchers can be used before they are defined
+group2, group3_product, group4_sum, group5, group6, group7, group8 = [Delayed() for _ in range(7)]
 
 variable_declaration = Delayed()
 
@@ -37,8 +39,11 @@ def with_line(node):
         except StopIteration:
             end_line = 'eof'
 
-        results.append(Context([start_line, end_line]))
-        return node(results)
+        n = node(results)
+        n.context.start_line = start_line
+        n.context.end_line = end_line
+
+        return n
 
     return wrapper
 
@@ -71,44 +76,28 @@ string_single_quote = Token("'(?:\\\\.|[^'\\\\])*'") >> (lambda obj: String(obj[
 string_double_quote = Token('"(?:\\\\.|[^"\\\\])*"') >> (lambda obj: String(obj[1:-1]))
 string = string_single_quote | string_double_quote
 
-# tokens
-int2d_declaration = Token('IntArray2d') >> Type
-real2d_declaration = Token('RealArray2d') >> Type
-color2d_declaration = Token('ColorArray2d') >> Type
-data_type_2d = real2d_declaration | int2d_declaration | color2d_declaration
 
-int3d_declaration = Token('IntArray3d') >> Type
-real3d_declaration = Token('RealArray3d') >> Type
-color3d_declaration = Token('ColorArray3d') >> Type
-data_type_3d = real3d_declaration | int3d_declaration | color3d_declaration
+def generate_type_tokens(iterable):
+    for type in iterable:
+        yield Token(type) >> Type
 
-data_type = data_type_2d | data_type_3d
+scalar_type        = Or(*generate_type_tokens(symboltable.scalar_types))
+array_type         = Or(*generate_type_tokens(symboltable.array_types))
+array_element_type = Or(*generate_type_tokens(symboltable.array_element_types))
 
-int_window2d_declaration = Token('Int2d') >> Type
-real_window2d_declaration = Token('Real2d') >> Type
-color_window2d_declaration = Token('Color2d') >> Type
-window_type_2d = real_window2d_declaration | int_window2d_declaration | color_window2d_declaration
-
-int_window3d_declaration = Token('Int3d') >> Type
-real_window3d_declaration = Token('Real3d') >> Type
-color_window3d_declaration = Token('Color3d') >> Type
-window_type_3d = real_window3d_declaration | int_window3d_declaration | color_window3d_declaration
-
-window_type = window_type_2d | window_type_3d
-
-type_declarations = [(Token(type) >> Type) for type in scalar_types + structure_types]
-type_ = Or(*type_declarations) | window_type
+type_ = scalar_type | array_type | array_element_type
 
 real = Token(UnsignedReal()) >> Real
 integer = Token(UnsignedInteger()) >> Integer
-number = integer | real | keyword('yes') >> Bool | keyword('no') >> Bool | keyword('true') >> Bool | keyword('false') >> Bool
+number = integer | real
+boolean = keyword('yes') >> Bool | keyword('no') >> Bool | keyword('true') >> Bool | keyword('false') >> Bool
 
 width = integer
 height = integer
 depth = integer
 
 unopened_size_block = (width & Optional(~comma & height & Optional(~comma & depth)) & symbol(']')) ** make_error('no [ before {out_rest!s}') & symbol(']')
-unclosed_size_block = (symbol('[') & width & Optional(~comma & height & Optional(~comma & depth))) ** make_error('Datablock size specification is missing a closing ]')
+unclosed_size_block = (symbol('[') & width & Optional(~comma & height & Optional(~comma & depth))) ** make_error('Array size specification is missing a closing ]')
 
 size = Or(
         (~symbol('[') & width
@@ -134,7 +123,7 @@ size = Or(
 
 # first layer, most tightly grouped, is parens and numbers
 parens = ~symbol('(') & expression & ~symbol(')')
-group1 = parens | number | string | primary
+group1 = parens | boolean | number | string | primary
 
 unary_not = (~symbol('!') & group2) > Not
 unary_neg = (~symbol('-') & group2) > Neg
@@ -150,7 +139,7 @@ group3_product += group3_pass_on | group3_include
 
 # fourth layer, less tightly grouped, is addition
 addend   = ~symbol('+') & group3_product
-negative = ~symbol('-') & group3_product > Negative
+negative = ~symbol('-') & group3_product > Neg
 group4_pass_on = group3_product
 group4_include = (group3_product & (addend | negative)[1:]) > Sum
 group4_sum    += group4_pass_on | group4_include
@@ -203,15 +192,15 @@ for_ = ( ~keyword('for') & ~symbol('(') &
 statement += ~semi | parallel_context | ((expression & ~semi) > Statement) | return_ | break_ | if_ | while_ | for_ | block
 
 #### Top Level Program Matching ####
-parameter_declaration = ((type_ | data_type ) & identifier) > Parameter
+parameter_declaration = ((type_ | array_type ) & identifier) > Parameter
 parameter_declaration_list = (parameter_declaration[0:, ~comma]) > Parameters
 
 initialization = (~symbol('=') & expression) ** with_line(VariableInitialization)
-data_initialization = (~symbol('=') & expression) ** with_line(DataInitialization)
+data_initialization = (~symbol('=') & expression) ** with_line(ArrayInitialization)
 
 variable_declaration += (type_ & identifier & Optional(initialization) & ~semi) ** with_line(VariableDeclaration)
-data_declaration = (data_type & identifier & size & Optional(data_initialization) & ~semi) ** with_line(DataDeclaration)
-sequential_function_declaration = (~Token('sequential') & (type_ | data_type) & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(SequentialFunctionDeclaration)
+data_declaration = (array_type & identifier & size & Optional(data_initialization) & ~semi) ** with_line(ArrayDeclaration)
+sequential_function_declaration = (~Token('sequential') & (type_ | array_type) & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(SequentialFunctionDeclaration)
 parallel_function_declaration = (~Token('parallel') & type_ & identifier & ~symbol('(') & Optional(parameter_declaration_list) & ~symbol(')') & block) ** with_line(ParallelFunctionDeclaration)
 object_declaration = ~keyword('object') & identifier & ~symbol('{') & (((type_ & identifier & ~semi) > List)[0:] > List) & ~symbol('}') > ObjectDeclaration
 
@@ -295,7 +284,7 @@ def remove_multi_line_comments(text):
 
     return "".join(whitespace_blanked)
 
-# And then my code for removing single line comments. much more consise!
+# And then my code for removing single line comments. much more concise!
 def remove_single_line_comments(code):
   comment_remover = (Regexp(r'//[^\n]*') >> whitespace | Any())[:, ...]
   try:
@@ -305,18 +294,18 @@ def remove_single_line_comments(code):
 
 
 def parse(original_code, from_file='unknown file'):
-  FullFirstMatchException.__init__ = full_first_match_exception_init(from_file)
+    FullFirstMatchException.__init__ = full_first_match_exception_init(from_file)
 
-  code = remove_multi_line_comments(original_code)
-  code = remove_single_line_comments(code)
+    code = remove_multi_line_comments(original_code)
+    code = remove_single_line_comments(code)
 
-  try:
-    parse = parser(code)[0]
-  except SyntaxError, e:
-    e.text = original_code.split('\n')[e.lineno - 1]
-    raise e
+    try:
+        parse = parser(code)[0]
+    except SyntaxError, e:
+        e.text = original_code.split('\n')[e.lineno - 1]
+        raise e
 
-  return parse
+    return parse
 
 def parse_file(filename):
   with open(filename, 'r') as f:

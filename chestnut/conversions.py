@@ -1,4 +1,4 @@
-from symboltable import scalar_types, data_types
+from symboltable import scalar_types, dimensions, array_type, array_types, array_element_type, array_element_types, combinations
 import numpy
 from pycuda.gpuarray import vec as types
 
@@ -8,39 +8,22 @@ def indent(code, indent_first_line=True):
         code = '  ' + code
     return code.replace('\n', '\n  ')
 
-data_to_scalar = {
-        'IntArray1d' : 'Int',
-        'IntArray2d' : 'Int',
-        'IntArray3d' : 'Int',
-        'RealArray1d' : 'Real',
-        'RealArray2d' : 'Real',
-        'RealArray3d' : 'Real',
-        'ColorArray1d' : 'Color',
-        'ColorArray2d' : 'Color',
-        'ColorArray3d' : 'Color',
-        'BoolArray1d' : 'Bool',
-        'BoolArray2d' : 'Bool',
-        'BoolArray3d' : 'Bool',
-        }
-
-datatype_to_windowtype = {
-        'IntArray1d'    : 'Int1d',
-        'RealArray1d'   : 'Real1d',
-        'ColorArray1d'  : 'Color1d',
-        'BoolArray1d'   : 'Bool1d',
-
-        'IntArray2d'    : 'Int2d',
-        'RealArray2d'   : 'Real2d',
-        'ColorArray2d'  : 'Color2d',
-        'BoolArray2d'   : 'Bool2d',
-
-        'IntArray3d'    : 'Int3d',
-        'RealArray3d'   : 'Real3d',
-        'ColorArray3d'  : 'Color3d',
-        'BoolArray3d'   : 'Bool3d',
-        }
+#  { 'IntArray1d' : 'Int', 'BoolArray3d' : 'Bool', etc... }
+array_to_scalar = dict([(array_type(type, dimension), type)
+                        for type, dimension in combinations(scalar_types, dimensions)])
 
 
+#  { 'IntArray1d' : 'Int1d', 'BoolArray3d' : 'Bool3d', etc... }
+array_to_array_element = dict([(array_type(type, dimension), array_element_type(type, dimension))
+                               for type, dimension in combinations(scalar_types, dimensions)])
+
+def c_type_from_chestnut_type(type_name):
+    if type_name in array_types:
+        return array_to_scalar[type_name]
+    else:
+        return type_name
+
+# TODO: Update with automatic mapping
 numpy_type_map = {
         'Int' : numpy.int32,
         'IntArray1d' : numpy.int32,
@@ -59,21 +42,27 @@ numpy_type_map = {
         #'Bool2d' : vec.bool,
         #'Bool3d' : vec.bool }
 
+coordinates = {
+        'x' : '_x',
+        'y' : '_y',
+        'z' : '_z',
+        'width' : '_width',
+        'height' : '_height',
+        'depth' : '_depth' }
 
+color_properties = { # Screen is apparently BGR not RGB
+        'red' : 'z',
+        'green' : 'y',
+        'blue' : 'x',
+        'opacity' : 'w' }
+
+
+# TODO: Update with automatic mapping
 dtype_to_ctype = {
         numpy.dtype('int32') : 'int',
         numpy.float32 : 'float',
         types.uchar4 : 'Color' }
 
-
-data_create_template = """\
-Array<%(type)s> %(name)s = _allocator.arrayWithSize<%(type)s>(%(dimensions)s);
-"""
-def create_data(type_, name, size):
-    dimensions = size[0:size.dimension]
-    return data_create_template % { 'type' : data_to_scalar[type_],
-                                    'name' : name,
-                                    'dimensions' : ', '.join(map(str, dimensions)) }
 
 def create_data_like_data(name, like_data):
     return data_create_template % { 'type' : data_to_scalar[like_data.type],

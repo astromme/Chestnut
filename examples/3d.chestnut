@@ -5,19 +5,19 @@ foreach element in grid
 end
 
 print('::x positions');
-print(grid);
+print('%s', grid);
 
 foreach element in grid
   element = element.y;
 end
 
 print('::y positions');
-print(grid);
+print('%s', grid);
 
 foreach element in grid
   element = element.z;
 end
 
 print('::z positions');
-print(grid);
+print('%s', grid);
 

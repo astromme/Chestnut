@@ -1,0 +1,11 @@
+object Point {
+  Int x;
+  Int y;
+}
+
+object Diamond {
+  Real something;
+}
+
+object Empty {
+}
