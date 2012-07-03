@@ -1,0 +1,24 @@
+parallel Int double(Int val) {
+  return val * 2;
+}
+parallel Int square(Int val) {
+  return val * val;
+}
+
+IntArray2d Xs[100, 150];
+IntArray2d Ys[100, 150];
+IntArray2d added_values[100, 150];
+
+foreach x in Xs, y in Ys
+  x = random() * 100;
+  y = random() * 100;
+end
+
+foreach x in Xs, y in Ys
+  x = double(x);
+  y = square(y);
+end
+
+foreach x in Xs, y in Ys, output in added_values
+  output = x + y;
+end

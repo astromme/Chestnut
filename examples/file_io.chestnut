@@ -1,0 +1,42 @@
+/* Nuts File Syntax - whitespace separated with meta-info at top
+type: IntArray2d[width=3, height=5]
+
+1 4 1823
+-4 8 3
+0 1 4
+3 2 8
+0 92 8
+*/
+
+IntArray2d Xs[3, 5] = arrayFromFile("X_data.nuts")
+IntArray2d Ys[3, 5] = arrayFromFile("Y_data.nuts")
+IntArray2d added_values[3, 5];
+
+foreach x in Xs, y in Ys
+  x = random() * 100;
+  y = random() * 100;
+end
+
+foreach x in Xs, y in Ys, output in added_values
+  output = x + y;
+end
+
+writeArrayToFile(added_values, "output.nuts")
+
+
+
+
+
+
+/* Future Syntax
+File object. Selectivly map parts into GPU land, sort of like mmap
+IntArray2dFile file = file("name")
+IntArray2d array = file.map(x=0, y=20, width=100, height=500)
+
+foreach value in array
+  value = value.x;
+end
+
+file.insert(x=0, y=20, array);
+file.sync();
+*/

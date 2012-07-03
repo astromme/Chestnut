@@ -1,0 +1,20 @@
+Real sigma_z = 1.5;
+Real sigma_x = 0.5;
+
+Int number_of_particles = 200;
+Int number_of_random_particles = 10;
+
+RealArray1d particles_x[number_of_particles];
+RealArray1d particles_y[number_of_particles];
+
+Real xpos = 0;
+Real ypos = 0;
+
+for x in particles_x, y in particles_y
+    x = sample_motion_x(x, control_x, sigma_x)
+    y = sample_motion_y(y, control_y, sigma_x)
+end
+
+xpos = sample_motion_x(xpos, control_x, sigma_x)
+ypos = sample_motion_y(ypos, control_y, sigma_x)
+
