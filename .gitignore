@@ -1,6 +1,9 @@
 /build/
 /build-python/
 /qtcreator-build/
+/related_work/
+/CUDA/build/
+/sequential/build/
 
 .DS_Store
 .*.swp
